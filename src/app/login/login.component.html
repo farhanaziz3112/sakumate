@@ -1,0 +1,90 @@
+<div
+  class="bg-gradient-to-r from-indigo-500 to-pink-300 w-full h-screen overflow-hidden"
+>
+  <div class="flex flex-col px-12 py-6 h-full w-full">
+    <div class="h-12 w-12">
+      <img src="../../assets/image/sakumate-logo-white.png" alt="" />
+    </div>
+    <div class="grid grid-cols-2 h-full w-full">
+      <div
+        class="col-span-1 flex flex-col justify-center items-center w-full h-full gap-2"
+      >
+        <img
+          src="../../assets/image/flat-design1.png"
+          alt=""
+          class="h-80 w-96"
+        />
+        <span class="tracking-wider font-yeseva text-6xl text-white font-medium"
+          >Money Matters,</span
+        >
+        <span class="tracking-wider font-yeseva text-6xl text-white font-medium"
+          >Made Simple.</span
+        >
+        <span class="text-xl text-white"
+          >Your Financial Friend: Making Money Management Easy and Fun!</span
+        >
+      </div>
+      <div class="col-span-1 px-40 py-10">
+        <div
+          class="flex flex-col w-full h-full justify-evenly bg-white px-8 py-4 rounded-2xl gap-4 outline outline-1 drop-shadow-lg"
+        >
+          <div class="flex flex-col">
+            <div class="flex flex-row justify-center">
+              <img
+                src="../../assets/image/sakumate-logo.png"
+                alt=""
+                class="h-16 w-16"
+              />
+            </div>
+            <span class="text-center tracking-widest text-3xl text-indigo-500"
+              >SakuMate</span
+            >
+          </div>
+          <div class="flex flex-col gap-2">
+            <span class="text-sm">Email</span>
+            <input
+              type="text"
+              placeholder="Enter your email"
+              class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+            />
+          </div>
+          <div class="flex flex-col gap-2">
+            <span class="text-sm">Password</span>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+            />
+          </div>
+          <span
+            class="text-right text-xs underline text-indigo-500 cursor-pointer"
+            >Forgot password?</span
+          >
+          <div class="flex justify-center">
+            <button
+              class="rounded-3xl bg-indigo-500 text-white px-7 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+            >
+              Login
+            </button>
+          </div>
+          <div class="flex flex-row items-center gap-2">
+            <div class="bg-gray-300 h-px w-full"></div>
+            <span>or</span>
+            <div class="bg-gray-300 h-px w-full"></div>
+          </div>
+          <span class="text-center text-xs"
+            >Don’t have account? Let’s join us!</span
+          >
+          <div class="flex justify-center">
+            <button
+              class="rounded-3xl bg-indigo-500 text-white px-7 py-2  transition duration-500 ease-in-out hover:bg-indigo-700"
+              (click)="signUp()"
+            >
+              Sign Up
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
