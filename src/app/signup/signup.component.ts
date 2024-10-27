@@ -16,7 +16,7 @@ export class SignupComponent {
 
   faArrowLeft = faArrowLeft;
 
-  login() {
-    this.router.navigate(['/login']);
+  login(link: string) {
+    this.router.navigate([link]);
   }
 }

@@ -1,0 +1,47 @@
+<div class="bg-gradient-to-r from-indigo-500 to-pink-300 w-full h-screen overflow-hidden">
+    <div class="flex flex-col px-12 py-6 h-full">
+        <div class="h-12 w-12 absolute">
+            <img src="../../assets/image/sakumate-logo-white.png" alt="" />
+        </div>
+        <!-- <p-button label="Back" icon="pi pi-arrow-left" class="bg-green-300 rounded-3xl"/> -->
+        <div class="p-16">
+            <p-stepper orientation="vertical">
+                <p-stepperPanel header="Header I">
+                    <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index">
+                        <div class="flex flex-column h-12rem">
+                            <div class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium">Content I</div>
+                        </div>
+                        <div class="flex py-4">
+                            <p-button label="Next" (onClick)="nextCallback.emit()" />
+                        </div
+                    ></ng-template>
+                </p-stepperPanel>
+                <p-stepperPanel header="Header II">
+                    <ng-template pTemplate="content" let-prevCallback="prevCallback" let-nextCallback="nextCallback" let-index="index">
+                        <div class="flex flex-column h-12rem">
+                            <div class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium">
+                                Content II
+                            </div>
+                        </div>
+                        <div class="flex py-4 gap-2">
+                            <p-button label="Back" severity="secondary" (onClick)="prevCallback.emit()" />
+                            <p-button label="Next" (onClick)="nextCallback.emit()" />
+                        </div>
+                    </ng-template>
+                </p-stepperPanel>
+                <p-stepperPanel header="Header III">
+                    <ng-template pTemplate="content" let-prevCallback="prevCallback" let-index="index">
+                        <div class="flex flex-column h-12rem">
+                            <div class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium">
+                                Content III
+                            </div>
+                        </div>
+                        <div class="flex py-4">
+                            <p-button label="Back" (onClick)="prevCallback.emit()" />
+                        </div>
+                    </ng-template>
+                </p-stepperPanel>
+            </p-stepper>
+        </div>
+    </div>
+</div>
