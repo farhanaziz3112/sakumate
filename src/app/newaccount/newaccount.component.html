@@ -1,47 +1,201 @@
-<div class="bg-gradient-to-r from-indigo-500 to-pink-300 w-full h-screen overflow-hidden">
-    <div class="flex flex-col px-12 py-6 h-full">
-        <div class="h-12 w-12 absolute">
-            <img src="../../assets/image/sakumate-logo-white.png" alt="" />
-        </div>
-        <!-- <p-button label="Back" icon="pi pi-arrow-left" class="bg-green-300 rounded-3xl"/> -->
-        <div class="p-16">
-            <p-stepper orientation="vertical">
-                <p-stepperPanel header="Header I">
-                    <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index">
-                        <div class="flex flex-column h-12rem">
-                            <div class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium">Content I</div>
-                        </div>
-                        <div class="flex py-4">
-                            <p-button label="Next" (onClick)="nextCallback.emit()" />
-                        </div
-                    ></ng-template>
-                </p-stepperPanel>
-                <p-stepperPanel header="Header II">
-                    <ng-template pTemplate="content" let-prevCallback="prevCallback" let-nextCallback="nextCallback" let-index="index">
-                        <div class="flex flex-column h-12rem">
-                            <div class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium">
-                                Content II
-                            </div>
-                        </div>
-                        <div class="flex py-4 gap-2">
-                            <p-button label="Back" severity="secondary" (onClick)="prevCallback.emit()" />
-                            <p-button label="Next" (onClick)="nextCallback.emit()" />
-                        </div>
-                    </ng-template>
-                </p-stepperPanel>
-                <p-stepperPanel header="Header III">
-                    <ng-template pTemplate="content" let-prevCallback="prevCallback" let-index="index">
-                        <div class="flex flex-column h-12rem">
-                            <div class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium">
-                                Content III
-                            </div>
-                        </div>
-                        <div class="flex py-4">
-                            <p-button label="Back" (onClick)="prevCallback.emit()" />
-                        </div>
-                    </ng-template>
-                </p-stepperPanel>
-            </p-stepper>
-        </div>
+<div class="bg-gradient-to-r from-indigo-500 to-pink-300 w-full min-h-screen">
+  <div class="flex flex-col px-12 py-6 h-full">
+    <div class="h-12 w-12 absolute">
+      <img src="../../assets/image/sakumate-logo-white.png" alt="" />
     </div>
+    <div class="p-32">
+      <div class="grid grid-cols-5">
+        <div class="col-span-1 flex flex-col justify-center items-center gap-3">
+          <span
+            class="rounded-full flex justify-center items-center w-10 h-10 border-2"
+            [ngClass]="
+              currentStep < 3
+                ? 'bg-indigo-500 text-white border-white'
+                : 'bg-white text-black'
+            "
+          >
+            1
+          </span>
+          <span class="text-white">Add Account & Balance</span>
+        </div>
+        <div class="col-span-1 justify-center items-center flex">
+          <div class="w-full h-0.5 bg-gray-100 relative rounded-lg overflow-hidden">
+            <div
+              class="bg-indigo-700 h-full transition-all duration-500 ease-in-out"
+              [style.width]="currentStep > 0 ? '100%' : '0%'"
+            ></div>
+          </div>
+        </div>
+        <div class="col-span-1 flex flex-col justify-center items-center gap-3">
+          <span
+            class="rounded-full flex justify-center items-center w-10 h-10 border-2"
+            [ngClass]="
+              currentStep < 3 && currentStep > 0
+                ? 'bg-indigo-500 text-white border-white'
+                : 'bg-white text-black'
+            "
+          >
+            2
+          </span>
+          <span class="text-white">Add Budgets</span>
+        </div>
+        <div class="col-span-1 justify-center items-center flex">
+          <div class="w-full h-0.5 bg-gray-100 relative">
+            <div
+              class="bg-indigo-700 h-full transition-all duration-500 ease-in-out"
+              [style.width]="currentStep > 1 ? '100%' : '0%'"
+            ></div>
+          </div>
+        </div>
+        <div class="col-span-1 flex flex-col justify-center items-center gap-3">
+          <span
+            class="rounded-full flex justify-center items-center w-10 h-10 border-2"
+            [ngClass]="
+              currentStep < 3 && currentStep > 1
+                ? 'bg-indigo-500 text-white border-white'
+                : 'bg-white text-black'
+            "
+          >
+            3
+          </span>
+          <span class="text-white">Add Goals</span>
+        </div>
+        <ng-container *ngIf="currentStep === 0">
+          <div
+            class="col-span-5 bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg mt-16 px-10 py-8"
+          >
+            <span>Add Account & Balance</span>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Account Name</span>
+              <input
+                type="text"
+                placeholder="Enter your account name"
+                class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+              />
+            </div>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Account Type</span>
+              <div class="space-x-4">
+                <label *ngFor="let item of accType">
+                  <input type="radio" name="accountType" [value]="item.value" />
+                  <span class="ml-1">{{ item.label }}</span>
+                </label>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Balance</span>
+              <input
+                type="number"
+                placeholder="Enter your balance amount"
+                class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+              />
+            </div>
+            <div class="flex justify-end">
+              <button
+                class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                (click)="changeStep(1)"
+              >
+                Next<fa-icon class="p-1" [icon]="faArrowRight"></fa-icon>
+              </button>
+            </div>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="currentStep === 1">
+          <div
+            class="col-span-5 bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg mt-16 px-10 py-8"
+          >
+            <span>Add Budgets</span>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Account Name</span>
+              <input
+                type="text"
+                placeholder="Enter your account name"
+                class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+              />
+            </div>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Account Type</span>
+              <div class="space-x-4">
+                <label *ngFor="let item of accType">
+                  <input type="radio" name="accountType" [value]="item.value" />
+                  <span class="ml-1">{{ item.label }}</span>
+                </label>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Balance</span>
+              <input
+                type="number"
+                placeholder="Enter your balance amount"
+                class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+              />
+            </div>
+            <div class="flex justify-between">
+              <button
+                class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                (click)="changeStep(0)"
+              >
+                <fa-icon class="p-1" [icon]="faArrowLeft"></fa-icon>
+                Back
+              </button>
+              <button
+                class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                (click)="changeStep(2)"
+              >
+                Next<fa-icon class="p-1" [icon]="faArrowRight"></fa-icon>
+              </button>
+            </div>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="currentStep === 2">
+          <div
+            class="col-span-5 bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg mt-16 px-10 py-8"
+          >
+            <span>Add Goals</span>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Account Name</span>
+              <input
+                type="text"
+                placeholder="Enter your account name"
+                class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+              />
+            </div>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Account Type</span>
+              <div class="space-x-4">
+                <label *ngFor="let item of accType">
+                  <input type="radio" name="accountType" [value]="item.value" />
+                  <span class="ml-1">{{ item.label }}</span>
+                </label>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Balance</span>
+              <input
+                type="number"
+                placeholder="Enter your balance amount"
+                class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+              />
+            </div>
+            <div class="flex justify-between">
+              <button
+                class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                (click)="changeStep(1)"
+              >
+                <fa-icon class="p-1" [icon]="faArrowLeft"></fa-icon>
+                Back
+              </button>
+              <button
+                class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                (click)="goToHome()"
+              >
+                Submit
+                <fa-icon class="p-1" [icon]="faCheck"></fa-icon>
+              </button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
 </div>

@@ -32,3 +32,8 @@
 * {
     font-family: 'garet';
 }
+
+.text-xxs {
+  font-size: 0.60rem;
+}
+
