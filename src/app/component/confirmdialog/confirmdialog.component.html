@@ -1,0 +1,31 @@
+<p-dialog [(visible)]="visible" [modal]="true" [dismissableMask]="true" (onHide)="cancel()">
+    <ng-template pTemplate="headless">
+        <div class="w-72 h-auto lg-m:w-96 lg-m:h-auto bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8">
+            <div class="flex flex-col gap-8 w-full h-full justify-between">
+                <div class="flex flex-row justify-between">
+                    <span class="text-base font-bold">{{title}}</span>
+                    <span class="cursor-pointer text-gray-400 hover:text-black" (click)="cancel()"><fa-icon
+                            [icon]="faXmark"></fa-icon></span>
+                </div>
+                <div class="flex flex-row justify-start items-center gap-4">
+                    <span class="text-gray-400"><fa-icon [icon]="faCircleExclamation"></fa-icon></span>
+                    <span class="text-sm">{{message}}</span>
+                </div>
+                <div class="flex flex-row justify-evenly">
+                    <button
+                        class="rounded-3xl bg-gray-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-gray-700"
+                        (click)="cancel()">
+                        Cancel
+                        <fa-icon [icon]="faXmark"></fa-icon>
+                    </button>
+                    <button
+                        class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                        (click)="confirm()">
+                        Confirm
+                        <fa-icon [icon]="faCheck"></fa-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+</p-dialog>

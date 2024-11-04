@@ -1,125 +1,89 @@
 <div class="flex flex-col w-full h-full gap-8">
   <div class="flex flex-row gap-2 text-gray-800 dark:text-gray-200">
-    <span
-      class="underline hover:text-gray-500 dark:hover:text-gray-300 cursor-pointer"
-      (click)="goToAccount()"
-      >Account</span
-    >
+    <span class="underline hover:text-gray-500 dark:hover:text-gray-300 cursor-pointer"
+      (click)="goToAccount()">Account</span>
     <span>></span>
     <span>Add Account</span>
   </div>
   <div class="flex flex-row justify-between">
+    <span class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium">Add New Account</span>
     <span
-      class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
-      >Add New Account</span
-    >
-    <span
-      class="cursor-pointer text-sm lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
-      >MYR</span
-    >
+      class="cursor-pointer text-xs lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white">MYR</span>
   </div>
-  <div class="grid grid-cols-2">
-    <div class="col-span-1">
+  <div class="grid grid-cols-2 gap-16">
+    <div class="col-span-2 sm:col-span-1">
       <form [formGroup]="addAccountForm">
         <div class="flex flex-col gap-8 w-full h-full justify-between">
           <div class="flex flex-col gap-2 w-full">
             <span class="text-sm">Account Name</span>
-            <input
-              formControlName="accName"
-              type="text"
-              placeholder="Enter your account name"
-              class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-            />
+            <input formControlName="accName" type="text" placeholder="Enter your account name"
+              class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent" />
           </div>
           <div class="flex flex-col gap-2 w-full">
             <span class="text-sm">Account Type</span>
             <ng-container *ngFor="let item of accType">
               <div class="flex flex-row">
-                <input
-                  type="radio"
-                  [value]="item.value"
-                  formControlName="accType"
-                />
+                <input type="radio" [value]="item.value" formControlName="accType" />
                 <span class="ml-1">{{ item.label }}</span>
               </div>
             </ng-container>
           </div>
           <div class="flex flex-col gap-2 w-full">
             <span class="text-sm">Balance</span>
-            <input
-              formControlName="currentBalance"
-              type="number"
-              placeholder="Enter your balance amount"
-              class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-            />
+            <input formControlName="currentBalance" type="number" placeholder="Enter your balance amount"
+              class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent" />
           </div>
           <div class="flex flex-col gap-2 w-full relative">
             <span class="text-sm">Display Colors</span>
             <div class="flex flex-row justify-evenly">
               <div class="flex flex-col">
-                <div
-                  *ngIf="overlayOpen"
-                  #overlayPanel
-                  class="absolute z-10 w-72 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
+                <div *ngIf="overlayOpen" #overlayPanel
+                  class="hidden md:block absolute z-10 w-72 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
                   [ngClass]="{
                     'bottom-full -mb-4': overlayPosition === 'top',
                     'top-full mt-2': overlayPosition === 'bottom'
-                  }"
-                >
-                  <div class="flex flex-col">
-                    <span class="text-sm">Color 1</span>
+                  }">
+                  <div class="flex flex-col gap-2">
+                    <span class="text-sm font-bold">Color 1</span>
                     <div class="grid grid-cols-4 gap-1">
                       <ng-container *ngFor="let color of colors">
                         <div class="col-span-1 flex justify-center">
                           <span
                             class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                            [ngClass]="getColors(color.name)"
-                            (click)="setColor(color.name, true)"
-                          ></span>
+                            [ngClass]="getColors(color)" (click)="setColor(color, true)"></span>
                         </div>
                       </ng-container>
                     </div>
                   </div>
                 </div>
-                <span
-                  #triggerButton
+                <span #triggerButton
                   class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                  [ngClass]="getColors(addAccountForm.value['color1'])"
-                  (click)="toggleOverlay('top')"
-                ></span>
+                  [ngClass]="getColors(addAccountForm.value['color1'])" (click)="toggleOverlay('top')"></span>
                 <span class="text-sm">Color 1</span>
               </div>
               <div class="flex flex-col">
-                <div
-                  *ngIf="overlayOpen2"
-                  #overlayPanel2
-                  class="absolute z-10 w-72 p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
+                <div *ngIf="overlayOpen2" #overlayPanel2
+                  class="hidden md:block absolute z-10 w-72 p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
                   [ngClass]="{
                     'bottom-full -mb-4': overlayPosition === 'top',
                     'top-full mt-2': overlayPosition === 'bottom'
-                  }"
-                >
-                  <div class="flex flex-col">
-                    <span class="text-sm">Color 2</span>
+                  }">
+                  <div class="flex flex-col gap-2">
+                    <span class="text-sm font-bold">Color 2</span>
                     <div class="grid grid-cols-4 gap-1">
                       <ng-container *ngFor="let color of colors">
                         <div class="col-span-1 flex justify-center">
                           <span
                             class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                            [ngClass]="getColors(color.name)"
-                            (click)="setColor(color.name, false)"
-                          ></span>
+                            [ngClass]="getColors(color)" (click)="setColor(color, false)"></span>
                         </div>
                       </ng-container>
                     </div>
                   </div>
                 </div>
-                <span
-                  #triggerButton2
+                <span #triggerButton2
                   class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                  [ngClass]="getColors(addAccountForm.value['color2'])"
-                  (click)="toggleOverlay2('top')"
-                ></span>
+                  [ngClass]="getColors(addAccountForm.value['color2'])" (click)="toggleOverlay2('top')"></span>
                 <span class="text-sm">Color 2</span>
               </div>
             </div>
@@ -127,56 +91,87 @@
           <div class="flex flex-row justify-center relative">
             <button
               class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-            >
+              (click)="showConfirmDialog()">
               Submit
               <fa-icon [icon]="faCheck"></fa-icon>
             </button>
-            <!-- <p-overlayPanel #op [dismissable]="true" class="bg-red-300">
-                  <ng-template pTemplate="headless">
-                    <div class="flex flex-col gap-3 bg-red-300 w-full h-full">
-                      <div>
-                        <span class="font-medium text-900 block mb-2"
-                          >Share this document</span
-                        >
-                      </div>
-                      <div>
-                        <span class="font-medium text-900 block mb-2"
-                          >Invite Member</span
-                        >
-                      </div>
-                      <div>
-                        <span class="font-medium text-900 block mb-2"
-                          >Team Members</span
-                        >
-                      </div>
-                    </div>
-                  </ng-template>
-                </p-overlayPanel> -->
           </div>
         </div>
       </form>
     </div>
-    <div class="col-span-1">
-      <div
-        class="flex flex-col h-full w-full justify-start items-center gap-16"
-      >
+    <div class="col-span-2 sm:col-span-1">
+      <div class="flex flex-col h-full w-full justify-center items-center gap-8">
         <span class="text-sm">Preview</span>
         <div
-          class="flex flex-col w-80 h-40 justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b rounded-sm cursor-pointer"
+          class="flex flex-col w-64 h-32 lg:w-80 lg:h-40 justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b rounded-sm cursor-pointer"
           [ngClass]="
             getGradientClasses(
               addAccountForm.value['color1'],
               addAccountForm.value['color2']
             )
-          "
-        >
+          ">
           <div class="flex flex-col">
-            <span class="text-xs lg-m:text-sm">Account 1</span>
-            <span class="text-lg lg-m:text-2xl font-semibold">17,301.60</span>
+            <span class="text-xs lg-m:text-sm">
+              {{addAccountForm.value['accName']}}
+            </span>
+            <span class="text-lg lg-m:text-2xl font-semibold">
+              {{addAccountForm.value['currentBalance'] | number:'1.2-2'}}
+            </span>
           </div>
-          <span class="text-xs">Increase</span>
+          <span class="text-xs">
+            {{addAccountForm.value['accType'] | uppercase}}
+          </span>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<app-confirmdialog [visible]="confirmDialog" title="Add New Account" message="Are sure you want to proceed?"
+  (onConfirm)="submitAccount()" (onCancel)="cancelAccount()"></app-confirmdialog>
+
+<p-dialog class="block md:hidden" header="header" [(visible)]="overlayOpen" [modal]="true" [dismissableMask]="true">
+  <ng-template pTemplate="headless">
+    <div class="w-72 h-auto lg-m:w-96 lg-m:h-auto bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8">
+      <div class="flex flex-col gap-4 w-full h-full justify-start">
+        <div class="flex flex-row justify-between">
+          <span class="text-base font-bold">Color 1</span>
+          <span class="cursor-pointer text-gray-400 hover:text-black" (click)="toggleOverlay('top')"><fa-icon
+              [icon]="faXmark"></fa-icon></span>
+        </div>
+        <div class="grid grid-cols-4 gap-1">
+          <ng-container *ngFor="let color of colors">
+            <div class="col-span-1 flex justify-center">
+              <span
+                class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                [ngClass]="getColors(color)" (click)="setColor(color, true)"></span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog class="block md:hidden" header="header" [(visible)]="overlayOpen2" [modal]="true" [dismissableMask]="true">
+  <ng-template pTemplate="headless">
+    <div class="w-72 h-auto lg-m:w-96 lg-m:h-auto bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8">
+      <div class="flex flex-col gap-4 w-full h-full justify-start">
+        <div class="flex flex-row justify-between">
+          <span class="text-base font-bold">Color 2</span>
+          <span class="cursor-pointer text-gray-400 hover:text-black" (click)="toggleOverlay2('top')"><fa-icon
+              [icon]="faXmark"></fa-icon></span>
+        </div>
+        <div class="grid grid-cols-4 gap-1">
+          <ng-container *ngFor="let color of colors">
+            <div class="col-span-1 flex justify-center">
+              <span
+                class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                [ngClass]="getColors(color)" (click)="setColor(color, false)"></span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

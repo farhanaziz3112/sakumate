@@ -18,11 +18,14 @@ import {
   faArrowLeft,
   faArrowRight,
   faCheck,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { ButtonModule } from 'primeng/button';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { ThemeService } from '../../service/theme.service';
 import { ColorService } from '../../service/color.service';
+import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdialog.component';
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'app-addaccount',
@@ -34,6 +37,8 @@ import { ColorService } from '../../service/color.service';
     ButtonModule,
     ReactiveFormsModule,
     FormsModule,
+    ConfirmdialogComponent,
+    DialogModule
   ],
   templateUrl: './addaccount.component.html',
   styleUrl: './addaccount.component.css',
@@ -63,96 +68,15 @@ export class AddaccountComponent implements OnInit {
   ];
 
   colors = [
-    {
-      name: 'red',
-      light: 'bg-red-300',
-      dark: 'bg-red-600',
-    },
-    {
-      name: 'orange',
-      light: 'bg-orange-300',
-      dark: 'bg-orange-600',
-    },
-    {
-      name: 'amber',
-      light: 'bg-amber-300',
-      dark: 'bg-amber-600',
-    },
-    {
-      name: 'yellow',
-      light: 'bg-yellow-300',
-      dark: 'bg-yellow-600',
-    },
-    {
-      name: 'lime',
-      light: 'bg-lime-300',
-      dark: 'bg-lime-600',
-    },
-    {
-      name: 'green',
-      light: 'bg-green-300',
-      dark: 'bg-green-600',
-    },
-    {
-      name: 'emerald',
-      light: 'bg-emerald-300',
-      dark: 'bg-emerald-600',
-    },
-    {
-      name: 'teal',
-      light: 'bg-teal-300',
-      dark: 'bg-teal-600',
-    },
-    {
-      name: 'cyan',
-      light: 'bg-cyan-300',
-      dark: 'bg-cyan-600',
-    },
-    {
-      name: 'sky',
-      light: 'bg-sky-300',
-      dark: 'bg-sky-600',
-    },
-    {
-      name: 'blue',
-      light: 'bg-blue-300',
-      dark: 'bg-blue-600',
-    },
-    {
-      name: 'indigo',
-      light: 'bg-indigo-300',
-      dark: 'bg-indigo-600',
-    },
-    {
-      name: 'violet',
-      light: 'bg-violet-300',
-      dark: 'bg-violet-600',
-    },
-    {
-      name: 'purple',
-      light: 'bg-purple-300',
-      dark: 'bg-purple-600',
-    },
-    {
-      name: 'fuchsia',
-      light: 'bg-fuchsia-300',
-      dark: 'bg-fuchsia-600',
-    },
-    {
-      name: 'pink',
-      light: 'bg-pink-300',
-      dark: 'bg-pink-600',
-    },
-    {
-      name: 'rose',
-      light: 'bg-rose-300',
-      dark: 'bg-rose-600',
-    },
+    'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal',
+    'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'
   ];
+
 
   faArrowRight = faArrowRight;
   faArrowLeft = faArrowLeft;
   faCheck = faCheck;
+  faXmark = faXmark;
 
   addAccountForm: FormGroup | any;
 
@@ -249,5 +173,20 @@ export class AddaccountComponent implements OnInit {
     this.overlayPosition = position;
     this.overlayOpen2 = !this.overlayOpen2;
     this.overlayOpen = false;
+  }
+
+  confirmDialog: boolean = false;
+
+  showConfirmDialog() {
+    this.confirmDialog = true;
+  }
+
+  submitAccount() {
+    this.confirmDialog = false;
+  }
+
+  cancelAccount() {
+    this.confirmDialog = false;
+
   }
 }
