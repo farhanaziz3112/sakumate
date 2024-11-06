@@ -18,6 +18,10 @@ export class AccountComponent {
   constructor(private router: Router) {}
 
   addAccount() {
-    this.router.navigate(['/account/addaccount'])
+    this.router.navigate(['/account/addaccount']);
+  }
+
+  goToAccount(id: string) {
+    this.router.navigate(['/account', id]);
   }
 }

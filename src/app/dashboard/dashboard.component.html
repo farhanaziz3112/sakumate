@@ -132,11 +132,7 @@
               item.amount | number : "1.2-2"
             }}</span>
             <div class="flex w-full justify-center">
-              <app-tag
-                [name]="item.tag"
-                [color]="item.tagColor"
-                [icon]="item.icon"
-              ></app-tag>
+              <app-tag [name]="item.tag"></app-tag>
             </div>
             <span class="flex text-xxs lg:text-xs w-full justify-end">{{
               item.date
@@ -207,9 +203,7 @@
           <app-donut [percentage]="70" color="text-violet-400"></app-donut>
           <div class="flex flex-col gap-3">
             <app-tag
-              name="petrol"
-              color="bg-blue-500"
-              icon="faGasPump"
+              name="Petrol"
             ></app-tag>
             <div class="flex flex-col">
               <span class="text-xxs lg-m:text-xs">Budget Limit</span>
@@ -229,9 +223,7 @@
           <app-donut [percentage]="35" color="text-violet-400"></app-donut>
           <div class="flex flex-col gap-3">
             <app-tag
-              name="foods"
-              color="bg-orange-500"
-              icon="faBurger"
+              name="Food"
             ></app-tag>
             <div class="flex flex-col">
               <span class="text-xxs lg-m:text-xs">Budget Limit</span>
@@ -251,9 +243,7 @@
           <app-donut [percentage]="70" color="text-violet-400"></app-donut>
           <div class="flex flex-col gap-3">
             <app-tag
-              name="shopping"
-              color="bg-pink-500"
-              icon="faShoppingCart"
+              name="Shopping"
             ></app-tag>
             <div class="flex flex-col">
               <span class="text-xxs lg-m:text-xs">Budget Limit</span>
@@ -290,13 +280,6 @@
             <span class="flex text-xxs lg-m:text-xs w-full justify-center">{{
               item.dueDate
             }}</span>
-            <span class="flex w-full justify-end">
-              <app-tag
-                [name]="item.status"
-                color="bg-red-300"
-                icon="faDollarSign"
-              ></app-tag>
-            </span>
           </div>
         </ng-container>
       </div>
@@ -354,11 +337,7 @@
               (click)="toggleDropdown()"
             >
               <ng-container *ngIf="selectedTag; else noTag">
-                <app-tag
-                  [name]="selectedTag.name"
-                  [color]="selectedTag.color"
-                  [icon]="selectedTag.icon"
-                ></app-tag>
+                <app-tag [name]="selectedTag"></app-tag>
               </ng-container>
               <ng-template #noTag> Select an option </ng-template>
               <fa-icon [icon]="faChevronDown"></fa-icon>
@@ -369,15 +348,11 @@
             >
               <ul>
                 <li
-                  *ngFor="let item of incomeTags"
-                  (click)="selectTag(item)"
+                  *ngFor="let tag of incomeTags"
+                  (click)="selectTag(tag)"
                   class="cursor-pointer px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
                 >
-                  <app-tag
-                    [name]="item.name"
-                    [color]="item.color"
-                    [icon]="item.icon"
-                  ></app-tag>
+                  <app-tag [name]="tag"></app-tag>
                 </li>
               </ul>
             </div>
@@ -429,11 +404,7 @@
               (click)="toggleDropdown()"
             >
               <ng-container *ngIf="selectedTag; else noTag">
-                <app-tag
-                  [name]="selectedTag.name"
-                  [color]="selectedTag.color"
-                  [icon]="selectedTag.icon"
-                ></app-tag>
+                <app-tag [name]="selectedTag"></app-tag>
               </ng-container>
               <ng-template #noTag> Select an option </ng-template>
               <fa-icon [icon]="faChevronDown"></fa-icon>
@@ -444,15 +415,11 @@
             >
               <ul>
                 <li
-                  *ngFor="let item of expenseTags"
-                  (click)="selectTag(item)"
+                  *ngFor="let tag of expenseTags"
+                  (click)="selectTag(tag)"
                   class="cursor-pointer px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
                 >
-                  <app-tag
-                    [name]="item.name"
-                    [color]="item.color"
-                    [icon]="item.icon"
-                  ></app-tag>
+                  <app-tag [name]="tag"></app-tag>
                 </li>
               </ul>
             </div>

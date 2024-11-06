@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterModule, Routes } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faArrowLeft,
@@ -23,7 +23,7 @@ import { ThemeService } from '../service/theme.service';
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css',
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit {
   faArrowRight = faArrowRight;
   faArrowLeft = faArrowLeft;
   faCheck = faCheck;
@@ -39,37 +39,49 @@ export class LayoutComponent {
 
   currentTheme = 'light';
 
-  constructor(private themeService: ThemeService) {
+  constructor(
+    private themeService: ThemeService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
     this.currentTheme = this.themeService.currentTheme;
+  }
+
+  ngOnInit() {
+    for (let i = 0; i < this.sideLink.length; i++) {
+      if (this.router.url.includes(this.sideLink[i].link)) {
+        this.currentActiveRoute = i;
+      }
+    }
   }
 
   sideLink = [
     {
       id: 0,
       link: '/dashboard',
-      icon: faHouse
+      icon: faHouse,
     },
     {
       id: 1,
       link: '/account',
-      icon: faCreditCard
+      icon: faCreditCard,
     },
     {
       id: 2,
       link: '/goal',
-      icon: faBullseye
+      icon: faBullseye,
     },
     {
       id: 3,
       link: '/budget',
-      icon: faMoneyCheckDollar
+      icon: faMoneyCheckDollar,
     },
     {
       id: 4,
       link: '/settings',
-      icon: faGear
+      icon: faGear,
     },
-  ]
+  ];
 
   setActiveRoute(route: number) {
     this.currentActiveRoute = route;

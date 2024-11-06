@@ -1,38 +1,296 @@
 <div class="flex flex-col w-full h-full gap-8">
-    <div class="flex flex-row justify-between">
-      <span
-        class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
-        >Budget</span
-      >
-      <span
-        class="cursor-pointer text-sm lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
-        >MYR</span
+  <div class="flex flex-row justify-between">
+    <span
+      class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
+      >Budget</span
+    >
+    <span
+      class="cursor-pointer text-sm lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+      >MYR</span
+    >
+  </div>
+  <div class="flex flex-row w-full justify-between items-center">
+    <div
+      class="flex flex-row items-center gap-2 w-2/3 px-2 py-3 rounded-md border border-gray-200 text-gray-600 dark:text-gray-200"
+    >
+      <fa-icon [icon]="getIcon('faCircleExclamation')"></fa-icon>
+      <span class="text-sm"
+        >Budget is categorization of your income and expenses. By setting up
+        your budgets, you can supervise precisely, where your money come from
+        and go to.</span
       >
     </div>
-    <div class="flex flex-col w-full gap-1">
-      <span class="text-sm lg-m:text-base font-semibold">Budget</span>
+    <button
+      class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+      (click)="addBudget()"
+    >
+      Add New Budget <fa-icon [icon]="getIcon('faPlus')"></fa-icon>
+    </button>
+  </div>
+  <div class="flex flex-row justify-center gap-2">
+    <span
+      class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-32 px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+      (click)="toggleAccDropdown()"
+      #accDropdownButton
+    >
+      <span>{{ selectedAcc }}</span>
+      <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
+    </span>
+    <div
+      #accDropdownOverlay
+      *ngIf="accDropdown"
+      class="absolute z-10 mt-8 mr-40 w-40 bg-white dark:bg-gray-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+    >
+      <ul>
+        <li
+          *ngFor="let acc of accounts"
+          (click)="selectAcc(acc)"
+          class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+        >
+          {{ acc }}
+        </li>
+      </ul>
+    </div>
+    <span
+      #monthDropdownButton
+      class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-32 px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+      (click)="toggleMonthDropdown()"
+    >
+      <span>{{ selectedMonth }}</span>
+      <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
+    </span>
+    <div
+      *ngIf="monthDropdown"
+      #monthDropdownOverlay
+      class="absolute z-10 mt-8 ml-40 w-40 bg-white dark:bg-gray-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+    >
+      <ul>
+        <li
+          *ngFor="let month of months"
+          (click)="selectMonth(month)"
+          class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+        >
+          {{ month }}
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="flex flex-col gap-4 px-40">
+    <div class="flex flex-row gap-2">
       <div
-        class="grid grid-cols-1 lg-m:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2"
+        class="flex flex-col gap-2 justify-start h-full w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
       >
-        <div
-          class="col-span-1 flex flex-col justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b from-yellow-200 to-pink-200 dark:from-yellow-600 dark:to-pink-600 rounded-sm"
-        >
-          <div class="flex flex-col">
-            <span class="text-xs lg-m:text-sm">Account 1</span>
-            <span class="text-lg lg-m:text-2xl font-semibold">17,301.60</span>
-          </div>
-          <span class="text-xs">Increase</span>
+        <div class="flex flex-row items-center gap-2">
+          <span class="text-green-600">
+            <fa-icon [icon]="getIcon('faSignIn')"></fa-icon>
+          </span>
+          <span>Money In</span>
         </div>
-        <div
-          class="col-span-1 flex flex-col justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b from-teal-200 to-blue-200 dark:from-teal-600 dark:to-blue-600 rounded-sm"
-        >
-          <div class="flex flex-col">
-            <span class="text-xs lg-m:text-sm">Account 1</span>
-            <span class="text-lg lg-m:text-2xl font-semibold">17,301.60</span>
-          </div>
-          <span class="text-xs">Increase</span>
+        <span class="text-3xl font-bold">
+          {{ 3460 | number : "1.2-2" }}
+        </span>
+      </div>
+      <div
+        class="flex flex-col gap-2 justify-start h-full w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+      >
+        <div class="flex flex-row items-center gap-2">
+          <span class="text-red-600">
+            <fa-icon [icon]="getIcon('faSignOut')"></fa-icon>
+          </span>
+          <span>Money Out</span>
         </div>
+        <span class="text-3xl font-bold">
+          {{ 910.45 | number : "1.2-2" }}
+        </span>
       </div>
     </div>
   </div>
-  
+  <span class="text-sm lg-m:text-base font-semibold text-left mt-4"
+    >Incomes</span
+  >
+  <div class="grid grid-cols-2 gap-2">
+    <div
+      class="col-span-1 flex flex-row gap-2 justify-evenly h-full w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+    >
+      <div class="h-auto w-1/2">
+        <canvas
+          baseChart
+          [data]="doughnutChartData"
+          [type]="doughnutChartType"
+          [options]="doughnutChartOptions"
+        >
+        </canvas>
+      </div>
+      <div class="flex flex-col w-full justify-center gap-2 px-8">
+        <div class="flex flex-row w-full justify-between">
+          <app-tag name="Freelance"></app-tag>
+          <span class="text-base">{{ 4500 | number : "1.2-2" }}</span>
+        </div>
+        <div class="flex flex-row w-full justify-between">
+          <app-tag name="Salary"></app-tag>
+          <span class="text-base">{{ 4500 | number : "1.2-2" }}</span>
+        </div>
+        <div class="flex flex-row w-full justify-between">
+          <app-tag name="Savings"></app-tag>
+          <span class="text-base">{{ 4500 | number : "1.2-2" }}</span>
+        </div>
+        <div class="h-px bg-gray-200 dark:bg-gray-600 w-full"></div>
+        <div class="flex flex-row justify-between">
+          <span>Total:</span>
+          <span class="font-semibold">{{ 1245 | number : "1.2-2" }}</span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="col-span-1 flex flex-col gap-2 justify-start h-full w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+    >
+      <span class="text-center font-semibold">
+        Income For Previous 5 Months
+      </span>
+      <div class="w-full h-full">
+        <canvas
+          baseChart
+          [data]="barChartData"
+          [options]="barChartOptions"
+          [type]="barChartType"
+        >
+        </canvas>
+      </div>
+    </div>
+  </div>
+  <div class="flex flex-col gap-2 px-40">
+    <ng-container *ngFor="let item of incomes">
+      <div
+        class="grid grid-cols-10 items-center h-full w-full border border-gray-300 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+      >
+        <div class="col-span-1">
+          <app-tag [name]="item.budgetName"></app-tag>
+        </div>
+        <div class="col-span-2 flex flex-col items-center">
+          <span class="text-xs">Current Amount</span>
+          <span class="text-xs font-semibold">{{ item.currentAmount }}</span>
+        </div>
+        <app-progressbar
+          class="w-full col-span-4"
+          [currentAmount]="item.currentAmount"
+          [targetAmount]="item.targetAmount"
+          type="income"
+        ></app-progressbar>
+        <div class="col-span-2 flex flex-col items-center">
+          <span class="text-xs">Target Amount</span>
+          <span class="text-xs font-semibold">{{ item.targetAmount }}</span>
+        </div>
+        <div class="col-span-1 flex justify-end">
+          <button
+            class="w-10 text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+            (click)="goToBudget(item.budgetName)"
+          >
+            <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+  <span class="text-sm lg-m:text-base font-semibold text-left mt-12"
+    >Expenses</span
+  >
+  <div class="grid grid-cols-2 gap-2">
+    <div
+      class="col-span-1 flex flex-row gap-2 justify-evenly h-full w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+    >
+      <div class="h-auto w-1/2">
+        <canvas
+          baseChart
+          [data]="doughnutChartData"
+          [type]="doughnutChartType"
+          [options]="doughnutChartOptions"
+        >
+        </canvas>
+      </div>
+      <div class="flex flex-col w-full justify-center gap-2 px-8">
+        <div class="flex flex-row w-full justify-between">
+          <app-tag name="Freelance"></app-tag>
+          <span class="text-base">{{ 4500 | number : "1.2-2" }}</span>
+        </div>
+        <div class="flex flex-row w-full justify-between">
+          <app-tag name="Salary"></app-tag>
+          <span class="text-base">{{ 4500 | number : "1.2-2" }}</span>
+        </div>
+        <div class="flex flex-row w-full justify-between">
+          <app-tag name="Savings"></app-tag>
+          <span class="text-base">{{ 4500 | number : "1.2-2" }}</span>
+        </div>
+        <div class="h-px bg-gray-200 dark:bg-gray-600 w-full"></div>
+        <div class="flex flex-row justify-between">
+          <span>Total:</span>
+          <span class="font-semibold">{{ 1245 | number : "1.2-2" }}</span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="col-span-1 flex flex-col gap-2 justify-start h-full w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+    >
+      <span class="text-center font-semibold">
+        Expenses For Previous 5 Months
+      </span>
+      <div class="w-full h-full">
+        <canvas
+          baseChart
+          [data]="barChartData"
+          [options]="barChartOptions"
+          [type]="barChartType"
+        >
+        </canvas>
+      </div>
+    </div>
+    <div
+      class="col-span-2 flex flex-col gap-2 justify-start h-full w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+    >
+      <span class="text-center font-semibold">
+        This Month Budget Expenses
+      </span>
+      <div class="w-full h-64">
+        <canvas
+          baseChart
+          [data]="lineChartData"
+          [options]="lineChartOptions"
+          [type]="lineChartType"
+        >
+        </canvas>
+      </div>
+    </div>
+  </div>
+  <div class="flex flex-col gap-2 px-40">
+    <ng-container *ngFor="let item of expenses">
+      <div
+        class="grid grid-cols-10 items-center h-full w-full border border-gray-300 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+      >
+        <div class="col-span-1">
+          <app-tag [name]="item.budgetName"></app-tag>
+        </div>
+        <div class="col-span-2 flex flex-col items-center">
+          <span class="text-xs">Current Amount</span>
+          <span class="text-xs font-semibold">{{ item.currentAmount }}</span>
+        </div>
+        <app-progressbar
+          class="w-full col-span-4"
+          [currentAmount]="item.currentAmount"
+          [targetAmount]="item.targetAmount"
+          type="expense"
+        ></app-progressbar>
+        <div class="col-span-2 flex flex-col items-center">
+          <span class="text-xs">Limit Amount</span>
+          <span class="text-xs font-semibold">{{ item.targetAmount }}</span>
+        </div>
+        <div class="col-span-1 flex justify-end">
+          <button
+            class="w-10 text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+            (click)="goToBudget(item.budgetName)"
+          >
+            <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

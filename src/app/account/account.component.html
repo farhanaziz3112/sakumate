@@ -23,6 +23,7 @@
     >
       <div
         class="col-span-1 flex flex-col justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b from-yellow-200 to-pink-200 hover:from-yellow-300 hover:to-pink-200 dark:from-yellow-600 dark:to-pink-600 dark:hover:from-yellow-500 dark:hover:to-pink-600 rounded-sm cursor-pointer"
+        (click)="goToAccount('account1')"
       >
         <div class="flex flex-col">
           <span class="text-xs lg-m:text-sm">Account 1</span>
@@ -32,9 +33,10 @@
       </div>
       <div
         class="col-span-1 flex flex-col justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b from-teal-200 to-blue-200 hover:from-teal-300 hover:to-blue-200 dark:from-teal-600 dark:to-blue-600 dark:hover:from-teal-500 dark:hover:to-blue-600 rounded-sm cursor-pointer"
+        (click)="goToAccount('account2')"
       >
         <div class="flex flex-col">
-          <span class="text-xs lg-m:text-sm">Account 1</span>
+          <span class="text-xs lg-m:text-sm">Account 2</span>
           <span class="text-lg lg-m:text-2xl font-semibold">17,301.60</span>
         </div>
         <span class="text-xs">Increase</span>

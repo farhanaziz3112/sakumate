@@ -101,7 +101,6 @@ export class AddaccountComponent implements OnInit {
   ngOnInit() {
     this.themeService.theme$.subscribe((theme) => {
       this.currentTheme = theme;
-      console.log(theme);
     });
   }
 

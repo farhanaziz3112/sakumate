@@ -1,38 +1,222 @@
 <div class="flex flex-col w-full h-full gap-8">
-    <div class="flex flex-row justify-between">
-      <span
-        class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
-        >Goals</span
-      >
-      <span
-        class="cursor-pointer text-sm lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
-        >MYR</span
+  <div class="flex flex-row justify-between">
+    <span
+      class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
+      >Goals</span
+    >
+    <span
+      class="cursor-pointer text-xs lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+      >MYR</span
+    >
+  </div>
+  <div class="flex flex-row w-full justify-between items-center">
+    <div
+      class="flex flex-row items-center gap-2 w-2/3 px-2 py-3 rounded-md border border-gray-200 text-gray-600 dark:text-gray-200"
+    >
+      <fa-icon [icon]="getIcon('faCircleExclamation')"></fa-icon>
+      <span class="text-sm"
+        >Set achievable goals and track your progress over time. This feature
+        helps you stay organized and motivated on your journey toward
+        success!</span
       >
     </div>
-    <div class="flex flex-col w-full gap-1">
-      <span class="text-sm lg-m:text-base font-semibold">Accounts</span>
-      <div
-        class="grid grid-cols-1 lg-m:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2"
+    <button
+      class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+      (click)="addGoal()"
+    >
+      Add New Goals <fa-icon [icon]="getIcon('faPlus')"></fa-icon>
+    </button>
+  </div>
+  <div class="grid grid-cols-2 gap-2">
+    <div
+      class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
+    >
+      <span class="text-center text-sm md:text-xs lg:text-sm font-semibold"
+        >Goal Completion Status</span
       >
-        <div
-          class="col-span-1 flex flex-col justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b from-yellow-200 to-pink-200 dark:from-yellow-600 dark:to-pink-600 rounded-sm"
-        >
-          <div class="flex flex-col">
-            <span class="text-xs lg-m:text-sm">Account 1</span>
-            <span class="text-lg lg-m:text-2xl font-semibold">17,301.60</span>
-          </div>
-          <span class="text-xs">Increase</span>
+      <div class="flex flex-row w-full justify-evenly items-center">
+        <div class="flex flex-col items-center">
+          <span class="text-xs"> Incomplete </span>
+          <span class="text-2xl font-semibold"> 5 </span>
         </div>
-        <div
-          class="col-span-1 flex flex-col justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b from-teal-200 to-blue-200 dark:from-teal-600 dark:to-blue-600 rounded-sm"
+        <div class="h-52">
+          <canvas
+            baseChart
+            [data]="pieChartData"
+            [type]="pieChartType"
+            [options]="pieChartOptions"
+          >
+          </canvas>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-xs"> Complete </span>
+          <span class="text-2xl font-semibold"> 3 </span>
+        </div>
+      </div>
+      <!-- <div class="grid grid-cols-2">
+      <div class="col-span-1 h-64">
+        <canvas
+          baseChart
+          [data]="barChartData"
+          [options]="barChartOptions"
+          [type]="barChartType"
         >
-          <div class="flex flex-col">
-            <span class="text-xs lg-m:text-sm">Account 1</span>
-            <span class="text-lg lg-m:text-2xl font-semibold">17,301.60</span>
+        </canvas>
+      </div>
+    </div> -->
+    </div>
+    <div
+      class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
+    >
+      <span class="text-center text-sm md:text-xs lg:text-sm font-semibold"
+        >Total All Goals</span
+      >
+      <div class="flex flex-row h-full w-full items-center justify-evenly">
+        <app-donut [percentage]="86.73" color="text-violet-400"></app-donut>
+        <div class="flex flex-col gap-2">
+          <div class="flex flex-col items-start">
+            <span class="text-xs"> Current Value</span>
+            <span class="text-2xl font-semibold">
+              {{ 17347.34 | number : "1.2-2" }}
+            </span>
           </div>
-          <span class="text-xs">Increase</span>
+          <div class="flex flex-col items-start">
+            <span class="text-xs"> Target Value</span>
+            <span class="text-2xl font-semibold">
+              {{ 20000 | number : "1.2-2" }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  
+  <span class="text-sm lg-m:text-base font-semibold text-left mt-4"
+    >Accounts Goals</span
+  >
+  <div class="grid grid-cols-2 gap-2">
+    <ng-container *ngFor="let item of accGoals">
+      <div
+        class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
+      >
+        <div class="flex flex-row justify-between">
+          <span
+            class="text-center text-sm md:text-xs lg:text-sm font-semibold"
+            >{{ item.goalName }}</span
+          >
+          <!-- <span class="px-6 text-white bg-indigo-500 rounded-3xl"><fa-icon [icon]="getIcon('faChevronRight')"></fa-icon></span> -->
+          <button
+            class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+            (click)="goToGoal(item.goalName)"
+          >
+            <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
+          </button>
+        </div>
+        <div class="flex flex-row h-full w-full items-center justify-evenly">
+          <app-donut
+            [percentage]="getPercentage(item.currentAmount, item.targetAmount)"
+            color="text-violet-400"
+          ></app-donut>
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col items-start">
+              <span class="text-xs"> Current Value</span>
+              <span class="text-2xl font-semibold">
+                {{ item.currentAmount | number : "1.2-2" }}
+              </span>
+            </div>
+            <div class="flex flex-col items-start">
+              <span class="text-xs"> Target Value</span>
+              <span class="text-2xl font-semibold">
+                {{ item.targetAmount | number : "1.2-2" }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+  <span class="text-sm lg-m:text-base font-semibold text-left mt-4"
+    >Other Goals</span
+  >
+  <div class="grid grid-cols-2 gap-2">
+    <ng-container *ngFor="let item of otherGoals">
+      <div
+        class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
+      >
+        <div class="flex flex-row justify-between">
+          <span
+            class="text-center text-sm md:text-xs lg:text-sm font-semibold"
+            >{{ item.goalName }}</span
+          >
+          <!-- <span class="px-6 text-white bg-indigo-500 rounded-3xl"><fa-icon [icon]="getIcon('faChevronRight')"></fa-icon></span> -->
+          <button
+            class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+            (click)="goToGoal(item.goalName)"
+          >
+            <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
+          </button>
+        </div>
+        <div class="flex flex-row h-full w-full items-center justify-evenly">
+          <app-donut
+            [percentage]="getPercentage(item.currentAmount, item.targetAmount)"
+            color="text-violet-400"
+          ></app-donut>
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col items-start">
+              <span class="text-xs"> Current Value</span>
+              <span class="text-2xl font-semibold">
+                {{ item.currentAmount | number : "1.2-2" }}
+              </span>
+            </div>
+            <div class="flex flex-col items-start">
+              <span class="text-xs"> Target Value</span>
+              <span class="text-2xl font-semibold">
+                {{ item.targetAmount | number : "1.2-2" }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+  <span class="text-sm lg-m:text-base font-semibold text-left mt-4"
+    >Completed Goals</span
+  >
+  <div class="grid grid-cols-2 gap-2">
+    <ng-container *ngFor="let item of accGoals">
+      <div
+        class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
+      >
+        <div class="flex flex-row justify-between">
+          <span
+            class="text-center text-sm md:text-xs lg:text-sm font-semibold"
+            >{{ item.goalName }}</span
+          >
+          <!-- <span class="px-6 text-white bg-indigo-500 rounded-3xl"><fa-icon [icon]="getIcon('faChevronRight')"></fa-icon></span> -->
+          <button
+            class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+            (click)="goToGoal(item.goalName)"
+          >
+            <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
+          </button>
+        </div>
+        <div class="flex flex-row h-full w-full items-center justify-evenly">
+          <app-donut [percentage]="100" color="text-green-600"></app-donut>
+          <div class="flex flex-col gap-2">
+            <div class="flex flex-col items-start">
+              <span class="text-xs"> Current Value</span>
+              <span class="text-2xl font-semibold">
+                {{ item.currentAmount | number : "1.2-2" }}
+              </span>
+            </div>
+            <div class="flex flex-col items-start">
+              <span class="text-xs"> Target Value</span>
+              <span class="text-2xl font-semibold">
+                {{ item.targetAmount | number : "1.2-2" }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

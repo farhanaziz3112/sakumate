@@ -1,0 +1,21 @@
+<div
+  *ngIf="getPercentage() != 0"
+  class="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-4 overflow-hidden"
+>
+  <div
+    class="h-full transition-all duration-300 ease-in-out flex justify-center items-center"
+    [style.width]="getProgressPercentage() + '%'"
+    [ngClass]="color"
+  >
+    <span class="text-white text-xs">{{ getPercentage() }}%</span>
+  </div>
+</div>
+<div
+  *ngIf="getPercentage() === 0"
+  class="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-4 overflow-hidden flex justify-center items-center"
+>
+  <span class="text-black text-xs">0%</span>
+</div>
+<!-- <p class="text-center mt-2 text-sm text-gray-600">
+  {{ currentAmount }} / {{ targetAmount }}
+</p> -->

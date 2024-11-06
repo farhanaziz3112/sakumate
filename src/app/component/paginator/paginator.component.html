@@ -1,0 +1,142 @@
+<table
+  class="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-slate-700 rounded-2xl"
+>
+  <thead>
+    <tr
+      class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200 text-sm"
+    >
+      <th class="w-1/5 py-3 px-6 text-left">Type</th>
+      <th class="w-2/5 py-3 px-6 text-left">Name</th>
+      <th class="w-1/5 py-3 px-6 text-left">Amount</th>
+      <th class="w-1/5 py-3 px-6 text-left">Date</th>
+    </tr>
+  </thead>
+  <tbody class="text-black dark:text-white text-sm font-light">
+    <tr
+      *ngFor="let transaction of paginatedData"
+      class="border-b border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+      (click)="toggleDialog(transaction)"
+    >
+      <td
+        class="w-1/5 py-3 px-6 text-left font-semibold"
+        [ngClass]="
+          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+        "
+      >
+        {{ transaction.type | uppercase }}
+      </td>
+      <td class="w-1/5 py-3 px-6 text-left">
+        {{ transaction.transactionName }}
+      </td>
+      <td class="w-1/5 py-3 px-6 text-left">
+        {{ transaction.amount | number : "1.2-2" }}
+      </td>
+      <td class="w-1/5 py-3 px-6 text-left">{{ transaction.createdDate }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="flex justify-center items-center mt-4 gap-4">
+  <button
+    class="px-2 py-1 text-sm rounded-3xl hover:bg-gray-200 dark:hover:bg-gray-700"
+    [ngClass]="currentPage === 1 ? 'bg-gray-200 dark:bg-gray-700' : ''"
+    (click)="goToPage(1)"
+    [disabled]="currentPage === 1"
+  >
+    First
+  </button>
+
+  <button
+    class="px-2 py-1 text-sm rounded-3xl hover:bg-gray-200 dark:hover:bg-gray-700"
+    [ngClass]="currentPage === 1 ? 'bg-gray-200 dark:bg-gray-700' : ''"
+    (click)="goToPage(currentPage - 1)"
+    [disabled]="currentPage === 1"
+  >
+    <fa-icon [icon]="getIcon('faChevronLeft')"></fa-icon>
+  </button>
+
+  <ng-container *ngFor="let page of displayedPages;">
+    <button
+      class="px-3 py-1 rounded-full hover:bg-indigo-500 hover:text-white"
+      [class.bg-indigo-500]="currentPage === page"
+      [class.text-white]="currentPage === page"
+      (click)="goToPage(page)"
+    >
+      {{page}}
+    </button>
+  </ng-container>
+
+  <button
+    class="px-2 py-1 text-sm rounded-3xl hover:bg-gray-200 dark:hover:bg-gray-700"
+    [ngClass]="currentPage === totalPage ? 'bg-gray-200 dark:bg-gray-700' : ''"
+    (click)="goToPage(currentPage + 1)"
+    [disabled]="currentPage === totalPage"
+  >
+    <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
+  </button>
+  <button
+    class="px-2 py-1 text-sm rounded-3xl hover:bg-gray-200 dark:hover:bg-gray-700"
+    [ngClass]="currentPage === totalPage ? 'bg-gray-200 dark:bg-gray-700' : ''"
+    (click)="goToPage(totalPage)"
+    [disabled]="currentPage === totalPage"
+  >
+    Last
+  </button>
+</div>
+
+<p-dialog
+  header="header"
+  [(visible)]="viewDialog"
+  [modal]="true"
+  [dismissableMask]="true"
+>
+  <ng-template pTemplate="headless">
+    <div
+      class="w-72 h-96 lg-m:w-96 lg-m:h-96 bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8 overflow-y-scroll"
+    >
+      <div class="flex flex-col gap-2 w-full h-full justify-start">
+        <div class="flex flex-col">
+          <span class="text-xs"> Name </span>
+          <span class="text-base font-semibold">
+            {{ clickedData.transactionName }}
+          </span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xs"> Tag </span>
+          <span class="text-base font-semibold">
+            {{ clickedData.tagsID }}
+          </span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xs"> Amount </span>
+          <span class="text-base font-semibold">
+            {{ clickedData.amount | number : "1.2-2" }}
+          </span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xs"> Type </span>
+          <span
+            class="text-base font-semibold"
+            [ngClass]="
+              clickedData.type === 'income' ? 'text-green-600' : 'text-red-600'
+            "
+          >
+            {{ clickedData.type | uppercase }}
+          </span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xs"> Description </span>
+          <span class="text-base font-semibold">
+            {{ clickedData.description }}
+          </span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xs"> Date </span>
+          <span class="text-base font-semibold">
+            {{ clickedData.createdDate }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

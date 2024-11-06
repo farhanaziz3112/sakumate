@@ -1,0 +1,45 @@
+/* Styles for the date picker */
+
+::ng-deep .custom-calendar {
+  @apply w-full;
+}
+
+::ng-deep .custom-calendar .p-datepicker {
+  @apply bg-white border border-gray-200 dark:bg-gray-900 dark:border-slate-700;
+}
+
+::ng-deep .custom-calendar .p-datepicker-header {
+  @apply bg-indigo-500 text-white; /* Header styling */
+}
+
+::ng-deep .custom-calendar .p-datepicker-calendar {
+  @apply text-black dark:text-white; /* Highlighted selected date */
+}
+
+::ng-deep .custom-calendar .p-datepicker table td span {
+  @apply text-black dark:text-white hover:text-white hover:bg-indigo-400; /* Highlighted selected date */
+}
+
+::ng-deep .custom-calendar .p-datepicker-calendar .p-highlight {
+  @apply bg-indigo-500 text-white; /* Highlighted selected date */
+}
+
+::ng-deep .custom-calendar .p-datepicker-calendar .p-datepicker-today span {
+  @apply text-black bg-gray-300 dark:text-white dark:bg-gray-600; /* Today's date styling */
+}
+
+::ng-deep .custom-calendar .p-inputtext {
+  @apply flex w-full bg-transparent rounded-none outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500;
+}
+
+::ng-deep .custom-calendar .p-inputtext:focus {
+  @apply outline-none shadow-none;
+}
+
+::ng-deep .custom-calendar .p-datepicker-trigger {
+  @apply text-indigo-600;
+}
+
+::ng-deep .custom-calendar .p-datepicker-buttonbar .p-button {
+  @apply bg-indigo-500 text-white hover:bg-indigo-700; /* Button styling */
+}

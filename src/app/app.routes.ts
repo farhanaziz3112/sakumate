@@ -9,6 +9,11 @@ import { GoalComponent } from './goal/goal.component';
 import { BudgetComponent } from './budget/budget.component';
 import { SettingsComponent } from './settings/settings.component';
 import { AddaccountComponent } from './account/addaccount/addaccount.component';
+import { AccountprofileComponent } from './account/accountprofile/accountprofile.component';
+import { AddgoalComponent } from './goal/addgoal/addgoal.component';
+import { GoalprofileComponent } from './goal/goalprofile/goalprofile.component';
+import { AddbudgetComponent } from './budget/addbudget/addbudget.component';
+import { BudgetprofileComponent } from './budget/budgetprofile/budgetprofile.component';
 
 export const routes: Routes = [
   {
@@ -40,12 +45,32 @@ export const routes: Routes = [
         component: AddaccountComponent,
       },  
       {
+        path: 'account/:id',
+        component: AccountprofileComponent,
+      },  
+      {
         path: 'goal',
         component: GoalComponent,
       },
       {
+        path: 'goal/addgoal',
+        component: AddgoalComponent,
+      },
+      {
+        path: 'goal/:id',
+        component: GoalprofileComponent,
+      },
+      {
         path: 'budget',
         component: BudgetComponent,
+      },
+      {
+        path: 'budget/addbudget',
+        component: AddbudgetComponent,
+      },
+      {
+        path: 'budget/:id',
+        component: BudgetprofileComponent,
       },
       {
         path: 'settings',

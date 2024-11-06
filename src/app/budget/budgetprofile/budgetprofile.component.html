@@ -1,0 +1,103 @@
+<div class="flex flex-col w-full h-full gap-8">
+  <div class="flex flex-row gap-2 text-gray-800 dark:text-gray-200">
+    <span
+      class="underline hover:text-gray-500 dark:hover:text-gray-300 cursor-pointer"
+      (click)="goToBudget()"
+      >Budget</span
+    >
+    <span>></span>
+    <span>{{ id }}</span>
+  </div>
+  <div class="flex flex-row justify-between items-center">
+    <span
+      class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
+      >{{ id }}</span
+    >
+    <span
+      class="cursor-pointer text-xs lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+      >MYR</span
+    >
+  </div>
+  <div class="flex flex-row justify-center gap-2">
+    <span
+      class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-32 px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+      (click)="toggleAccDropdown()"
+      #accDropdownButton
+    >
+      <span>{{ selectedAcc }}</span>
+      <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
+    </span>
+    <div
+      #accDropdownOverlay
+      *ngIf="accDropdown"
+      class="absolute z-10 mt-8 mr-40 w-40 bg-white dark:bg-gray-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+    >
+      <ul>
+        <li
+          *ngFor="let acc of accounts"
+          (click)="selectAcc(acc)"
+          class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+        >
+          {{ acc }}
+        </li>
+      </ul>
+    </div>
+    <span
+      #monthDropdownButton
+      class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-32 px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+      (click)="toggleMonthDropdown()"
+    >
+      <span>{{ selectedMonth }}</span>
+      <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
+    </span>
+    <div
+      *ngIf="monthDropdown"
+      #monthDropdownOverlay
+      class="absolute z-10 mt-8 ml-40 w-40 bg-white dark:bg-gray-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+    >
+      <ul>
+        <li
+          *ngFor="let month of months"
+          (click)="selectMonth(month)"
+          class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+        >
+          {{ month }}
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="grid grid-cols-3">
+    <div class="col-span-1"></div>
+    <div
+      class="col-span-1 flex flex-col gap-2 justify-start h-full w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+    >
+      <div class="flex flex-row items-center gap-2">
+        <span class="text-red-600">
+          <fa-icon [icon]="getIcon('faSignOut')"></fa-icon>
+        </span>
+        <span>Total Expense</span>
+      </div>
+      <span class="text-3xl font-bold">
+        {{ 240 | number : "1.2-2" }}
+      </span>
+    </div>
+    <div class="col-span-1"></div>
+  </div>
+  <div
+    class="flex flex-col gap-2 justify-start h-96 w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+  >
+    <span class="text-center font-semibold"> Each Day Expense </span>
+    <div class="h-full w-full">
+      <canvas
+        baseChart
+        [data]="lineChartData"
+        [options]="lineChartOptions"
+        [type]="lineChartType"
+      >
+      </canvas>
+    </div>
+  </div>
+  <div class="px-40">
+    <app-paginator [itemsPerPage]="7" name="transaction"></app-paginator>
+  </div>
+</div>
