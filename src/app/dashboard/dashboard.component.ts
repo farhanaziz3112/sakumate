@@ -26,6 +26,7 @@ import { ThemeService } from '../service/theme.service';
 import { DialogModule } from 'primeng/dialog';
 import { SupabaseService } from '../service/supabase.service';
 import { Router } from '@angular/router';
+import { AuthService } from '../service/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -162,11 +163,12 @@ export class DashboardComponent implements OnInit {
   constructor(
     private themeService: ThemeService,
     private supabase: SupabaseService,
+    private authService: AuthService,
     private router: Router
   ) {
     Chart.register(this.customPlugin);
     this.currentTheme = this.themeService.currentTheme;
-    console.log(this.supabase.isAuthenticated());
+    console.log(this.authService.isAuthenticated());
   }
 
   ngOnInit() {
@@ -177,17 +179,7 @@ export class DashboardComponent implements OnInit {
   }
 
   async signOut(): Promise<void> {
-    try {
-      await this.supabase.signOut();
-      this.router.navigate(['/login']);
-      alert('Signed Out!');
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
-    } finally {
-      
-    }
+    await this.authService.signOut();
   }
 
   incomeTags = [

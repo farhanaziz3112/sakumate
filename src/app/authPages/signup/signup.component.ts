@@ -9,10 +9,11 @@ import {
 import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { SupabaseService } from '../service/supabase.service';
+import { SupabaseService } from '../../service/supabase.service';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
-import { ConfirmdialogComponent } from '../component/confirmdialog/confirmdialog.component';
+import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdialog.component';
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -30,14 +31,14 @@ import { ConfirmdialogComponent } from '../component/confirmdialog/confirmdialog
   styleUrl: './signup.component.css',
 })
 export class SignupComponent {
-  loading = false;
 
   signUpForm: FormGroup | any;
 
   constructor(
     private router: Router,
     private readonly supabase: SupabaseService,
-    private readonly formBuilder: FormBuilder
+    private readonly formBuilder: FormBuilder,
+    private authService: AuthService
   ) {
     this.signUpForm = this.formBuilder.group({
       email: '',
@@ -47,21 +48,12 @@ export class SignupComponent {
 
   async onSubmit(): Promise<void> {
     try {
-      this.loading = true;
-      await this.supabase.signUp(
+      await this.authService.signUp(
         this.signUpForm.value['email'],
         this.signUpForm.value['password']
       );
-      this.router.navigate(['/dashboard']);
-      // alert('Check your email for the login link!');
-      alert('Signed Up!');
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
     } finally {
       this.signUpForm.reset();
-      this.loading = false;
     }
   }
 

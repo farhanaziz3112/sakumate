@@ -1,12 +1,13 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { SupabaseService } from '../service/supabase.service';
 import { inject } from '@angular/core';
+import { AuthService } from '../service/auth.service';
 
 export const mainGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
-  const supabase = inject(SupabaseService);
+  const auth = inject(AuthService);
 
-  if (supabase.isAuthenticated()) {
+  if (auth.isAuthenticated()) {
     console.log('authenticated');
     return true;
   } else {

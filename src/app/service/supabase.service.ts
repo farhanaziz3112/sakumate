@@ -13,6 +13,7 @@ import { Router } from '@angular/router';
   providedIn: 'root',
 })
 export class SupabaseService {
+
   private supabase: SupabaseClient = createClient(
     environment.supabaseUrl,
     environment.supabaseKey
@@ -50,12 +51,12 @@ export class SupabaseService {
   }
 
   // Sign Up with Email and Password
-  signUp(email: string, password: string) {
+  signUp(email: string, password: string, redirectUrl: string) {
     return this.supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: 'http://localhost:4200/dashboard',
+        emailRedirectTo: redirectUrl,
       },
     });
   }
@@ -71,15 +72,21 @@ export class SupabaseService {
     return this.supabase.auth.signOut();
   }
 
-  resetPassword(email: string) {
+  resetPassword(email: string, redirectUrl: string) {
     return this.supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'http://localhost:4200/forgotpassword'
+      redirectTo: redirectUrl
     });
   }
 
-  // Check if user is authenticated
-  isAuthenticated(): boolean {
-    return !!this.sessionSubject.value;
+  updatePassword(newPassword: string) {
+    return this.supabase.auth.updateUser({
+      password: newPassword
+    });
+  }
+
+  async validateToken() {
+    let session = await this.supabase.auth.getSession();
+    return session?.data?.session !== null;
   }
 
   // Get the current session

@@ -10,8 +10,9 @@ import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
-import { ConfirmdialogComponent } from '../component/confirmdialog/confirmdialog.component';
-import { SupabaseService } from '../service/supabase.service';
+import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdialog.component';
+import { SupabaseService } from '../../service/supabase.service';
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -35,7 +36,8 @@ export class LoginComponent {
   constructor(
     private router: Router,
     private formBuilder: FormBuilder,
-    private readonly supabase: SupabaseService
+    private readonly supabase: SupabaseService,
+    private authService: AuthService
   ) {
     this.signInForm = this.formBuilder.group({
       email: '',
@@ -50,19 +52,14 @@ export class LoginComponent {
     this.router.navigate(['/signup']);
   }
 
-  async onSubmit(): Promise<void> {
+  async signIn(): Promise<void> {
     try {
-      await this.supabase.signInWithEmail(
+      await this.authService.signInWithEmail(
         this.signInForm.value['email'],
         this.signInForm.value['password']
       );
-      this.router.navigate(['/dashboard']);
-      alert('Signed In!');
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
-    } finally {
+    }
+    finally {
       this.signInForm.reset();
     }
   }
@@ -75,16 +72,12 @@ export class LoginComponent {
 
   async resetPassword(): Promise<void> {
     try {
-      await this.supabase.resetPassword(this.resetPasswordForm.value['email']);
-      alert('Email sent!');
-      this.resetPasswordDialog = false;
+      await this.authService.resetPassword(this.resetPasswordForm.value['email']);
+    }
+    finally {
       this.resetPasswordForm.reset();
-    } catch (error) {
-      if (error instanceof Error) {
-        alert(error.message);
-      }
       this.resetPasswordDialog = false;
-      this.resetPasswordForm.reset();
     }
   }
+
 }
