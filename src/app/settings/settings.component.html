@@ -6,21 +6,142 @@
     >
   </div>
   <div class="h-px bg-gray-200 dark:bg-gray-600 w-full my-4"></div>
-  <div class="grid grid-cols-10 h-full">
-    <div class="col-span-2 flex flex-col h-full justify-start px-2 gap-1">
-      <ng-container *ngFor="let item of settingsLink">
-        <a
-          class="flex flex-row gap-2 p-2 rounded-md text-gray-600 hover:text-black hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-          [routerLink]="[item.link]"
-        >
-          <fa-icon [icon]="getIcon(item.icon)"></fa-icon>
-          <span>
-            {{ item.label }}
+  <div class="grid grid-cols-12 h-full">
+    <div class="col-span-2 flex flex-row h-full w-full px-2">
+      <div class="flex flex-col h-full w-full justify-start items-end">
+        <ng-container *ngFor="let item of settingsLink">
+          <span
+            class="h-12 flex flex-row justify-end items-center gap-3 p-2 rounded-md cursor-pointer"
+            (click)="setActivePage(item.id)"
+            [ngClass]="
+              activePage === item.id
+                ? 'text-black dark:text-white'
+                : 'text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white'
+            "
+          >
+            <fa-icon [icon]="getIcon(item.icon)"></fa-icon>
+            <span>
+              {{ item.label }}
+            </span>
+            <!-- <div
+            [ngClass]="
+              activePage === item.id
+                ? 'bg-gradient-to-b from-indigo-500 to-pink-300'
+                : 'bg-transparent'
+            "
+            class="h-10 w-1 rounded-full transition-all duration-700 ease-in-out"
+            [style.opacity]="activePage === item.id ? 1 : 0"
+          ></div> -->
           </span>
-        </a>
+        </ng-container>
+      </div>
+      <div
+        class="h-10 w-1 rounded-full transition-transform duration-500 ease-in-out bg-gradient-to-b from-indigo-500 to-pink-300"
+        [ngStyle]="indicatorStyle"
+      ></div>
+    </div>
+    <div class="col-span-1 flex justify-start items-center">
+      <div class="h-full w-px bg-gray-200 dark:bg-gray-600 flex"></div>
+    </div>
+    <div class="col-span-9">
+      <ng-container *ngIf="activePage === 0">
+        <div class="flex flex-col w-full h-full gap-4 py-4">
+          <span class="text-sm lg-m:text-base font-semibold"> Profile </span>
+          <div class="grid grid-cols-2">
+            <div class="col-span-1">
+              <form [formGroup]="profileForm">
+                <div class="flex flex-col gap-8 w-full h-full justify-between">
+                  <div class="flex flex-col gap-2 w-full">
+                    <span class="text-sm">Username</span>
+                    <input
+                      formControlName="userName"
+                      type="text"
+                      placeholder="Enter your username"
+                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+                    />
+                  </div>
+                  <div class="flex flex-col gap-2 w-full">
+                    <span class="text-sm">First Name</span>
+                    <input
+                      formControlName="firstName"
+                      type="text"
+                      placeholder="Enter your first name"
+                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+                    />
+                  </div>
+                  <div class="flex flex-col gap-2 w-full">
+                    <span class="text-sm">Last Name</span>
+                    <input
+                      formControlName="lastName"
+                      type="text"
+                      placeholder="Enter your last name"
+                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+                    />
+                  </div>
+                  <div class="flex flex-col gap-2 w-full">
+                    <span class="text-sm">Email</span>
+                    <input
+                      formControlName="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+                    />
+                  </div>
+                  <div class="flex flex-row justify-center relative">
+                    <button
+                      class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                      (click)="showConfirmDialog()"
+                    >
+                      Submit
+                      <fa-icon [icon]="getIcon('faCheck')"></fa-icon>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="activePage === 1">
+        <div class="flex flex-col w-full h-full gap-4 py-4">
+          <span class="text-sm lg-m:text-base font-semibold"> General </span>
+          <div class="grid grid-cols-2">
+            <div class="col-span-1"></div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="activePage === 2">
+        <div class="flex flex-col w-full h-full gap-4 py-4">
+          <span class="text-sm lg-m:text-base font-semibold"> Appearance </span>
+          <div class="grid grid-cols-2">
+            <div class="col-span-1"></div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="activePage === 3">
+        <div class="flex flex-col w-full h-full gap-4 py-4">
+          <span class="text-sm lg-m:text-base font-semibold"> Help </span>
+          <div class="grid grid-cols-2">
+            <div class="col-span-1"></div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="activePage === 4">
+        <div class="flex flex-col w-full h-full gap-4 py-4">
+          <span class="text-sm lg-m:text-base font-semibold"> About </span>
+          <div class="grid grid-cols-2">
+            <div class="col-span-1"></div>
+          </div>
+        </div>
       </ng-container>
     </div>
-    <div class="col-span-1 h-full w-px bg-gray-200 dark:bg-gray-600 flex"></div>
-    <div class="col-span-7"></div>
   </div>
 </div>
+
+<app-confirmdialog
+  [visible]="confirmDialog"
+  title="Add New Account"
+  message="Are sure you want to proceed?"
+  (onConfirm)="submitAccount()"
+  (onCancel)="cancelAccount()"
+></app-confirmdialog>

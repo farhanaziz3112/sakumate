@@ -14,8 +14,15 @@ import { AddgoalComponent } from './goal/addgoal/addgoal.component';
 import { GoalprofileComponent } from './goal/goalprofile/goalprofile.component';
 import { AddbudgetComponent } from './budget/addbudget/addbudget.component';
 import { BudgetprofileComponent } from './budget/budgetprofile/budgetprofile.component';
+import { mainGuard } from './guard/main.guard';
+import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.component';
 
 export const routes: Routes = [
+  {
+    path: '',
+    redirectTo: '/dashboard',
+    pathMatch: 'full',
+  },
   {
     path: 'login',
     component: LoginComponent,
@@ -23,6 +30,10 @@ export const routes: Routes = [
   {
     path: 'signup',
     component: SignupComponent,
+  },
+  {
+    path: 'forgotpassword',
+    component: ForgotpasswordComponent,
   },
   {
     path: 'newaccount',
@@ -35,6 +46,7 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         component: DashboardComponent,
+        canActivate: [mainGuard]
       },
       {
         path: 'account',

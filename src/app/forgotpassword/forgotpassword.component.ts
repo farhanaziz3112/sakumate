@@ -1,20 +1,20 @@
-import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import {
-  ReactiveFormsModule,
-  FormsModule,
-  FormBuilder,
   FormGroup,
+  FormBuilder,
+  FormsModule,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import { Router } from '@angular/router';
+import { SupabaseService } from '../service/supabase.service';
+import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmdialogComponent } from '../component/confirmdialog/confirmdialog.component';
-import { SupabaseService } from '../service/supabase.service';
 
 @Component({
-  selector: 'app-login',
+  selector: 'app-forgotpassword',
   standalone: true,
   imports: [
     ConfirmdialogComponent,
@@ -25,10 +25,10 @@ import { SupabaseService } from '../service/supabase.service';
     FontAwesomeModule,
     DialogModule,
   ],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss',
+  templateUrl: './forgotpassword.component.html',
+  styleUrl: './forgotpassword.component.css',
 })
-export class LoginComponent {
+export class ForgotpasswordComponent {
   signInForm: FormGroup | any;
   resetPasswordForm: FormGroup | any;
 

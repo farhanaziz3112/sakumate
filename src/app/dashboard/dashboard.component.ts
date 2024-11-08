@@ -8,7 +8,7 @@ import {
   faDollarSign,
   faBurger,
   faShoppingCart,
-  faChevronDown
+  faChevronDown,
 } from '@fortawesome/free-solid-svg-icons';
 import { BaseChartDirective } from 'ng2-charts';
 import {
@@ -24,6 +24,8 @@ import { DonutComponent } from '../component/donut/donut.component';
 import { TagComponent } from '../component/tag/tag.component';
 import { ThemeService } from '../service/theme.service';
 import { DialogModule } from 'primeng/dialog';
+import { SupabaseService } from '../service/supabase.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -155,9 +157,16 @@ export class DashboardComponent implements OnInit {
     this.minusMoneyDialog = !this.minusMoneyDialog;
   }
 
-  constructor(private themeService: ThemeService) {
+  // email: string = ''
+
+  constructor(
+    private themeService: ThemeService,
+    private supabase: SupabaseService,
+    private router: Router
+  ) {
     Chart.register(this.customPlugin);
     this.currentTheme = this.themeService.currentTheme;
+    console.log(this.supabase.isAuthenticated());
   }
 
   ngOnInit() {
@@ -165,6 +174,20 @@ export class DashboardComponent implements OnInit {
       this.currentTheme = theme;
       // this.updateChart();
     });
+  }
+
+  async signOut(): Promise<void> {
+    try {
+      await this.supabase.signOut();
+      this.router.navigate(['/login']);
+      alert('Signed Out!');
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      }
+    } finally {
+      
+    }
   }
 
   incomeTags = [
@@ -177,9 +200,9 @@ export class DashboardComponent implements OnInit {
     'Commission',
     'Tips',
     'Investment Returns',
-    'Other Income'
+    'Other Income',
   ];
-  
+
   expenseTags = [
     'Food',
     'Shopping',
@@ -202,7 +225,7 @@ export class DashboardComponent implements OnInit {
     'Pet Care',
     'Subscriptions',
     'Household',
-    'Miscellaneous'
+    'Miscellaneous',
   ];
 
   // onChartReady(chart: any) {

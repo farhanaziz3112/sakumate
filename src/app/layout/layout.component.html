@@ -35,32 +35,38 @@
         ><img src="../../assets/image/sakumate-logo-white.png" alt=""
       /></ng-container>
     </div>
-    <div
-      class="flex flex-col gap-5 justify-center items-center text-lg lg:text-2xl w-full"
-    >
-      <ng-container *ngFor="let item of sideLink">
-        <a
-          [routerLink]="[item.link]"
-          (click)="setActiveRoute(item.id)"
-          [ngClass]="
-            currentActiveRoute === item.id
-              ? 'text-black dark:text-white'
-              : 'text-gray-400 hover:text-gray-500'
-          "
-          class="flex items-center justify-between w-full gap-3 pl-6 pr-1 lg:pr-3"
-        >
-          <fa-icon [icon]="item.icon"></fa-icon>
-          <div
+    <div class="flex flex-row w-full pr-2">
+      <div
+        class="flex flex-col justify-center items-center text-lg lg:text-2xl w-full"
+      >
+        <ng-container *ngFor="let item of sideLink">
+          <a
+            [routerLink]="[item.link]"
+            (click)="setActiveRoute(item.id)"
             [ngClass]="
               currentActiveRoute === item.id
-                ? 'bg-gradient-to-b from-indigo-500 to-pink-300'
-                : 'bg-transparent'
+                ? 'text-black dark:text-white'
+                : 'text-gray-400 hover:text-gray-500'
             "
-            class="h-10 w-1 rounded-full transition-all duration-700 ease-in-out"
-            [style.opacity]="currentActiveRoute === item.id ? 1 : 0"
-          ></div>
-        </a>
-      </ng-container>
+            class="h-16 flex items-center justify-between w-full gap-3 pl-6 pr-1 lg:pr-3"
+          >
+            <fa-icon [icon]="item.icon"></fa-icon>
+            <!-- <div
+              [ngClass]="
+                currentActiveRoute === item.id
+                  ? 'bg-gradient-to-b from-indigo-500 to-pink-300'
+                  : 'bg-transparent'
+              "
+              class="h-10 w-1 rounded-full transition-all duration-700 ease-in-out"
+              [style.opacity]="currentActiveRoute === item.id ? 1 : 0"
+            ></div> -->
+          </a>
+        </ng-container>
+      </div>
+      <div
+        class="h-10 w-1 rounded-full transition-transform duration-500 ease-in-out bg-gradient-to-b from-indigo-500 to-pink-300"
+        [ngStyle]="verticalIndicatorStyle"
+      ></div>
     </div>
     <div class="flex w-full h-full justify-center items-center">
       <span
@@ -82,30 +88,40 @@
     <router-outlet></router-outlet>
   </div>
   <div
-    class="fixed inset-x-0 bottom-0 h-12 lg-m:h-14 bg-white dark:bg-gray-950 border-t border-gray-300 dark:border-gray-700 md:hidden flex flex-row justify-around items-center"
+    class="fixed inset-x-0 bottom-0 h-12 lg-m:h-14 bg-white dark:bg-gray-950 border-t border-gray-300 dark:border-gray-700 md:hidden flex flex-col justify-center items-center w-full"
   >
-    <ng-container *ngFor="let item of sideLink">
-      <a
-        [routerLink]="[item.link]"
-        (click)="setActiveRoute(item.id)"
-        [ngClass]="
-          currentActiveRoute === item.id
-            ? 'text-indigo-500 dark:text-white'
-            : 'text-gray-400 hover:text-gray-500'
-        "
-        class="flex flex-col items-center content-center justify-content-center justify-start h-full gap-1 lg-m:gap-2 mt-3"
-      >
+    <div class="flex flex-col w-auto mt-1 lg-m:mt-0">
+      <div class="flex flex-row">
         <div
-          [ngClass]="
-            currentActiveRoute === item.id
-              ? 'bg-gradient-to-r from-indigo-500 to-pink-300'
-              : 'bg-transparent'
-          "
-          class="h-0.5 lg-m:h-1 w-10 rounded-full transition-all duration-700 ease-in-out"
-          [style.opacity]="currentActiveRoute === item.id ? 1 : 0"
+          class="h-1 w-10 rounded-full transition-transform duration-500 ease-in-out bg-gradient-to-r from-indigo-500 to-pink-300"
+          [ngStyle]="horizontalIndicatorStyle"
         ></div>
-        <fa-icon [icon]="item.icon" class="text-xl"></fa-icon>
-      </a>
-    </ng-container>
+      </div>
+      <div class="flex flex-row justify-center items-center w-full">
+        <ng-container *ngFor="let item of sideLink">
+          <a
+            [routerLink]="[item.link]"
+            (click)="setActiveRoute(item.id)"
+            [ngClass]="
+              currentActiveRoute === item.id
+                ? 'text-black dark:text-white'
+                : 'text-gray-400 hover:text-gray-500'
+            "
+            class="w-12 lg-m:w-16 flex flex-col items-center content-center justify-content-center justify-start h-full gap-1 lg-m:gap-2 mt-3"
+          >
+            <!-- <div
+              [ngClass]="
+                currentActiveRoute === item.id
+                  ? 'bg-gradient-to-r from-indigo-500 to-pink-300'
+                  : 'bg-transparent'
+              "
+              class="h-0.5 lg-m:h-1 w-10 rounded-full transition-all duration-700 ease-in-out"
+              [style.opacity]="currentActiveRoute === item.id ? 1 : 0"
+            ></div> -->
+            <fa-icon [icon]="item.icon" class="text-xl"></fa-icon>
+          </a>
+        </ng-container>
+      </div>
+    </div>
   </div>
 </div>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule, Routes } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
@@ -39,10 +39,14 @@ export class LayoutComponent implements OnInit {
 
   currentTheme = 'light';
 
+  screenWidth: number = window.innerWidth;
+  screenHeight: number = window.innerHeight;
+
   constructor(
     private themeService: ThemeService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private elRef: ElementRef
   ) {
     this.currentTheme = this.themeService.currentTheme;
   }
@@ -51,8 +55,16 @@ export class LayoutComponent implements OnInit {
     for (let i = 0; i < this.sideLink.length; i++) {
       if (this.router.url.includes(this.sideLink[i].link)) {
         this.currentActiveRoute = i;
+        this.setActiveRoute(i);
       }
     }
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.screenWidth = event.target.innerWidth;
+    this.screenHeight = event.target.innerHeight;
+    this.setActiveRoute(this.currentActiveRoute);
   }
 
   sideLink = [
@@ -83,8 +95,30 @@ export class LayoutComponent implements OnInit {
     },
   ];
 
+  verticalIndicatorStyle = {};
+  horizontalIndicatorStyle = {};
+
   setActiveRoute(route: number) {
     this.currentActiveRoute = route;
+    this.setIndicator(route);
+  }
+
+  setIndicator(route: number) {
+    if (this.screenWidth > 414) {
+      let verticalOffset = route * 64 + 12;
+      let horizontalOffset = route * 64 + 12;
+      this.verticalIndicatorStyle = {
+        transform: `translateY(${verticalOffset}px)`,
+      };
+      this.horizontalIndicatorStyle = {
+        transform: `translateX(${horizontalOffset}px)`,
+      };
+    } else {
+      let horizontalOffset = route * 48 + 4;
+      this.horizontalIndicatorStyle = {
+        transform: `translateX(${horizontalOffset}px)`,
+      };
+    }
   }
 
   toggleTheme() {

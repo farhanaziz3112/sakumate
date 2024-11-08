@@ -1,4 +1,6 @@
-<div class="bg-gradient-to-r from-indigo-500 to-pink-300 w-full h-screen overflow-hidden">
+<div
+  class="bg-gradient-to-r from-indigo-500 to-pink-300 w-full h-screen overflow-hidden"
+>
   <div class="flex flex-col px-12 py-6 h-full">
     <div class="h-12 w-12 absolute">
       <img src="../../assets/image/sakumate-logo-white.png" alt="" />
@@ -7,35 +9,57 @@
       <div class="grid grid-cols-3 w-full">
         <div class="col-span-1"></div>
         <div class="col-span-1">
-          <div
-            class="flex flex-col h-full w-full justify-evenly items-center bg-white px-10 py-12 rounded-2xl gap-8 outline outline-1 drop-shadow-lg">
-            <span class="text-start w-full text-xs underline text-indigo-500 hover:text-indigo-700 cursor-pointer"
-              (click)="login('/login')"><fa-icon class="p-1" [icon]="faArrowLeft"></fa-icon>Login
-              page</span>
-            <div class="flex flex-col">
-              <div class="flex flex-row justify-center">
-                <img src="../../assets/image/sakumate-logo.png" alt="" class="h-16 w-16" />
+          <form [formGroup]="signUpForm" (ngSubmit)="onSubmit()">
+            <div
+              class="flex flex-col h-full w-full justify-evenly items-center bg-white px-10 py-12 rounded-2xl gap-8 outline outline-1 drop-shadow-lg"
+            >
+              <span
+                class="text-start w-full text-xs underline text-indigo-500 hover:text-indigo-700 cursor-pointer"
+                (click)="login('/login')"
+                ><fa-icon class="p-1" [icon]="faArrowLeft"></fa-icon>Login
+                page</span
+              >
+              <div class="flex flex-col">
+                <div class="flex flex-row justify-center">
+                  <img
+                    src="../../assets/image/sakumate-logo.png"
+                    alt=""
+                    class="h-16 w-16"
+                  />
+                </div>
+                <span
+                  class="text-center tracking-widest text-3xl text-indigo-500"
+                  >SakuMate</span
+                >
               </div>
-              <span class="text-center tracking-widest text-3xl text-indigo-500">SakuMate</span>
+              <div class="flex flex-col gap-2 w-full">
+                <span class="text-sm">Email</span>
+                <input
+                  type="email"
+                  formControlName="email"
+                  placeholder="Enter your email"
+                  class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+                />
+              </div>
+              <div class="flex flex-col gap-2 w-full">
+                <span class="text-sm">Password</span>
+                <input
+                  type="password"
+                  formControlName="password"
+                  placeholder="Enter your password"
+                  class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+                />
+              </div>
+              <div class="flex justify-center">
+                <button
+                  class="rounded-3xl bg-indigo-500 text-white px-7 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                  (click)="onSubmit()"
+                >
+                  Sign Up
+                </button>
+              </div>
             </div>
-            <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Email</span>
-              <input type="text" placeholder="Enter your email"
-                class="outline-none border-b-2 border-slate-300 focus:border-slate-500" />
-            </div>
-            <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Password</span>
-              <input type="password" placeholder="Enter your password"
-                class="outline-none border-b-2 border-slate-300 focus:border-slate-500" />
-            </div>
-            <div class="flex justify-center">
-              <button
-                class="rounded-3xl bg-indigo-500 text-white px-7 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-                (click)="login('/newaccount')">
-                Sign Up
-              </button>
-            </div>
-          </div>
+          </form>
         </div>
         <div class="col-span-1"></div>
       </div>
