@@ -8,6 +8,7 @@ import { ReactiveFormsModule, FormsModule, FormGroup, FormBuilder } from '@angul
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmdialogComponent } from '../component/confirmdialog/confirmdialog.component';
+import { AuthService } from '../service/auth.service';
 
 @Component({
   selector: 'app-settings',
@@ -18,6 +19,7 @@ import { ConfirmdialogComponent } from '../component/confirmdialog/confirmdialog
     FormsModule,
     CalendarModule,
     FontAwesomeModule,
+    ConfirmdialogComponent,
     DialogModule,],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
@@ -76,6 +78,7 @@ export class SettingsComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private formBuilder: FormBuilder,
+    private authService: AuthService
   ) {
     this.currentTheme = this.themeService.currentTheme;
     this.profileForm = this.formBuilder.group({
@@ -86,7 +89,7 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  ngOnInit() {}
+  ngOnInit() { }
 
   confirmDialog: boolean = false;
 
@@ -100,5 +103,19 @@ export class SettingsComponent implements OnInit {
 
   cancelAccount() {
     this.confirmDialog = false;
+  }
+
+  async signOut(): Promise<void> {
+    this.authService.signOut()
+  }
+
+  confirmSignOut: boolean = false;
+
+  showConfirmSignOut() {
+    this.confirmSignOut = true;
+  }
+
+  cancelSignOut() {
+    this.confirmSignOut = false;
   }
 }

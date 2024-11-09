@@ -178,10 +178,6 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  async signOut(): Promise<void> {
-    await this.authService.signOut();
-  }
-
   incomeTags = [
     'Salary',
     'Investments',

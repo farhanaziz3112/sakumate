@@ -1,44 +1,36 @@
 <div class="flex flex-col w-full h-screen">
   <div class="flex flex-row justify-between">
-    <span
-      class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
-      >Settings</span
-    >
+    <span class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium">Settings</span>
   </div>
   <div class="h-px bg-gray-200 dark:bg-gray-600 w-full my-4"></div>
   <div class="grid grid-cols-12 h-full">
     <div class="col-span-2 flex flex-row h-full w-full px-2">
       <div class="flex flex-col h-full w-full justify-start items-end">
         <ng-container *ngFor="let item of settingsLink">
-          <span
-            class="h-12 flex flex-row justify-end items-center gap-3 p-2 rounded-md cursor-pointer"
-            (click)="setActivePage(item.id)"
-            [ngClass]="
+          <span class="h-12 flex flex-row justify-end items-center gap-3 p-2 rounded-md cursor-pointer"
+            (click)="setActivePage(item.id)" [ngClass]="
               activePage === item.id
                 ? 'text-black dark:text-white'
                 : 'text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white'
-            "
-          >
+            ">
             <fa-icon [icon]="getIcon(item.icon)"></fa-icon>
             <span>
               {{ item.label }}
             </span>
-            <!-- <div
-            [ngClass]="
-              activePage === item.id
-                ? 'bg-gradient-to-b from-indigo-500 to-pink-300'
-                : 'bg-transparent'
-            "
-            class="h-10 w-1 rounded-full transition-all duration-700 ease-in-out"
-            [style.opacity]="activePage === item.id ? 1 : 0"
-          ></div> -->
           </span>
         </ng-container>
+        <span
+          class="h-12 flex flex-row justify-end items-center gap-3 p-2 rounded-md cursor-pointer text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white"
+          (click)="showConfirmDialog()">
+          <fa-icon [icon]="getIcon('faSignOut')"></fa-icon>
+          <span>
+            Sign Out
+          </span>
+        </span>
       </div>
       <div
         class="h-10 w-1 rounded-full transition-transform duration-500 ease-in-out bg-gradient-to-b from-indigo-500 to-pink-300"
-        [ngStyle]="indicatorStyle"
-      ></div>
+        [ngStyle]="indicatorStyle"></div>
     </div>
     <div class="col-span-1 flex justify-start items-center">
       <div class="h-full w-px bg-gray-200 dark:bg-gray-600 flex"></div>
@@ -53,45 +45,28 @@
                 <div class="flex flex-col gap-8 w-full h-full justify-between">
                   <div class="flex flex-col gap-2 w-full">
                     <span class="text-sm">Username</span>
-                    <input
-                      formControlName="userName"
-                      type="text"
-                      placeholder="Enter your username"
-                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-                    />
+                    <input formControlName="userName" type="text" placeholder="Enter your username"
+                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent" />
                   </div>
                   <div class="flex flex-col gap-2 w-full">
                     <span class="text-sm">First Name</span>
-                    <input
-                      formControlName="firstName"
-                      type="text"
-                      placeholder="Enter your first name"
-                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-                    />
+                    <input formControlName="firstName" type="text" placeholder="Enter your first name"
+                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent" />
                   </div>
                   <div class="flex flex-col gap-2 w-full">
                     <span class="text-sm">Last Name</span>
-                    <input
-                      formControlName="lastName"
-                      type="text"
-                      placeholder="Enter your last name"
-                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-                    />
+                    <input formControlName="lastName" type="text" placeholder="Enter your last name"
+                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent" />
                   </div>
                   <div class="flex flex-col gap-2 w-full">
                     <span class="text-sm">Email</span>
-                    <input
-                      formControlName="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-                    />
+                    <input formControlName="email" type="email" placeholder="Enter your email"
+                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent" />
                   </div>
                   <div class="flex flex-row justify-center relative">
                     <button
                       class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-                      (click)="showConfirmDialog()"
-                    >
+                      (click)="showConfirmDialog()">
                       Submit
                       <fa-icon [icon]="getIcon('faCheck')"></fa-icon>
                     </button>
@@ -138,10 +113,8 @@
   </div>
 </div>
 
-<app-confirmdialog
-  [visible]="confirmDialog"
-  title="Add New Account"
-  message="Are sure you want to proceed?"
-  (onConfirm)="submitAccount()"
-  (onCancel)="cancelAccount()"
-></app-confirmdialog>
+<app-confirmdialog [visible]="confirmDialog" title="Add New Account" message="Are sure you want to proceed?"
+  (onConfirm)="submitAccount()" (onCancel)="cancelAccount()"></app-confirmdialog>
+
+<app-confirmdialog [visible]="confirmDialog" title="Sign Out" message="Are sure you want to sign out your account?"
+  (onConfirm)="signOut()" (onCancel)="cancelSignOut()"></app-confirmdialog>

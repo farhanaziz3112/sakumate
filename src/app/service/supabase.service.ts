@@ -4,6 +4,7 @@ import {
   createClient,
   SupabaseClient,
   AuthSession,
+  User,
 } from '@supabase/supabase-js';
 import { environment } from '../../environments/environments';
 import { BehaviorSubject } from 'rxjs';
@@ -92,5 +93,17 @@ export class SupabaseService {
   // Get the current session
   getSession(): AuthSession | null {
     return this.sessionSubject.value;
+  }
+
+
+
+  //-------------------------------Database---------------------------------
+
+  profile(user: User) {
+    return this.supabase
+      .from('profiles')
+      .select(`username, website, avatar_url`)
+      .eq('id', user.id)
+      .single()
   }
 }
