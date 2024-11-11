@@ -42,7 +42,7 @@ export const routes: Routes = [
   {
     path: 'newaccount',
     component: NewaccountComponent,
-    canActivate: [authGuard]
+    canActivate: [mainGuard]
   },
   {
     path: '',

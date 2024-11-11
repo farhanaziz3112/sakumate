@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faMinus,
@@ -10,6 +10,7 @@ import {
   faShoppingCart,
 } from '@fortawesome/free-solid-svg-icons';
 import { icons } from '../icons/icons';
+import { ColorService } from '../../service/color.service';
 
 @Component({
   selector: 'app-tag',
@@ -21,175 +22,184 @@ import { icons } from '../icons/icons';
 export class TagComponent implements OnInit {
   @Input() name: string = '';
   tag: any;
-  
 
-  constructor() {}
+  @Output() onClick = new EventEmitter<void>();
+
+  constructor(private colorService: ColorService) {}
 
   ngOnInit() {
     this.tag = this.tags.find((tag) => tag.name === this.name);
   }
 
+  getColors(colorName: string) {
+    return this.colorService.getColor(colorName, 'dark');
+  }
+
+  click() {
+    this.onClick.emit();
+  }
+
   tags = [
     {
       name: 'Food',
-      color: 'bg-orange-500',
+      color: 'orange',
       icon: 'faHamburger',
       type: 'expense',
     },
     {
       name: 'Petrol',
-      color: 'bg-blue-500',
+      color: 'red',
       icon: 'faGasPump',
       type: 'expense',
     },
     {
       name: 'Shopping',
-      color: 'bg-pink-500',
+      color: 'pink',
       icon: 'faShoppingCart',
       type: 'expense',
     },
     {
       name: 'Salary',
-      color: 'bg-green-500',
+      color: 'green',
       icon: 'faDollarSign',
       type: 'income',
     },
-    { name: 'Transport', color: 'bg-teal-500', icon: 'faBus', type: 'expense' },
+    { name: 'Transport', color: 'amber', icon: 'faBus', type: 'expense' },
     {
       name: 'Entertainment',
-      color: 'bg-purple-500',
+      color: 'purple',
       icon: 'faFilm',
       type: 'expense',
     },
     {
       name: 'Utilities',
-      color: 'bg-yellow-500',
+      color: 'yellow',
       icon: 'faLightbulb',
       type: 'expense',
     },
     {
       name: 'Healthcare',
-      color: 'bg-red-500',
+      color: 'red',
       icon: 'faHeartbeat',
       type: 'expense',
     },
     {
       name: 'Investments',
-      color: 'bg-indigo-500',
+      color: 'indigo',
       icon: 'faChartLine',
       type: 'income',
     },
-    { name: 'Gifts', color: 'bg-pink-500', icon: 'faGift', type: 'expense' },
+    { name: 'Gifts', color: 'pink', icon: 'faGift', type: 'expense' },
     {
       name: 'Education',
-      color: 'bg-blue-400',
+      color: 'blue',
       icon: 'faBook',
       type: 'expense',
     },
     {
       name: 'Insurance',
-      color: 'bg-gray-500',
+      color: 'gray',
       icon: 'faShieldAlt',
       type: 'expense',
     },
-    { name: 'Rent', color: 'bg-gray-700', icon: 'faHome', type: 'expense' },
+    { name: 'Rent', color: 'gray', icon: 'faHome', type: 'expense' },
     {
       name: 'Dining Out',
-      color: 'bg-orange-400',
+      color: 'orange',
       icon: 'faUtensils',
       type: 'expense',
     },
-    { name: 'Bonuses', color: 'bg-green-600', icon: 'faMedal', type: 'income' },
+    // { name: 'Bonuses', color: 'green', icon: 'faMedal', type: 'income' },
     {
       name: 'Freelance',
-      color: 'bg-green-400',
+      color: 'emerald',
       icon: 'faBriefcase',
       type: 'income',
     },
     {
       name: 'Savings',
-      color: 'bg-blue-600',
+      color: 'blue',
       icon: 'faPiggyBank',
       type: 'income',
     },
     {
       name: 'Groceries',
-      color: 'bg-green-300',
+      color: 'green',
       icon: 'faAppleAlt',
       type: 'expense',
     },
     {
       name: 'Clothing',
-      color: 'bg-pink-400',
+      color: 'pink',
       icon: 'faShirt',
       type: 'expense',
     },
-    { name: 'Travel', color: 'bg-blue-300', icon: 'faPlane', type: 'expense' },
+    { name: 'Travel', color: 'blue', icon: 'faPlane', type: 'expense' },
     {
       name: 'Loan Payment',
-      color: 'bg-red-700',
+      color: 'red',
       icon: 'faUniversity',
       type: 'expense',
     },
     {
       name: 'Charity',
-      color: 'bg-purple-600',
+      color: 'purple',
       icon: 'faHandsHelping',
       type: 'expense',
     },
-    {
-      name: 'Interest',
-      color: 'bg-teal-400',
-      icon: 'faPercentage',
-      type: 'income',
-    },
-    {
-      name: 'Commission',
-      color: 'bg-yellow-600',
-      icon: 'faChartPie',
-      type: 'income',
-    },
+    // {
+    //   name: 'Interest',
+    //   color: 'teal',
+    //   icon: 'faPercentage',
+    //   type: 'income',
+    // },
+    // {
+    //   name: 'Commission',
+    //   color: 'yellow',
+    //   icon: 'faChartPie',
+    //   type: 'income',
+    // },
     {
       name: 'Childcare',
-      color: 'bg-orange-600',
+      color: 'orange',
       icon: 'faChild',
       type: 'expense',
     },
     {
       name: 'Electronics',
-      color: 'bg-gray-800',
+      color: 'gray',
       icon: 'faLaptop',
       type: 'expense',
     },
-    { name: 'Pet Care', color: 'bg-teal-300', icon: 'faPaw', type: 'expense' },
+    { name: 'Pet Care', color: 'teal', icon: 'faPaw', type: 'expense' },
     {
       name: 'Subscriptions',
-      color: 'bg-indigo-600',
+      color: 'indigo',
       icon: 'faTv',
       type: 'expense',
     },
     {
       name: 'Household',
-      color: 'bg-yellow-400',
+      color: 'yellow',
       icon: 'faCouch',
       type: 'expense',
     },
-    { name: 'Tips', color: 'bg-purple-300', icon: 'faCoins', type: 'income' },
-    {
-      name: 'Investment Returns',
-      color: 'bg-blue-700',
-      icon: 'faChartBar',
-      type: 'income',
-    },
-    {
-      name: 'Other Income',
-      color: 'bg-green-800',
-      icon: 'faMoneyCheckAlt',
-      type: 'income',
-    },
+    // { name: 'Tips', color: 'purple', icon: 'faCoins', type: 'income' },
+    // {
+    //   name: 'Investment Returns',
+    //   color: 'blue',
+    //   icon: 'faChartBar',
+    //   type: 'income',
+    // },
+    // {
+    //   name: 'Other Income',
+    //   color: 'green',
+    //   icon: 'faMoneyCheckAlt',
+    //   type: 'income',
+    // },
     {
       name: 'Miscellaneous',
-      color: 'bg-gray-400',
+      color: 'gray',
       icon: 'faQuestionCircle',
       type: 'expense',
     },

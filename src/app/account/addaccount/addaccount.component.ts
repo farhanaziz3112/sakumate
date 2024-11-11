@@ -72,7 +72,6 @@ export class AddaccountComponent implements OnInit {
     'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'
   ];
 
-
   faArrowRight = faArrowRight;
   faArrowLeft = faArrowLeft;
   faCheck = faCheck;

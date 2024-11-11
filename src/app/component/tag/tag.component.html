@@ -1,3 +1,6 @@
-<span class="text-xxs lg:text-xs text-white rounded-2xl p-1 justify-start inline-flex" [ngClass]="tag.color"
+<span
+  class="cursor-pointer text-xxs lg:text-xs text-white rounded-2xl p-1 justify-start inline-flex"
+  [ngClass]="getColors(tag.color)"
+  (click)="click()"
   ><fa-icon [icon]="getIcon(tag.icon)"></fa-icon>{{ name | uppercase }}</span
 >

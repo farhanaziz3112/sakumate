@@ -11,14 +11,12 @@ import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
-import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdialog.component';
 import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-forgotpassword',
   standalone: true,
   imports: [
-    ConfirmdialogComponent,
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
@@ -61,5 +59,9 @@ export class ForgotpasswordComponent implements OnInit {
     } else {
       alert('New password and confirm password are not the same!');
     }
+  }
+
+  login(link: string) {
+    this.router.navigate([link]);
   }
 }

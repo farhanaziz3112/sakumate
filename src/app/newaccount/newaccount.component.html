@@ -1,25 +1,27 @@
 <div class="bg-gradient-to-r from-indigo-500 to-pink-300 w-full min-h-screen">
-  <div class="flex flex-col px-12 py-6 h-full">
+  <div class="flex flex-col px-4 md:px-12 py-6 h-full">
     <div class="h-12 w-12 absolute">
       <img src="../../assets/image/sakumate-logo-white.png" alt="" />
     </div>
-    <div class="p-32">
-      <div class="grid grid-cols-5">
+    <div class="py-20 px-0 lg:py-28 lg:px-8 flex flex-col justify-start">
+      <div class="hidden md:grid grid-cols-7 text-xs lg:text-base">
         <div class="col-span-1 flex flex-col justify-center items-center gap-3">
           <span
-            class="rounded-full flex justify-center items-center w-10 h-10 border-2"
+            class="rounded-full flex justify-center items-center w-5 h-5 lg:w-10 lg:h-10 border-2"
             [ngClass]="
-              currentStep < 3
+              currentStep < 4
                 ? 'bg-indigo-500 text-white border-white'
                 : 'bg-white text-black'
             "
           >
             1
           </span>
-          <span class="text-white">Add Account & Balance</span>
+          <span class="text-white">Add Profile</span>
         </div>
         <div class="col-span-1 justify-center items-center flex">
-          <div class="w-full h-0.5 bg-gray-100 relative rounded-lg overflow-hidden">
+          <div
+            class="w-2/3 lg:w-full h-0.5 bg-gray-100 relative rounded-full overflow-hidden"
+          >
             <div
               class="bg-indigo-700 h-full transition-all duration-500 ease-in-out"
               [style.width]="currentStep > 0 ? '100%' : '0%'"
@@ -28,19 +30,21 @@
         </div>
         <div class="col-span-1 flex flex-col justify-center items-center gap-3">
           <span
-            class="rounded-full flex justify-center items-center w-10 h-10 border-2"
+            class="rounded-full flex justify-center items-center w-5 h-5 lg:w-10 lg:h-10 border-2"
             [ngClass]="
-              currentStep < 3 && currentStep > 0
+              currentStep < 4 && currentStep > 0
                 ? 'bg-indigo-500 text-white border-white'
                 : 'bg-white text-black'
             "
           >
             2
           </span>
-          <span class="text-white">Add Budgets</span>
+          <span class="text-white">Add Accounts</span>
         </div>
         <div class="col-span-1 justify-center items-center flex">
-          <div class="w-full h-0.5 bg-gray-100 relative">
+          <div
+            class="w-2/3 lg:w-full h-0.5 bg-gray-100 relative rounded-full overflow-hidden"
+          >
             <div
               class="bg-indigo-700 h-full transition-all duration-500 ease-in-out"
               [style.width]="currentStep > 1 ? '100%' : '0%'"
@@ -49,107 +53,420 @@
         </div>
         <div class="col-span-1 flex flex-col justify-center items-center gap-3">
           <span
-            class="rounded-full flex justify-center items-center w-10 h-10 border-2"
+            class="rounded-full flex justify-center items-center text-sm lg:text-base w-5 h-5 lg:w-10 lg:h-10 border-2"
             [ngClass]="
-              currentStep < 3 && currentStep > 1
+              currentStep < 4 && currentStep > 1
                 ? 'bg-indigo-500 text-white border-white'
                 : 'bg-white text-black'
             "
           >
             3
           </span>
+          <span class="text-white">Add Budgets</span>
+        </div>
+        <div class="col-span-1 justify-center items-center flex">
+          <div
+            class="w-2/3 lg:w-full h-0.5 bg-gray-100 relative rounded-full overflow-hidden"
+          >
+            <div
+              class="bg-indigo-700 h-full transition-all duration-500 ease-in-out"
+              [style.width]="currentStep > 2 ? '100%' : '0%'"
+            ></div>
+          </div>
+        </div>
+        <div class="col-span-1 flex flex-col justify-center items-center gap-3">
+          <span
+            class="rounded-full flex justify-center items-center text-sm lg:text-base w-5 h-5 lg:w-10 lg:h-10 border-2"
+            [ngClass]="
+              currentStep < 4 && currentStep > 2
+                ? 'bg-indigo-500 text-white border-white'
+                : 'bg-white text-black'
+            "
+          >
+            4
+          </span>
           <span class="text-white">Add Goals</span>
         </div>
-        <ng-container *ngIf="currentStep === 0">
-          <div
-            class="col-span-5 bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg mt-16 px-10 py-8"
+      </div>
+      <div class="flex flex-col md:hidden justify-center items-center gap-2">
+        <div class="flex flex-col justify-center items-center gap-2">
+          <span
+            class="rounded-full flex justify-center items-center text-sm lg:text-base w-5 h-5 lg:w-10 lg:h-10 border-2 bg-indigo-500 text-white border-white"
           >
-            <span>Add Account & Balance</span>
+            {{ currentStep + 1 }}
+          </span>
+          <span class="text-white">{{ pages[currentStep].label }}</span>
+        </div>
+        <div class="justify-center items-center flex w-full">
+          <div
+            class="w-full h-0.5 bg-gray-100 relative rounded-full overflow-hidden"
+          >
+            <div
+              class="bg-indigo-700 h-0.5 transition-all duration-500 ease-in-out"
+              [style.width]="
+                currentStep === 0
+                  ? '25%'
+                  : currentStep === 1
+                  ? '50%'
+                  : currentStep === 2
+                  ? '75%'
+                  : '100%'
+              "
+            ></div>
+          </div>
+        </div>
+      </div>
+      <div class="flex w-full h-full mt-8 lg:mt-16 px-0 lg:px-40 xl:px-56">
+        <ng-container *ngIf="currentStep === 0">
+          <form
+            [formGroup]="profileForm"
+            class="w-full h-full bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg px-4 md:px-10 py-8"
+          >
+            <span>Add Profile</span>
             <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Account Name</span>
+              <span class="text-sm">User Name</span>
               <input
                 type="text"
-                placeholder="Enter your account name"
+                formControlName="username"
+                placeholder="Enter your user name"
                 class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
               />
-            </div>
-            <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Account Type</span>
-              <div class="space-x-4">
-                <label *ngFor="let item of accType">
-                  <input type="radio" name="accountType" [value]="item.value" />
-                  <span class="ml-1">{{ item.label }}</span>
-                </label>
+              <div
+                *ngIf="isProfileFormInvalid('username')"
+                class="text-red-600 text-sm"
+              >
+                <small *ngIf="profileForm.get('username')?.errors?.required"
+                  >User name is required</small
+                >
+                <small *ngIf="profileForm.get('username')?.errors?.minlength"
+                  >User name must be at least 3 characters long</small
+                >
               </div>
             </div>
             <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Balance</span>
+              <span class="text-sm">First Name</span>
               <input
-                type="number"
-                placeholder="Enter your balance amount"
+                type="text"
+                formControlName="firstname"
+                placeholder="Enter your first name"
                 class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
               />
+              <div
+                *ngIf="isProfileFormInvalid('firstname')"
+                class="text-red-600 text-sm"
+              >
+                <small *ngIf="profileForm.get('firstname')?.errors?.required"
+                  >First name is required</small
+                >
+                <small *ngIf="profileForm.get('firstname')?.errors?.minlength"
+                  >First name must be at least 3 characters long</small
+                >
+              </div>
+            </div>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Last Name</span>
+              <input
+                type="text"
+                formControlName="lastname"
+                placeholder="Enter your last name"
+                class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
+              />
+              <div
+                *ngIf="isProfileFormInvalid('lastname')"
+                class="text-red-600 text-sm"
+              >
+                <small *ngIf="profileForm.get('lastname')?.errors?.required"
+                  >Last name is required</small
+                >
+                <small *ngIf="profileForm.get('lastname')?.errors?.minlength"
+                  >Last name must be at least 3 characters long</small
+                >
+              </div>
             </div>
             <div class="flex justify-end">
               <button
-                class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-                (click)="changeStep(1)"
+                class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
+                (click)="nextStep(1)"
+                [ngClass]="
+                  profileForm.valid
+                    ? 'bg-indigo-500 hover:bg-indigo-700'
+                    : 'bg-gray-700'
+                "
+                [disabled]="!profileForm.valid"
               >
                 Next<fa-icon class="p-1" [icon]="faArrowRight"></fa-icon>
               </button>
             </div>
-          </div>
+          </form>
         </ng-container>
         <ng-container *ngIf="currentStep === 1">
-          <div
-            class="col-span-5 bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg mt-16 px-10 py-8"
+          <form
+            [formGroup]="accountForm"
+            class="w-full h-full bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg px-4 md:px-10 py-8"
           >
-            <span>Add Budgets</span>
+            <span>Add Account</span>
             <div class="flex flex-col gap-2 w-full">
               <span class="text-sm">Account Name</span>
               <input
                 type="text"
+                formControlName="accountname"
                 placeholder="Enter your account name"
                 class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
               />
+              <div
+                *ngIf="isAccountFormInvalid('accountname')"
+                class="text-red-600 text-sm"
+              >
+                <small *ngIf="accountForm.get('accountname')?.errors?.required"
+                  >Account name is required</small
+                >
+                <small *ngIf="accountForm.get('accountname')?.errors?.minlength"
+                  >Account name must be at least 3 characters long</small
+                >
+              </div>
             </div>
             <div class="flex flex-col gap-2 w-full">
               <span class="text-sm">Account Type</span>
-              <div class="space-x-4">
-                <label *ngFor="let item of accType">
-                  <input type="radio" name="accountType" [value]="item.value" />
+              <label *ngFor="let item of accType">
+                <div class="flex flex-row">
+                  <input
+                    formControlName="accounttype"
+                    type="radio"
+                    name="accounttype"
+                    [value]="item.value"
+                  />
                   <span class="ml-1">{{ item.label }}</span>
-                </label>
+                </div>
+              </label>
+              <div
+                *ngIf="isAccountFormInvalid('accounttype')"
+                class="text-red-600 text-sm"
+              >
+                <small *ngIf="accountForm.get('accounttype')?.errors?.required"
+                  >Account type is required</small
+                >
               </div>
             </div>
             <div class="flex flex-col gap-2 w-full">
               <span class="text-sm">Balance</span>
               <input
                 type="number"
+                formControlName="currentbalance"
                 placeholder="Enter your balance amount"
                 class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
               />
+              <div
+                *ngIf="isAccountFormInvalid('currentbalance')"
+                class="text-red-600 text-sm"
+              >
+                <small
+                  *ngIf="accountForm.get('currentbalance')?.errors?.required"
+                  >Current balance is required</small
+                >
+              </div>
+            </div>
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Display Color</span>
+              <div class="flex flex-row justify-evenly">
+                <div class="flex flex-col">
+                  <div
+                    *ngIf="overlayOpen"
+                    #overlayPanel
+                    class="hidden md:block absolute z-10 w-72 bottom-44 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
+                  >
+                    <div class="flex flex-col gap-2">
+                      <span class="text-sm font-bold">Color 1</span>
+                      <div class="grid grid-cols-4 gap-1">
+                        <ng-container *ngFor="let color of colors">
+                          <div class="col-span-1 flex justify-center">
+                            <span
+                              class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                              [ngClass]="getColors(color)"
+                              (click)="setColor(color, true)"
+                            ></span>
+                          </div>
+                        </ng-container>
+                      </div>
+                    </div>
+                  </div>
+                  <span
+                    #triggerButton
+                    class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                    [ngClass]="getColors(accountForm.value['color1'])"
+                    (click)="toggleOverlay()"
+                  ></span>
+                  <span class="text-sm">Color 1</span>
+                </div>
+                <div class="flex flex-col">
+                  <div
+                    *ngIf="overlayOpen2"
+                    #overlayPanel2
+                    class="hidden md:block absolute z-10 w-72 bottom-44 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
+                  >
+                    <div class="flex flex-col gap-2">
+                      <span class="text-sm font-bold">Color 2</span>
+                      <div class="grid grid-cols-4 gap-1">
+                        <ng-container *ngFor="let color of colors">
+                          <div class="col-span-1 flex justify-center">
+                            <span
+                              class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                              [ngClass]="getColors(color)"
+                              (click)="setColor(color, false)"
+                            ></span>
+                          </div>
+                        </ng-container>
+                      </div>
+                    </div>
+                  </div>
+                  <span
+                    #triggerButton2
+                    class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                    [ngClass]="getColors(accountForm.value['color2'])"
+                    (click)="toggleOverlay2()"
+                  ></span>
+                  <span class="text-sm">Color 2</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col justify-center items-center gap-2 w-full">
+              <span class="text-sm">Preview</span>
+              <div
+                class="flex flex-col w-40 h-24 lg-m:w-64 lg-m:h-32 lg:w-80 lg:h-40 justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b rounded-sm cursor-pointer"
+                [ngClass]="
+                  getGradientClasses(
+                    accountForm.value['color1'],
+                    accountForm.value['color2']
+                  )
+                "
+              >
+                <div class="flex flex-col">
+                  <span class="text-xs lg-m:text-sm">
+                    {{ accountForm.value["accountname"] }}
+                  </span>
+                  <span class="text-lg lg-m:text-2xl font-semibold">
+                    {{ accountForm.value["currentbalance"] | number : "1.2-2" }}
+                  </span>
+                </div>
+                <span class="text-xs">
+                  {{ accountForm.value["accounttype"] | uppercase }}
+                </span>
+              </div>
             </div>
             <div class="flex justify-between">
               <button
                 class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-                (click)="changeStep(0)"
+                (click)="previousStep(0)"
+              >
+                <fa-icon class="p-1" [icon]="faArrowLeft"></fa-icon>
+                Back
+              </button>
+              <button
+                class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
+                (click)="nextStep(2)"
+                [ngClass]="
+                  accountForm.valid
+                    ? 'bg-indigo-500 hover:bg-indigo-700'
+                    : 'bg-gray-700'
+                "
+                [disabled]="!accountForm.valid"
+              >
+                Next<fa-icon class="p-1" [icon]="faArrowRight"></fa-icon>
+              </button>
+            </div>
+          </form>
+        </ng-container>
+        <ng-container *ngIf="currentStep === 2">
+          <div
+            class="w-full h-full bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg px-4 md:px-10 py-8"
+          >
+            <span>Add Budget</span>
+            <div
+              class="flex flex-row items-center gap-2 w-full px-2 py-3 rounded-md border border-gray-200 text-gray-600"
+            >
+              <fa-icon [icon]="getIcon('faCircleExclamation')"></fa-icon>
+              <span class="text-sm"
+                >Budget is categorization of your income and expenses. By
+                setting up your budgets, you can supervise precisely, where your
+                money come from and go to.</span
+              >
+            </div>
+            <span class="text-sm">
+              Feel free to choose any predefined budget you would like to add in
+              your account. Don't worry, you can add more and edit later!
+            </span>
+            <div class="flex flex-col w-full gap-2">
+              <span class="text-sm"> Incomes </span>
+              <div
+                class="flex flex-col gap-2 px-2 py-3 rounded-md border border-gray-200 text-gray-600"
+              >
+                <span class="text-sm">Available Incomes</span>
+                <div class="flex flex-wrap gap-1">
+                  <ng-container *ngFor="let tag of incomes">
+                    <app-tag
+                      (onClick)="selectIncome(tag)"
+                      [name]="tag"
+                    ></app-tag>
+                  </ng-container>
+                </div>
+              </div>
+              <div
+                class="flex flex-col gap-2 px-2 py-3 rounded-md border border-gray-200 text-gray-600"
+              >
+                <span class="text-sm">Selected Incomes</span>
+                <div class="flex flex-wrap gap-1">
+                  <ng-container *ngFor="let tag of selectedIncomes">
+                    <app-tag [name]="tag"></app-tag>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col w-full gap-2">
+              <span class="text-sm"> Expenses </span>
+              <div
+                class="flex flex-col gap-2 px-2 py-3 rounded-md border border-gray-200 text-gray-600"
+              >
+                <span class="text-sm">Available Incomes</span>
+                <div class="flex flex-wrap gap-1">
+                  <ng-container *ngFor="let tag of expenses">
+                    <app-tag
+                      (onClick)="selectExpense(tag)"
+                      [name]="tag"
+                    ></app-tag>
+                  </ng-container>
+                </div>
+              </div>
+              <div
+                class="flex flex-col gap-2 px-2 py-3 rounded-md border border-gray-200 text-gray-600"
+              >
+                <span class="text-sm">Selected Incomes</span>
+                <div class="flex flex-wrap gap-1">
+                  <ng-container *ngFor="let tag of selectedExpenses">
+                    <app-tag [name]="tag"></app-tag>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-between">
+              <button
+                class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                (click)="previousStep(1)"
               >
                 <fa-icon class="p-1" [icon]="faArrowLeft"></fa-icon>
                 Back
               </button>
               <button
                 class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-                (click)="changeStep(2)"
+                (click)="nextStep(3)"
               >
-                Next<fa-icon class="p-1" [icon]="faArrowRight"></fa-icon>
+                Next
+                <fa-icon class="p-1" [icon]="faArrowRight"></fa-icon>
               </button>
             </div>
           </div>
         </ng-container>
-        <ng-container *ngIf="currentStep === 2">
+        <ng-container *ngIf="currentStep === 3">
           <div
-            class="col-span-5 bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg mt-16 px-10 py-8"
+            class="w-full h-full bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg px-4 md:px-10 py-8"
           >
             <span>Add Goals</span>
             <div class="flex flex-col gap-2 w-full">
@@ -180,7 +497,7 @@
             <div class="flex justify-between">
               <button
                 class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-                (click)="changeStep(1)"
+                (click)="previousStep(2)"
               >
                 <fa-icon class="p-1" [icon]="faArrowLeft"></fa-icon>
                 Back
@@ -199,3 +516,75 @@
     </div>
   </div>
 </div>
+
+<p-dialog
+  class="block md:hidden"
+  header="header"
+  [(visible)]="overlayOpen"
+  [modal]="true"
+  [dismissableMask]="true"
+>
+  <ng-template pTemplate="headless">
+    <div
+      class="w-72 h-auto lg-m:w-96 lg-m:h-auto bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8"
+    >
+      <div class="flex flex-col gap-4 w-full h-full justify-start">
+        <div class="flex flex-row justify-between">
+          <span class="text-base font-bold">Color 1</span>
+          <span
+            class="cursor-pointer text-gray-400 hover:text-black"
+            (click)="toggleOverlay()"
+            ><fa-icon [icon]="getIcon('faXmark')"></fa-icon
+          ></span>
+        </div>
+        <div class="grid grid-cols-4 gap-1">
+          <ng-container *ngFor="let color of colors">
+            <div class="col-span-1 flex justify-center">
+              <span
+                class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                [ngClass]="getColors(color)"
+                (click)="setColor(color, true)"
+              ></span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  class="block md:hidden"
+  header="header"
+  [(visible)]="overlayOpen2"
+  [modal]="true"
+  [dismissableMask]="true"
+>
+  <ng-template pTemplate="headless">
+    <div
+      class="w-72 h-auto lg-m:w-96 lg-m:h-auto bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8"
+    >
+      <div class="flex flex-col gap-4 w-full h-full justify-start">
+        <div class="flex flex-row justify-between">
+          <span class="text-base font-bold">Color 2</span>
+          <span
+            class="cursor-pointer text-gray-400 hover:text-black"
+            (click)="toggleOverlay2()"
+            ><fa-icon [icon]="getIcon('faXmark')"></fa-icon
+          ></span>
+        </div>
+        <div class="grid grid-cols-4 gap-1">
+          <ng-container *ngFor="let color of colors">
+            <div class="col-span-1 flex justify-center">
+              <span
+                class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                [ngClass]="getColors(color)"
+                (click)="setColor(color, false)"
+              ></span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

@@ -60,6 +60,7 @@ import {
   faCircleQuestion,
   faInfoCircle,
   faUser,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const icons: { [key: string]: IconDefinition } = {
@@ -121,7 +122,8 @@ export const icons: { [key: string]: IconDefinition } = {
   faDisplay,
   faCircleQuestion,
   faInfoCircle,
-  faUser
+  faUser,
+  faXmark
 };
 
 export const tagIconsString = [

@@ -27,6 +27,7 @@ import { DialogModule } from 'primeng/dialog';
 import { SupabaseService } from '../service/supabase.service';
 import { Router } from '@angular/router';
 import { AuthService } from '../service/auth.service';
+import { AuthSession, User } from '@supabase/supabase-js';
 
 @Component({
   selector: 'app-dashboard',
@@ -159,6 +160,8 @@ export class DashboardComponent implements OnInit {
   }
 
   // email: string = ''
+  userSession: AuthSession | any;
+  profile: any;
 
   constructor(
     private themeService: ThemeService,
@@ -169,6 +172,16 @@ export class DashboardComponent implements OnInit {
     Chart.register(this.customPlugin);
     this.currentTheme = this.themeService.currentTheme;
     console.log(this.authService.isAuthenticated());
+    this.authService.userSession$.subscribe((session) => {
+      this.userSession = session;
+    });
+  }
+
+  async getProfile() {
+    const { user } = await this.userSession;
+    this.profile = await this.supabase.profile(user);
+    console.log(user);
+    console.log(this.profile.data);
   }
 
   ngOnInit() {

@@ -14,7 +14,6 @@ import { Router } from '@angular/router';
   providedIn: 'root',
 })
 export class SupabaseService {
-
   private supabase: SupabaseClient = createClient(
     environment.supabaseUrl,
     environment.supabaseKey
@@ -75,13 +74,13 @@ export class SupabaseService {
 
   resetPassword(email: string, redirectUrl: string) {
     return this.supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl
+      redirectTo: redirectUrl,
     });
   }
 
   updatePassword(newPassword: string) {
     return this.supabase.auth.updateUser({
-      password: newPassword
+      password: newPassword,
     });
   }
 
@@ -95,15 +94,50 @@ export class SupabaseService {
     return this.sessionSubject.value;
   }
 
-
-
   //-------------------------------Database---------------------------------
+
+  //-------------------------------Profile---------------------------------
 
   profile(user: User) {
     return this.supabase
       .from('profiles')
-      .select(`username, website, avatar_url`)
+      .select(`*`)
       .eq('id', user.id)
-      .single()
+      .single();
+  }
+
+  updateProfile(profile: any) {
+    let updatedProfile = {
+      ...profile,
+      updated_at: new Date(),
+    };
+
+    return this.supabase.from('profiles').upsert(updatedProfile);
+  }
+
+  //-------------------------------Account---------------------------------
+
+  allaccount(user: User) {
+    return this.supabase
+      .from('account')
+      .select(`*`)
+      .eq('userid', user.id)
+  }
+
+  createAccount(account: any) {
+    let newAccount = {
+      ...account,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+    return this.supabase.from('account').insert(newAccount);
+  }
+
+  updateAccount(account: any) {
+    let updatedAccount = {
+      ...account,
+      updated_at: new Date(),
+    };
+    return this.supabase.from('account').upsert(updatedAccount);
   }
 }

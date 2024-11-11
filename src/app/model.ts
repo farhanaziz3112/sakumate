@@ -1,13 +1,9 @@
 export interface Profile {
     id?: string
-    username: string
-    website: string
-    avatar_url: string
+    email: string
+    userName: string
+    firstName: string
+    lastName: string
+    updated_at: Date
 }
 
-export interface User {
-    id?: string
-    username: string
-    website: string
-    avatar_url: string
-}

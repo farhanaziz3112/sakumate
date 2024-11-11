@@ -12,14 +12,12 @@ import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { SupabaseService } from '../../service/supabase.service';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
-import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdialog.component';
 import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
   imports: [
-    ConfirmdialogComponent,
     CommonModule,
     ReactiveFormsModule,
     FormsModule,

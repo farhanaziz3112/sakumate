@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { SupabaseClient, createClient, AuthSession } from '@supabase/supabase-js';
+import { SupabaseClient, createClient, AuthSession, User } from '@supabase/supabase-js';
 import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../environments/environments';
 import { SupabaseService } from './supabase.service';
@@ -12,18 +12,21 @@ import { ToastService } from './toast.service';
 export class AuthService {
 
   private userSession = new BehaviorSubject<AuthSession | null>(null);
+  private user = new BehaviorSubject<User | null>(null);
   userSession$ = this.userSession.asObservable();
+  user$ = this.user.asObservable();
 
   constructor(private router: Router, private supabase: SupabaseService, private toastService: ToastService) {
     this.supabase.session$.subscribe((session) => {
       this.userSession.next(session);
+      this.user.next(session!.user)
     })
   }
 
   // Sign Up with Email and Password
   async signUp(email: string, password: string) {
     try {
-      const { error } = await this.supabase.signUp(email, password, 'http://localhost:4200/dashboard');
+      const { error } = await this.supabase.signUp(email, password, 'http://localhost:4200/newaccount');
       if (error) {
         this.toastService.showErrorToast('Error', 'There was an error signing up. Try again later.');
       } else {
