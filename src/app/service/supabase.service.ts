@@ -118,10 +118,7 @@ export class SupabaseService {
   //-------------------------------Account---------------------------------
 
   allaccount(user: User) {
-    return this.supabase
-      .from('account')
-      .select(`*`)
-      .eq('userid', user.id)
+    return this.supabase.from('account').select(`*`).eq('userid', user.id);
   }
 
   createAccount(account: any) {
@@ -139,5 +136,73 @@ export class SupabaseService {
       updated_at: new Date(),
     };
     return this.supabase.from('account').upsert(updatedAccount);
+  }
+
+  //-------------------------------Tags---------------------------------
+
+  allDefaultTag() {
+    return this.supabase.from('tag').select(`*`).is('userid', null);
+  }
+
+  createTag(tag: any) {
+    let newTag = {
+      ...tag,
+      created_at: new Date(),
+    };
+    return this.supabase.from('tag').insert(newTag);
+  }
+
+  updateTag(tag: any) {
+    let updatedTag = {
+      ...tag,
+    };
+    return this.supabase.from('tag').upsert(updatedTag);
+  }
+
+
+  //-------------------------------Budgets---------------------------------
+
+  budget(user: User) {
+    return this.supabase.from('budget').select(`*`).eq('userid', user.id);
+  }
+
+  createBudget(budget: any) {
+    let newBudget = {
+      ...budget,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+    return this.supabase.from('budget').insert(newBudget);
+  }
+
+  updateBudget(budget: any) {
+    let updatedBudget = {
+      ...budget,
+      updated_at: new Date(),
+    };
+    return this.supabase.from('tag').upsert(updatedBudget);
+  }
+
+  //-------------------------------Goals---------------------------------
+
+  goal(user: User) {
+    return this.supabase.from('goal').select(`*`).eq('userid', user.id);
+  }
+
+  createGoal(goal: any) {
+    let newGoal = {
+      ...goal,
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+    return this.supabase.from('goal').insert(newGoal);
+  }
+
+  updateGoal(goal: any) {
+    let updatedGoal = {
+      ...goal,
+      updated_at: new Date(),
+    };
+    return this.supabase.from('goal').upsert(updatedGoal);
   }
 }

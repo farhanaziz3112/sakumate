@@ -61,6 +61,13 @@ import {
   faInfoCircle,
   faUser,
   faXmark,
+  faUserClock,
+  faMoneyBill,
+  faArrowsUpDown,
+  faUpRightAndDownLeftFromCenter,
+  faUpDown,
+  faArrowUp,
+  faArrowDown
 } from '@fortawesome/free-solid-svg-icons';
 
 export const icons: { [key: string]: IconDefinition } = {
@@ -123,7 +130,14 @@ export const icons: { [key: string]: IconDefinition } = {
   faCircleQuestion,
   faInfoCircle,
   faUser,
-  faXmark
+  faXmark,
+  faUserClock,
+  faMoneyBill,
+  faArrowsUpDown,
+  faUpRightAndDownLeftFromCenter,
+  faUpDown,
+  faArrowUp,
+  faArrowDown
 };
 
 export const tagIconsString = [

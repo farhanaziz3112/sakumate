@@ -133,7 +133,7 @@
               item.amount | number : "1.2-2"
             }}</span>
             <div class="flex w-full justify-center">
-              <app-tag [name]="item.tag"></app-tag>
+              <!-- <app-tag [name]="item.tag"></app-tag> -->
             </div>
             <span class="flex text-xxs lg:text-xs w-full justify-end">{{
               item.date
@@ -203,7 +203,7 @@
         <div class="flex flex-row items-center justify-center gap-5">
           <app-donut [percentage]="70" color="text-violet-400"></app-donut>
           <div class="flex flex-col gap-3">
-            <app-tag name="Petrol"></app-tag>
+            <!-- <app-tag name="Petrol"></app-tag> -->
             <div class="flex flex-col">
               <span class="text-xxs lg-m:text-xs">Budget Limit</span>
               <span class="text-sm lg-m:text-lg font-semibold">{{
@@ -221,7 +221,7 @@
         <div class="flex flex-row items-center justify-center gap-5">
           <app-donut [percentage]="35" color="text-violet-400"></app-donut>
           <div class="flex flex-col gap-3">
-            <app-tag name="Food"></app-tag>
+            <!-- <app-tag name="Food"></app-tag> -->
             <div class="flex flex-col">
               <span class="text-xxs lg-m:text-xs">Budget Limit</span>
               <span class="text-sm lg-m:text-lg font-semibold">{{
@@ -239,7 +239,7 @@
         <div class="flex flex-row items-center justify-center gap-5">
           <app-donut [percentage]="70" color="text-violet-400"></app-donut>
           <div class="flex flex-col gap-3">
-            <app-tag name="Shopping"></app-tag>
+            <!-- <app-tag name="Shopping"></app-tag> -->
             <div class="flex flex-col">
               <span class="text-xxs lg-m:text-xs">Budget Limit</span>
               <span class="text-sm lg-m:text-lg font-semibold">{{
@@ -332,7 +332,7 @@
               (click)="toggleDropdown()"
             >
               <ng-container *ngIf="selectedTag; else noTag">
-                <app-tag [name]="selectedTag"></app-tag>
+                <!-- <app-tag [name]="selectedTag"></app-tag> -->
               </ng-container>
               <ng-template #noTag> Select an option </ng-template>
               <fa-icon [icon]="faChevronDown"></fa-icon>
@@ -347,7 +347,7 @@
                   (click)="selectTag(tag)"
                   class="cursor-pointer px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
                 >
-                  <app-tag [name]="tag"></app-tag>
+                  <!-- <app-tag [name]="tag"></app-tag> -->
                 </li>
               </ul>
             </div>
@@ -399,7 +399,7 @@
               (click)="toggleDropdown()"
             >
               <ng-container *ngIf="selectedTag; else noTag">
-                <app-tag [name]="selectedTag"></app-tag>
+                <!-- <app-tag [name]="selectedTag"></app-tag> -->
               </ng-container>
               <ng-template #noTag> Select an option </ng-template>
               <fa-icon [icon]="faChevronDown"></fa-icon>
@@ -414,7 +414,7 @@
                   (click)="selectTag(tag)"
                   class="cursor-pointer px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
                 >
-                  <app-tag [name]="tag"></app-tag>
+                  <!-- <app-tag [name]="tag"></app-tag> -->
                 </li>
               </ul>
             </div>

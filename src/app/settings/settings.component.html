@@ -21,7 +21,7 @@
         </ng-container>
         <span
           class="h-12 flex flex-row justify-end items-center gap-3 p-2 rounded-md cursor-pointer text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white"
-          (click)="showConfirmDialog()">
+          (click)="showConfirmSignOut()">
           <fa-icon [icon]="getIcon('faSignOut')"></fa-icon>
           <span>
             Sign Out
@@ -116,5 +116,5 @@
 <app-confirmdialog [visible]="confirmDialog" title="Add New Account" message="Are sure you want to proceed?"
   (onConfirm)="submitAccount()" (onCancel)="cancelAccount()"></app-confirmdialog>
 
-<app-confirmdialog [visible]="confirmDialog" title="Sign Out" message="Are sure you want to sign out your account?"
+<app-confirmdialog [visible]="confirmSignOut" title="Sign Out" message="Are sure you want to sign out your account?"
   (onConfirm)="signOut()" (onCancel)="cancelSignOut()"></app-confirmdialog>

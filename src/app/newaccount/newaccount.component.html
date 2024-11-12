@@ -395,55 +395,215 @@
               your account. Don't worry, you can add more and edit later!
             </span>
             <div class="flex flex-col w-full gap-2">
-              <span class="text-sm"> Incomes </span>
+              <span class="text-sm font-semibold"> Incomes </span>
               <div
                 class="flex flex-col gap-2 px-2 py-3 rounded-md border border-gray-200 text-gray-600"
               >
                 <span class="text-sm">Available Incomes</span>
                 <div class="flex flex-wrap gap-1">
-                  <ng-container *ngFor="let tag of incomes">
+                  <ng-container *ngFor="let tag of defaultIncomes">
                     <app-tag
                       (onClick)="selectIncome(tag)"
-                      [name]="tag"
+                      [tag]="tag"
                     ></app-tag>
                   </ng-container>
                 </div>
+              </div>
+              <div class="flex justify-center items-center">
+                <span
+                  class="w-8 h-8 rounded-xl bg-gray-500 text-white text-xs flex flex-row justify-center items-center"
+                >
+                  <fa-icon [icon]="getIcon('faArrowUp')"></fa-icon>
+                  <fa-icon [icon]="getIcon('faArrowDown')"></fa-icon>
+                </span>
               </div>
               <div
                 class="flex flex-col gap-2 px-2 py-3 rounded-md border border-gray-200 text-gray-600"
               >
                 <span class="text-sm">Selected Incomes</span>
-                <div class="flex flex-wrap gap-1">
-                  <ng-container *ngFor="let tag of selectedIncomes">
-                    <app-tag [name]="tag"></app-tag>
-                  </ng-container>
-                </div>
+                <form [formGroup]="incomeBudgetForm">
+                  <div formArrayName="budgets" class="flex flex-col gap-2">
+                    <div
+                      *ngFor="
+                        let budget of incomebudgets.controls;
+                        let i = index
+                      "
+                    >
+                      <div
+                        class="flex flex-col gap-4 px-2 py-3 rounded-sm border border-gray-400"
+                        [formGroupName]="i"
+                      >
+                        <div
+                          class="flex flex-row items-start justify-between w-full px-2"
+                        >
+                          <app-tag [tag]="selectedIncomes[i]"></app-tag>
+                          <fa-icon
+                            class="text-black hover:text-gray-500 cursor-pointer"
+                            [icon]="getIcon('faXmark')"
+                            (click)="removeIncome(selectedIncomes[i], i)"
+                          ></fa-icon>
+                        </div>
+                        <div class="grid grid-cols-5 w-full text-sm">
+                          <span class="col-span-1 whitespace-nowrap"
+                            >Description:</span
+                          >
+                          <input
+                            type="text"
+                            formControlName="description"
+                            placeholder="Enter your budget description"
+                            class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                          />
+                        </div>
+                        <div class="flex flex-col w-full">
+                          <div class="grid grid-cols-5 w-full text-sm">
+                            <span class="col-span-1 whitespace-nowrap"
+                              >Current Amount:</span
+                            >
+                            <input
+                              type="number"
+                              formControlName="currentamount"
+                              placeholder="Enter your current amount"
+                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                            />
+                          </div>
+                          <div
+                            *ngIf="
+                              isBudgetFormInvalid(true, i, 'currentamount')
+                            "
+                            class="text-red-600 text-xs"
+                          >
+                            Current amount is required
+                          </div>
+                        </div>
+                        <div class="flex flex-col w-full">
+                          <div class="grid grid-cols-5 w-full text-sm gap-2">
+                            <span class="col-span-1 whitespace-nowrap"
+                              >Monthly Target:</span
+                            >
+                            <input
+                              type="number"
+                              formControlName="targetamount"
+                              placeholder="Enter your monthly target"
+                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                            />
+                          </div>
+                          <div
+                            *ngIf="isBudgetFormInvalid(true, i, 'targetamount')"
+                            class="text-red-600 text-xs"
+                          >
+                            Target amount is required
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
             <div class="flex flex-col w-full gap-2">
-              <span class="text-sm"> Expenses </span>
+              <span class="text-sm font-semibold"> Expenses </span>
               <div
                 class="flex flex-col gap-2 px-2 py-3 rounded-md border border-gray-200 text-gray-600"
               >
                 <span class="text-sm">Available Incomes</span>
                 <div class="flex flex-wrap gap-1">
-                  <ng-container *ngFor="let tag of expenses">
+                  <ng-container *ngFor="let tag of defaultExpenses">
                     <app-tag
                       (onClick)="selectExpense(tag)"
-                      [name]="tag"
+                      [tag]="tag"
                     ></app-tag>
                   </ng-container>
                 </div>
+              </div>
+              <div class="flex justify-center items-center">
+                <span
+                  class="w-8 h-8 rounded-xl bg-gray-500 text-white text-xs flex flex-row justify-center items-center"
+                >
+                  <fa-icon [icon]="getIcon('faArrowUp')"></fa-icon>
+                  <fa-icon [icon]="getIcon('faArrowDown')"></fa-icon>
+                </span>
               </div>
               <div
                 class="flex flex-col gap-2 px-2 py-3 rounded-md border border-gray-200 text-gray-600"
               >
                 <span class="text-sm">Selected Incomes</span>
-                <div class="flex flex-wrap gap-1">
-                  <ng-container *ngFor="let tag of selectedExpenses">
-                    <app-tag [name]="tag"></app-tag>
-                  </ng-container>
-                </div>
+                <form [formGroup]="expenseBudgetForm">
+                  <div formArrayName="budgets" class="flex flex-col gap-2">
+                    <div
+                      *ngFor="
+                        let budget of expensebudgets.controls;
+                        let i = index
+                      "
+                    >
+                      <div
+                        class="flex flex-col gap-4 px-2 py-3 rounded-sm border border-gray-400"
+                        [formGroupName]="i"
+                      >
+                        <div
+                          class="flex flex-row items-start justify-between w-full px-2"
+                        >
+                          <app-tag [tag]="selectedExpenses[i]"></app-tag>
+                          <fa-icon
+                            class="text-black hover:text-gray-500 cursor-pointer"
+                            [icon]="getIcon('faXmark')"
+                            (click)="removeExpense(selectedExpenses[i], i)"
+                          ></fa-icon>
+                        </div>
+                        <div class="grid grid-cols-5 w-full text-sm">
+                          <span class="col-span-1 whitespace-nowrap"
+                            >Description:</span
+                          >
+                          <input
+                            type="text"
+                            formControlName="description"
+                            placeholder="Enter your budget description"
+                            class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                          />
+                        </div>
+                        <div class="flex flex-col w-full">
+                          <div class="grid grid-cols-5 w-full text-sm">
+                            <span class="col-span-1 whitespace-nowrap"
+                              >Current Amount:</span
+                            >
+                            <input
+                              type="number"
+                              formControlName="currentamount"
+                              placeholder="Enter your current amount"
+                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                            />
+                          </div>
+                          <div
+                            *ngIf="
+                              isBudgetFormInvalid(true, i, 'currentamount')
+                            "
+                            class="text-red-600 text-xs"
+                          >
+                            Current amount is required
+                          </div>
+                        </div>
+                        <div class="flex flex-col w-full">
+                          <div class="grid grid-cols-5 w-full text-sm gap-2">
+                            <span class="col-span-1 whitespace-nowrap"
+                              >Monthly Target:</span
+                            >
+                            <input
+                              type="number"
+                              formControlName="targetamount"
+                              placeholder="Enter your monthly target"
+                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                            />
+                          </div>
+                          <div
+                            *ngIf="isBudgetFormInvalid(true, i, 'targetamount')"
+                            class="text-red-600 text-xs"
+                          >
+                            Current amount is required
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
             <div class="flex justify-between">
@@ -455,8 +615,14 @@
                 Back
               </button>
               <button
-                class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
                 (click)="nextStep(3)"
+                [ngClass]="
+                  incomeBudgetForm.valid && expenseBudgetForm.valid
+                    ? 'bg-indigo-500 hover:bg-indigo-700'
+                    : 'bg-gray-700'
+                "
+                [disabled]="!incomeBudgetForm.valid && !expenseBudgetForm.valid"
               >
                 Next
                 <fa-icon class="p-1" [icon]="faArrowRight"></fa-icon>
@@ -469,32 +635,197 @@
             class="w-full h-full bg-white flex flex-col gap-8 rounded-2xl outline outline-1 drop-shadow-lg px-4 md:px-10 py-8"
           >
             <span>Add Goals</span>
-            <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Account Name</span>
-              <input
-                type="text"
-                placeholder="Enter your account name"
-                class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
-              />
-            </div>
-            <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Account Type</span>
-              <div class="space-x-4">
-                <label *ngFor="let item of accType">
-                  <input type="radio" name="accountType" [value]="item.value" />
-                  <span class="ml-1">{{ item.label }}</span>
-                </label>
+            <span class="text-sm">
+              Set achievable goals and track your progress over time. This
+              feature helps you stay organized and motivated on your journey
+              toward success!
+            </span>
+            <div class="flex flex-col w-full gap-4">
+              <span class="text-sm font-semibold"> Account Goal </span>
+              <div
+                class="flex flex-row items-center gap-2 w-full px-2 py-3 rounded-md border border-gray-200 text-gray-600"
+              >
+                <fa-icon [icon]="getIcon('faCircleExclamation')"></fa-icon>
+                <span class="text-sm"
+                  >Account goal is a long term goal set for a specific account.
+                  You can change the target later.</span
+                >
+                <!-- <span class="text-sm"
+                    >Other Goal: Act as side goal, which you can set and store
+                    some money to reach the target(exp: New Car 2025, Travel
+                    Europe 2026).</span
+                  > -->
               </div>
+              <form [formGroup]="goalForm">
+                <div formArrayName="goals">
+                  <div [formGroupName]="0" class="flex flex-col gap-4">
+                    <div class="flex flex-col">
+                      <div class="grid grid-cols-5 w-full text-sm gap-2">
+                        <span class="col-span-1 whitespace-nowrap"
+                          >Target Amount:</span
+                        >
+                        <input
+                          type="number"
+                          formControlName="targetamount"
+                          placeholder="Enter your target amount"
+                          class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                        />
+                      </div>
+                      <div
+                        *ngIf="isGoalFormInvalid(0, 'targetamount')"
+                        class="text-red-600 text-xs"
+                      >
+                        Target amount is required
+                      </div>
+                    </div>
+                    <div class="flex flex-col">
+                      <div class="grid grid-cols-5 w-full text-sm gap-2">
+                        <span class="col-span-1 whitespace-nowrap"
+                          >Due Date:</span
+                        >
+                        <input
+                          type="date"
+                          formControlName="duedate"
+                          placeholder="Enter your due date"
+                          class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                        />
+                      </div>
+                      <div
+                        *ngIf="isGoalFormInvalid(0, 'duedate')"
+                        class="text-red-600 text-xs"
+                      >
+                        Due date is required
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
             </div>
-            <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Balance</span>
-              <input
-                type="number"
-                placeholder="Enter your balance amount"
-                class="outline-none border-b-2 border-slate-300 focus:border-slate-500"
-              />
+            <div class="flex flex-col w-full gap-4 mt-10">
+              <span class="text-sm font-semibold"> Other Goal </span>
+              <div
+                class="flex flex-row items-center gap-2 w-full px-2 py-3 rounded-md border border-gray-200 text-gray-600"
+              >
+                <fa-icon [icon]="getIcon('faCircleExclamation')"></fa-icon>
+                <span class="text-sm"
+                  >Other goal acts as a side goal, which you can set and store
+                  some money to reach the target(exp: New Car 2025, Travel
+                  Europe 2026).</span
+                >
+              </div>
+              <div class="flex justify-start items-center">
+                <button
+                  class="rounded-3xl bg-indigo-500 text-white px-2 py-1 transition duration-500 ease-in-out hover:bg-indigo-700"
+                  (click)="addGoal()"
+                >
+                  <fa-icon class="p-1" [icon]="getIcon('faPlus')"></fa-icon>
+                  Add Goal
+                </button>
+              </div>
+              <form [formGroup]="goalForm">
+                <div formArrayName="goals" class="flex flex-col gap-2">
+                  <div *ngFor="let goal of goals.controls; let i = index">
+                    <ng-container *ngIf="i > 0">
+                      <div
+                        [formGroupName]="i"
+                        class="flex flex-col gap-4 px-2 py-3 rounded-sm border border-gray-400"
+                      >
+                        <div class="flex flex-col">
+                          <div class="grid grid-cols-5 w-full text-sm gap-2">
+                            <span class="col-span-1 whitespace-nowrap"
+                              >Goal Name:</span
+                            >
+                            <input
+                              type="text"
+                              formControlName="goalname"
+                              placeholder="Enter your goal name"
+                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                            />
+                          </div>
+                          <!-- <div
+                            *ngIf="isGoalFormInvalid(i, 'goalname')"
+                            class="text-red-600 text-xs"
+                          >
+                            Goal name is required
+                          </div> -->
+                          <div
+                            *ngIf="isGoalFormInvalid(i, 'goalname')"
+                            class="text-red-600 text-sm"
+                          >
+                            <small
+                              *ngIf="
+                                goals.at(i).get('goalname')?.errors?.['required']
+                              "
+                              >Goal name is required</small
+                            >
+                            <small
+                              *ngIf="
+                                goals.at(i).get('goalname')?.errors
+                                  ?.['minlength']
+                              "
+                              >Goal name must be at least 3 characters
+                              long</small
+                            >
+                          </div>
+                        </div>
+                        <div class="flex flex-col">
+                          <div class="grid grid-cols-5 w-full text-sm gap-2">
+                            <span class="col-span-1 whitespace-nowrap"
+                              >Description:</span
+                            >
+                            <input
+                              type="text"
+                              formControlName="description"
+                              placeholder="Enter your goal description"
+                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                            />
+                          </div>
+                        </div>
+                        <div class="flex flex-col">
+                          <div class="grid grid-cols-5 w-full text-sm gap-2">
+                            <span class="col-span-1 whitespace-nowrap"
+                              >Target Amount:</span
+                            >
+                            <input
+                              type="number"
+                              formControlName="targetamount"
+                              placeholder="Enter your target amount"
+                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                            />
+                          </div>
+                          <div
+                            *ngIf="isGoalFormInvalid(i, 'targetamount')"
+                            class="text-red-600 text-xs"
+                          >
+                            Target amount is required
+                          </div>
+                        </div>
+                        <div class="flex flex-col">
+                          <div class="grid grid-cols-5 w-full text-sm gap-2">
+                            <span class="col-span-1 whitespace-nowrap"
+                              >Due Date:</span
+                            >
+                            <input
+                              type="date"
+                              formControlName="duedate"
+                              placeholder="Enter your due date"
+                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                            />
+                          </div>
+                          <div
+                            *ngIf="isGoalFormInvalid(i, 'duedate')"
+                            class="text-red-600 text-xs"
+                          >
+                            Due date is required
+                          </div>
+                        </div>
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+              </form>
             </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between mt-10">
               <button
                 class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
                 (click)="previousStep(2)"
@@ -503,8 +834,14 @@
                 Back
               </button>
               <button
-                class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-                (click)="goToHome()"
+                class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
+                (click)="viewgoal()"
+                [ngClass]="
+                  goalForm.valid
+                    ? 'bg-indigo-500 hover:bg-indigo-700'
+                    : 'bg-gray-700'
+                "
+                [disabled]="!goalForm.valid"
               >
                 Submit
                 <fa-icon class="p-1" [icon]="faCheck"></fa-icon>

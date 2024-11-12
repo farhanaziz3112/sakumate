@@ -375,7 +375,7 @@
               (click)="toggleDropdown()"
             >
               <ng-container *ngIf="selectedTag; else noTag">
-                <app-tag [name]="selectedTag"></app-tag>
+                <!-- <app-tag [name]="selectedTag"></app-tag> -->
               </ng-container>
               <ng-template #noTag> Select an option </ng-template>
               <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
@@ -390,7 +390,7 @@
                   (click)="selectTag(tag)"
                   class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                 >
-                  <app-tag [name]="tag"></app-tag>
+                  <!-- <app-tag [name]="tag"></app-tag> -->
                 </li>
               </ul>
             </div>
@@ -442,7 +442,7 @@
               (click)="toggleDropdown()"
             >
               <ng-container *ngIf="selectedTag; else noTag">
-                <app-tag [name]="selectedTag"></app-tag>
+                <!-- <app-tag [name]="selectedTag"></app-tag> -->
               </ng-container>
               <ng-template #noTag> Select an option </ng-template>
               <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
@@ -457,7 +457,7 @@
                   (click)="selectTag(tag)"
                   class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                 >
-                  <app-tag [name]="tag"></app-tag>
+                  <!-- <app-tag [name]="tag"></app-tag> -->
                 </li>
               </ul>
             </div>

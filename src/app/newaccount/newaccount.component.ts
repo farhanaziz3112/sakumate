@@ -20,6 +20,7 @@ import { AuthService } from '../service/auth.service';
 import { AuthSession, User } from '@supabase/supabase-js';
 import { SupabaseService } from '../service/supabase.service';
 import {
+  FormArray,
   FormBuilder,
   FormGroup,
   FormsModule,
@@ -71,28 +72,6 @@ export class NewaccountComponent implements OnInit {
     },
   ];
 
-  incomes = ['Salary', 'Investments', 'Freelance', 'Savings'];
-
-  selectedIncomes: string[] = [];
-
-  selectIncome(income: string) {
-    if (!this.selectedIncomes.includes(income)) {
-      this.selectedIncomes.push(income);
-      this.incomes = this.incomes.filter((tag) => tag !== income);
-    }
-  }
-
-  expenses = ['Food', 'Petrol', 'Shopping', 'Transport', 'Entertainment'];
-
-  selectedExpenses: string[] = [];
-
-  selectExpense(expense: string) {
-    if (!this.selectedExpenses.includes(expense)) {
-      this.selectedExpenses.push(expense);
-      this.expenses = this.expenses.filter((tag) => tag !== expense);
-    }
-  }
-
   pages = [
     {
       page: 'profile',
@@ -136,14 +115,19 @@ export class NewaccountComponent implements OnInit {
   faArrowLeft = faArrowLeft;
   faCheck = faCheck;
 
-  currentStep = 2;
+  currentStep = 0;
 
   userSession: AuthSession | any;
   user: User | any;
   profile: any;
 
+  defaultTags: any;
+
   profileForm: FormGroup | any;
   accountForm: FormGroup | any;
+  incomeBudgetForm: FormGroup | any;
+  expenseBudgetForm: FormGroup | any;
+  goalForm: FormGroup | any;
 
   constructor(
     private router: Router,
@@ -164,45 +148,190 @@ export class NewaccountComponent implements OnInit {
       color1: ['yellow', [Validators.required]],
       color2: ['pink', [Validators.required]],
     });
+    this.incomeBudgetForm = this.formBuilder.group({
+      budgets: this.formBuilder.array([]),
+    });
+    this.expenseBudgetForm = this.formBuilder.group({
+      budgets: this.formBuilder.array([]),
+    });
+    this.goalForm = this.formBuilder.group({
+      goals: this.formBuilder.array([]),
+    });
     this.authService.user$.subscribe((user) => {
       this.user = user;
-      this.getProfile();
+      this.getDefaultTags();
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    let newGoalGroup = this.formBuilder.group({
+      description: [''],
+      goalname: ['', [Validators.required, Validators.minLength(3)]],
+      currentamount: ['0', [Validators.required]],
+      targetamount: ['0', [Validators.required]],
+      duedate: ['', [Validators.required]],
+    });
+
+    this.goals.push(newGoalGroup);
+  }
 
   getIcon(icon: string) {
     return icons[icon] || null;
   }
 
-  async getProfile() {
-    this.profile = await this.supabase.profile(this.user);
-    this.profileForm.patchValue({
-      username: this.profile.data.username,
-      firstname: this.profile.data.firstname,
-      lastname: this.profile.data.lastname,
-    });
+  defaultIncomes: any;
+  defaultExpenses: any;
+
+  async getDefaultTags() {
+    this.defaultTags = await this.supabase.allDefaultTag();
+    this.defaultIncomes = this.defaultTags.data.filter(
+      (tag: any) => tag.type === 'income'
+    );
+    this.defaultExpenses = this.defaultTags.data.filter(
+      (tag: any) => tag.type === 'expense'
+    );
   }
 
   async onSubmit(): Promise<void> {
-    if (this.profileForm.valid) {
-      let username = this.profileForm.value['username'] as string;
-      let firstname = this.profileForm.value['firstname'] as string;
-      let lastname = this.profileForm.value['lastname'] as string;
+    if (
+      this.profileForm.valid &&
+      this.accountForm.valid &&
+      this.incomeBudgetForm.valid &&
+      this.expenseBudgetForm.valid &&
+      this.goalForm.valid
+    ) {
+      let profile = {
+        username: this.profileForm.value['username'] as string,
+        firstname: this.profileForm.value['firstname'] as string,
+        lastname: this.profileForm.value['lastname'] as string,
+      };
+
+      let account = {
+        username: this.profileForm.value['username'] as string,
+        firstname: this.profileForm.value['firstname'] as string,
+        lastname: this.profileForm.value['lastname'] as string,
+      };
 
       try {
         await this.supabase.updateProfile({
           id: this.user.id,
-          username,
-          firstname,
-          lastname,
+          profile
         });
       } finally {
         this.profileForm.reset();
       }
     }
   }
+
+  //---------------------------------------Income Budget---------------------------------------
+
+  selectedIncomes: any[] = [];
+
+  selectIncome(income: any) {
+    if (!this.selectedIncomes.includes(income)) {
+      this.selectedIncomes.push(income);
+      this.defaultIncomes = this.defaultIncomes.filter(
+        (tag: any) => tag.tagname !== income.tagname
+      );
+      this.addIncomeBudgetForm();
+      console.log('Adding budget form');
+    }
+  }
+
+  removeIncome(income: any, index: number) {
+    if (!this.defaultIncomes.includes(income)) {
+      this.defaultIncomes.push(income);
+      this.selectedIncomes = this.selectedIncomes.filter(
+        (tag: any) => tag.tagname !== income.tagname
+      );
+      this.removeIncomeBudgetForm(index);
+      console.log('Remove budget form');
+    }
+  }
+
+  get incomebudgets(): FormArray {
+    return this.incomeBudgetForm.get('budgets') as FormArray;
+  }
+
+  addIncomeBudgetForm(): void {
+    let budgetGroup = this.formBuilder.group({
+      description: [''],
+      currentamount: ['', [Validators.required]],
+      targetamount: ['', [Validators.required]],
+    });
+
+    this.incomebudgets.push(budgetGroup);
+  }
+
+  removeIncomeBudgetForm(index: number): void {
+    this.incomebudgets.removeAt(index);
+  }
+
+  //---------------------------------------Expense Budget---------------------------------------
+
+  selectedExpenses: any[] = [];
+
+  selectExpense(expense: any) {
+    if (!this.selectedExpenses.includes(expense)) {
+      this.selectedExpenses.push(expense);
+      this.defaultExpenses = this.defaultExpenses.filter(
+        (tag: any) => tag.tagname !== expense.tagname
+      );
+      this.addExpenseBudgetForm();
+    }
+  }
+
+  removeExpense(expense: any, index: number) {
+    if (!this.defaultExpenses.includes(expense)) {
+      this.defaultExpenses.push(expense);
+      this.selectedExpenses = this.selectedExpenses.filter(
+        (tag: any) => tag.tagname !== expense.tagname
+      );
+      this.removeExpenseBudgetForm(index);
+    }
+  }
+
+  get expensebudgets(): FormArray {
+    return this.expenseBudgetForm.get('budgets') as FormArray;
+  }
+
+  addExpenseBudgetForm(): void {
+    let budgetGroup = this.formBuilder.group({
+      description: [''],
+      currentamount: ['', [Validators.required]],
+      targetamount: ['', [Validators.required]],
+    });
+
+    this.expensebudgets.push(budgetGroup);
+  }
+
+  removeExpenseBudgetForm(index: number): void {
+    this.expensebudgets.removeAt(index);
+  }
+
+  //---------------------------------------Goal---------------------------------------
+
+  get goals(): FormArray {
+    return this.goalForm.get('goals') as FormArray;
+  }
+
+  addGoal(): void {
+    let goalGroup = this.formBuilder.group({
+      description: [''],
+      goalname: ['', [Validators.required, Validators.minLength(3)]],
+      targetamount: ['', [Validators.required]],
+      duedate: ['', [Validators.required]],
+    });
+
+    this.goals.push(goalGroup);
+    console.log(this.goalForm.value);
+  }
+
+  removeGoal(index: number): void {
+    this.goals.removeAt(index);
+  }
+
+  //--------------------------------Form Validators--------------------------------------
 
   isProfileFormInvalid(controlName: string): boolean {
     const control = this.profileForm.get(controlName);
@@ -216,6 +345,32 @@ export class NewaccountComponent implements OnInit {
     return isInvalid;
   }
 
+  isBudgetFormInvalid(
+    isIncome: boolean,
+    index: number,
+    controlName: string
+  ): boolean {
+    const control = isIncome
+      ? this.incomebudgets.at(index).get(controlName)
+      : this.expensebudgets.at(index).get(controlName);
+
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  isGoalFormInvalid(index: number, controlName: string): boolean {
+    const control = this.goals.at(index).get(controlName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  submitbudget() {
+    console.log(this.incomeBudgetForm.value);
+    console.log(this.expenseBudgetForm.value);
+  }
+
+  viewgoal() {
+    console.log(this.goalForm.value);
+  }
+
   previousStep(step: number) {
     this.currentStep = step;
   }
@@ -224,7 +379,17 @@ export class NewaccountComponent implements OnInit {
     if (step === 1 && this.profileForm.valid) {
       this.currentStep = 1;
     } else if (step === 2 && this.accountForm.valid) {
+      this.goals
+        .at(0)
+        .get('goalname')
+        ?.setValue(this.accountForm.get('accountname').value);
       this.currentStep = 2;
+    } else if (
+      step === 3 &&
+      this.incomeBudgetForm.valid &&
+      this.expenseBudgetForm.valid
+    ) {
+      this.currentStep = 3;
     }
   }
 
