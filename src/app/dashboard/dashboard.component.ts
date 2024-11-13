@@ -28,6 +28,15 @@ import { SupabaseService } from '../service/supabase.service';
 import { Router } from '@angular/router';
 import { AuthService } from '../service/auth.service';
 import { AuthSession, User } from '@supabase/supabase-js';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { descriptors } from 'chart.js/dist/core/core.defaults';
 
 @Component({
   selector: 'app-dashboard',
@@ -40,6 +49,9 @@ import { AuthSession, User } from '@supabase/supabase-js';
     DonutComponent,
     TagComponent,
     DialogModule,
+    FontAwesomeModule,
+    FormsModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
@@ -135,20 +147,34 @@ export class DashboardComponent implements OnInit {
   currentTheme = 'light';
   private chartInstance: Chart | any;
 
-  addMoneyDialog: boolean = false;
+  addMoneyDialog: boolean = true;
   minusMoneyDialog: boolean = false;
 
-  dropdown: boolean = false;
+  accountDropdown: boolean = false;
 
-  selectedTag: any = null;
+  selectedAccount: any = null;
 
-  selectTag(tag: any) {
-    this.selectedTag = tag;
-    this.dropdown = false;
+  selectAccount(acc: any) {
+    this.selectedAccount = acc;
+    this.accountDropdown = false;
+    this.getBudgets(acc.id);
   }
 
-  toggleDropdown() {
-    this.dropdown = !this.dropdown;
+  toggleAccountDropdown() {
+    this.accountDropdown = !this.accountDropdown;
+  }
+
+  budgetDropdown: boolean = false;
+
+  selectedBudget: any = null;
+
+  selectBudget(budget: any) {
+    this.selectedBudget = budget;
+    this.budgetDropdown = false;
+  }
+
+  toggleBudgetDropdown() {
+    this.budgetDropdown = !this.budgetDropdown;
   }
 
   toggleAddMoneyDialog() {
@@ -159,30 +185,99 @@ export class DashboardComponent implements OnInit {
     this.minusMoneyDialog = !this.minusMoneyDialog;
   }
 
-  // email: string = ''
-  userSession: AuthSession | any;
+  user: User | any;
   profile: any;
+  accounts: any;
+  incomebudgets: any;
+  expensebudgets: any;
+  allAccTotal: number = 0;
+
+  addMoneyForm: FormGroup | any;
 
   constructor(
     private themeService: ThemeService,
     private supabase: SupabaseService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private fb: FormBuilder
   ) {
     Chart.register(this.customPlugin);
     this.currentTheme = this.themeService.currentTheme;
-    console.log(this.authService.isAuthenticated());
-    this.authService.userSession$.subscribe((session) => {
-      this.userSession = session;
+    this.authService.user$.subscribe((user) => {
+      this.user = user;
+      this.getProfile();
+      this.getAccounts();
+    });
+    this.addMoneyForm = this.fb.group({
+      amount: ['', [Validators.required]],
+      description: [''],
+      name: [''],
+      budgetid: ['', [Validators.required]],
+      accountid: ['', [Validators.required]],
     });
   }
 
   async getProfile() {
-    const { user } = await this.userSession;
-    this.profile = await this.supabase.profile(user);
-    console.log(user);
-    console.log(this.profile.data);
+    const { data } = await this.supabase.profile(this.user);
+    this.profile = data;
   }
+
+  async getAccounts() {
+    const { data } = await this.supabase.allaccount(this.user);
+    this.accounts = data;
+    this.getTotalBalanceAllAcc(data);
+  }
+
+  async getBudgets(accId: string) {
+    const { data } = await this.supabase.budgetByAccountId(accId);
+    this.incomebudgets = data?.filter(
+      (budget) => budget.budgettype === 'income'
+    );
+    this.expensebudgets = data?.filter(
+      (budget) => budget.budgettype === 'expense'
+    );
+    console.log(this.incomebudgets);
+    console.log(this.expensebudgets);
+  }
+
+  async getTag(tagId: string) {
+    const { data } = await this.supabase.tagById(tagId);
+    console.log(data);
+    return data;
+  }
+
+  getTotalBalanceAllAcc(acc: any) {
+    let total = 0;
+    for (let i = 0; i < acc.length; i++) {
+      total += acc[i].currentbalance;
+    }
+    this.allAccTotal = total;
+  }
+
+  isAddMoneyFormInvalid(controlName: string): boolean {
+    const control = this.addMoneyForm.get(controlName);
+    let isInvalid = control?.invalid && (control?.dirty || control?.touched);
+    return isInvalid;
+  }
+
+  // async submitProfile(): Promise<void> {
+  //   let profile = {
+  //     username: 'Farhan Aziz',
+  //     firstname: 'Farhan',
+  //     lastname: 'Aziz',
+  //   };
+
+  //   try {
+  //     await this.supabase.updateProfile({
+  //       id: this.user.id,
+  //       username: 'Ngehhhhhhhhhhh',
+  //       firstname: 'Farhan',
+  //       lastname: 'Aziz',
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // }
 
   ngOnInit() {
     this.themeService.theme$.subscribe((theme) => {

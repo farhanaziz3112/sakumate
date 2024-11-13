@@ -5,6 +5,7 @@ import {
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -29,7 +30,6 @@ import { AuthService } from '../../service/auth.service';
   styleUrl: './signup.component.css',
 })
 export class SignupComponent {
-
   signUpForm: FormGroup | any;
 
   constructor(
@@ -39,21 +39,30 @@ export class SignupComponent {
     private authService: AuthService
   ) {
     this.signUpForm = this.formBuilder.group({
-      email: '',
-      password: '',
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
     });
   }
 
   async onSubmit(): Promise<void> {
-    try {
-      await this.authService.signUp(
-        this.signUpForm.value['email'],
-        this.signUpForm.value['password']
-      );
-    } finally {
-      this.signUpForm.reset();
+    if (this.signUpForm.valid) {
+      try {
+        await this.authService.signUp(
+          this.signUpForm.value['email'],
+          this.signUpForm.value['password']
+        );
+      } finally {
+        this.signUpForm.reset();
+      }
     }
   }
+
+  isSignUpFormInvalid(controlName: string): boolean {
+    const control = this.signUpForm.get(controlName);
+    let isInvalid = control?.invalid && (control?.dirty || control?.touched);
+    return isInvalid;
+  }
+
 
   faArrowLeft = faArrowLeft;
 

@@ -67,7 +67,8 @@ import {
   faUpRightAndDownLeftFromCenter,
   faUpDown,
   faArrowUp,
-  faArrowDown
+  faArrowDown,
+  faCar
 } from '@fortawesome/free-solid-svg-icons';
 
 export const icons: { [key: string]: IconDefinition } = {
@@ -137,7 +138,8 @@ export const icons: { [key: string]: IconDefinition } = {
   faUpRightAndDownLeftFromCenter,
   faUpDown,
   faArrowUp,
-  faArrowDown
+  faArrowDown,
+  faCar
 };
 
 export const tagIconsString = [
@@ -184,5 +186,6 @@ export const tagIconsString = [
   "faSpa",             // Self-Care / Wellness
   "faTools",           // Maintenance / Repairs
   "faClipboardList",   // Plans / Goals Tracking
+  "faCar"
 ];
 

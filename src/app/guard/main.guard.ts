@@ -8,10 +8,8 @@ export const mainGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);
 
   if (auth.isAuthenticated()) {
-    console.log('authenticated');
     return true;
   } else {
-    console.log('not authenticated');
     router.navigate(['/login']);
     return false;
   }

@@ -1,15 +1,20 @@
 <div class="flex flex-col w-full h-full gap-8">
-  <button (click)="getProfile()">Get profile</button>
+  <!-- <button (click)="getProfile()">Get profile</button>
+  <button (click)="submitProfile()">Set profile</button> -->
   <div class="flex flex-row justify-between">
     <div class="flex flex-col justify-center items-start">
       <span
         class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
-        >Welcome, Farhan!</span
+        >Welcome, {{ profile?.username }}!</span
       >
       <span
         class="text-xs lg:text-sm text-gray-600 dark:text-gray-300 font-normal lg-m:font-semibold"
       >
-        Last login on 14:30, 28 October 2024
+        Last login on
+        {{
+          user.last_sign_in_at
+            | date : "yyyy-MM-dd HH:mm:ss" : "Asia/Kuala_Lumpur"
+        }}
       </span>
     </div>
     <span
@@ -52,9 +57,9 @@
         class="h-32 w-32 lg-m:h-40 lg-m:w-40 lg:h-64 lg:w-64 flex flex-col rounded-full justify-center items-center content-center border-4 border-indigo-300"
       >
         <span class="text-xs lg:text-sm">Current Balance</span>
-        <span class="text-lg lg-m:text-2xl lg:text-4xl font-bold"
-          >17,659.30</span
-        >
+        <span class="text-lg lg-m:text-2xl lg:text-4xl font-bold">{{
+          allAccTotal | number : "1.2-2"
+        }}</span>
       </div>
     </div>
     <div class="col-span-3 hidden lg:block">
@@ -86,7 +91,20 @@
     <div
       class="grid grid-cols-1 lg-m:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2"
     >
-      <div
+      <ng-container *ngFor="let acc of accounts">
+        <div
+          class="col-span-1 flex flex-col justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b from-yellow-200 to-pink-200 dark:from-yellow-600 dark:to-pink-600 rounded-sm"
+        >
+          <div class="flex flex-col">
+            <span class="text-xs lg-m:text-sm">{{ acc.accountname }}</span>
+            <span class="text-lg lg-m:text-2xl font-semibold">{{
+              acc.currentbalance | number : "1.2-2"
+            }}</span>
+          </div>
+          <span class="text-xs">{{ acc.accounttype | uppercase }}</span>
+        </div>
+      </ng-container>
+      <!-- <div
         class="col-span-1 flex flex-col justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b from-yellow-200 to-pink-200 dark:from-yellow-600 dark:to-pink-600 rounded-sm"
       >
         <div class="flex flex-col">
@@ -103,7 +121,7 @@
           <span class="text-lg lg-m:text-2xl font-semibold">17,301.60</span>
         </div>
         <span class="text-xs">Increase</span>
-      </div>
+      </div> -->
     </div>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -303,67 +321,111 @@
   [dismissableMask]="true"
 >
   <ng-template pTemplate="headless">
-    <div
-      class="w-72 h-96 lg-m:w-96 lg-m:h-96 bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8"
-    >
-      <div class="flex flex-col gap-4 w-full h-full justify-between">
-        <span class="text-sm font-bold">Add Money</span>
-        <div class="flex flex-col gap-2 w-full">
-          <span class="text-sm">Amount</span>
-          <input
-            type="number"
-            placeholder="Enter your amount"
-            class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-          />
-        </div>
-        <div class="flex flex-col gap-2 w-full">
-          <span class="text-sm">Description</span>
-          <input
-            type="text"
-            placeholder="Enter your description"
-            class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-          />
-        </div>
-        <div class="flex flex-col gap-2 w-full">
-          <span class="text-sm">Tag</span>
-          <div class="relative w-full">
-            <button
-              class="w-full flex flex-row justify-between block px-4 py-2 border border-gray-300 rounded-lg text-left bg-transparent hover:bg-gray-100 dark:hover:bg-slate-800"
-              (click)="toggleDropdown()"
-            >
-              <ng-container *ngIf="selectedTag; else noTag">
-                <!-- <app-tag [name]="selectedTag"></app-tag> -->
-              </ng-container>
-              <ng-template #noTag> Select an option </ng-template>
-              <fa-icon [icon]="faChevronDown"></fa-icon>
-            </button>
+    <form [formGroup]="addMoneyForm">
+      <div
+        class="w-72 h-auto lg-m:w-96 lg-m:h-auto bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8"
+      >
+        <div class="flex flex-col gap-4 w-full h-full justify-between">
+          <span class="text-sm font-bold">Add Money</span>
+          <div class="flex flex-col gap-2 w-full">
+            <span class="text-sm">Amount</span>
+            <input
+              formControlName="amount"
+              type="number"
+              placeholder="Enter your amount"
+              class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+            />
             <div
-              *ngIf="dropdown"
-              class="absolute z-10 mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+              *ngIf="isAddMoneyFormInvalid('amount')"
+              class="text-red-600 text-sm"
             >
-              <ul>
-                <li
-                  *ngFor="let tag of incomeTags"
-                  (click)="selectTag(tag)"
-                  class="cursor-pointer px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                >
-                  <!-- <app-tag [name]="tag"></app-tag> -->
-                </li>
-              </ul>
+              <small *ngIf="addMoneyForm.get('amount')?.errors?.required"
+                >Amount is required</small
+              >
             </div>
           </div>
+          <div class="flex flex-col gap-2 w-full">
+            <span class="text-sm">Description</span>
+            <input
+              type="text"
+              formControlName="description"
+              placeholder="Enter your description"
+              class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+            />
+          </div>
+          <div class="flex flex-col gap-2 w-full">
+            <span class="text-sm">Account</span>
+            <div class="relative w-full">
+              <button
+                class="w-full flex flex-row justify-between block px-4 py-2 border border-gray-300 rounded-lg text-left bg-transparent hover:bg-gray-100 dark:hover:bg-slate-800"
+                (click)="toggleAccountDropdown()"
+              >
+                <ng-container *ngIf="selectedAccount; else noAcc">
+                  <span>{{ selectedAccount.accountname }}</span>
+                </ng-container>
+                <ng-template #noAcc> Select an account </ng-template>
+                <fa-icon [icon]="faChevronDown"></fa-icon>
+              </button>
+              <div
+                *ngIf="accountDropdown"
+                class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+              >
+                <ul>
+                  <li
+                    *ngFor="let acc of accounts"
+                    (click)="selectAccount(acc)"
+                    class="cursor-pointer px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <span>{{ acc.accountname }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <ng-container *ngIf="selectedAccount">
+            <div class="flex flex-col gap-2 w-full">
+              <span class="text-sm">Budget</span>
+              <div class="relative w-full">
+                <button
+                  class="w-full flex flex-row justify-between block px-4 py-2 border border-gray-300 rounded-lg text-left bg-transparent hover:bg-gray-100 dark:hover:bg-slate-800"
+                  (click)="toggleBudgetDropdown()"
+                >
+                  <ng-container *ngIf="selectedBudget; else noBudget">
+                    <app-tag [tag]="getTag(selectedBudget.tagid)"></app-tag>
+                  </ng-container>
+                  <ng-template #noBudget> Select a budget </ng-template>
+                  <fa-icon [icon]="faChevronDown"></fa-icon>
+                </button>
+                <div
+                  *ngIf="budgetDropdown"
+                  class="absolute z-10 mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+                >
+                  <ul>
+                    <li
+                      *ngFor="let budget of incomebudgets"
+                      (click)="selectBudget(budget)"
+                      class="cursor-pointer px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <app-tag [tag]="getTag(budget.tagid)"></app-tag>
+                      <!-- {{budget.tagid}} -->
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+          <button
+            class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+          >
+            Submit
+          </button>
         </div>
-        <button
-          class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-        >
-          Submit
-        </button>
       </div>
-    </div>
+    </form>
   </ng-template>
 </p-dialog>
 
-<p-dialog
+<!-- <p-dialog
   header="header"
   [(visible)]="minusMoneyDialog"
   [modal]="true"
@@ -399,7 +461,7 @@
               (click)="toggleDropdown()"
             >
               <ng-container *ngIf="selectedTag; else noTag">
-                <!-- <app-tag [name]="selectedTag"></app-tag> -->
+                <app-tag [name]="selectedTag"></app-tag>
               </ng-container>
               <ng-template #noTag> Select an option </ng-template>
               <fa-icon [icon]="faChevronDown"></fa-icon>
@@ -414,7 +476,7 @@
                   (click)="selectTag(tag)"
                   class="cursor-pointer px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
                 >
-                  <!-- <app-tag [name]="tag"></app-tag> -->
+                  <app-tag [name]="tag"></app-tag>
                 </li>
               </ul>
             </div>
@@ -428,4 +490,4 @@
       </div>
     </div>
   </ng-template>
-</p-dialog>
+</p-dialog> -->

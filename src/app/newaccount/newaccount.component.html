@@ -270,8 +270,8 @@
               <div class="flex flex-row justify-evenly">
                 <div class="flex flex-col">
                   <div
-                    *ngIf="overlayOpen"
-                    #overlayPanel
+                    *ngIf="colorOverlayOpen"
+                    #colorOverlayPanel
                     class="hidden md:block absolute z-10 w-72 bottom-44 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
                   >
                     <div class="flex flex-col gap-2">
@@ -281,8 +281,8 @@
                           <div class="col-span-1 flex justify-center">
                             <span
                               class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                              [ngClass]="getColors(color)"
-                              (click)="setColor(color, true)"
+                              [ngClass]="getColors(color, 'light')"
+                              (click)="setAccountColor(color, true)"
                             ></span>
                           </div>
                         </ng-container>
@@ -290,17 +290,17 @@
                     </div>
                   </div>
                   <span
-                    #triggerButton
+                    #colorTriggerButton
                     class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                    [ngClass]="getColors(accountForm.value['color1'])"
+                    [ngClass]="getColors(accountForm.value['color1'], 'light')"
                     (click)="toggleOverlay()"
                   ></span>
                   <span class="text-sm">Color 1</span>
                 </div>
                 <div class="flex flex-col">
                   <div
-                    *ngIf="overlayOpen2"
-                    #overlayPanel2
+                    *ngIf="colorOverlayOpen2"
+                    #colorOverlayPanel2
                     class="hidden md:block absolute z-10 w-72 bottom-44 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
                   >
                     <div class="flex flex-col gap-2">
@@ -310,8 +310,8 @@
                           <div class="col-span-1 flex justify-center">
                             <span
                               class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                              [ngClass]="getColors(color)"
-                              (click)="setColor(color, false)"
+                              [ngClass]="getColors(color, 'light')"
+                              (click)="setAccountColor(color, false)"
                             ></span>
                           </div>
                         </ng-container>
@@ -319,9 +319,9 @@
                     </div>
                   </div>
                   <span
-                    #triggerButton2
+                    #colorTriggerButton2
                     class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                    [ngClass]="getColors(accountForm.value['color2'])"
+                    [ngClass]="getColors(accountForm.value['color2'], 'light')"
                     (click)="toggleOverlay2()"
                   ></span>
                   <span class="text-sm">Color 2</span>
@@ -391,7 +391,7 @@
               >
             </div>
             <span class="text-sm">
-              Feel free to choose any predefined budget you would like to add in
+              Feel free to choose any predefined budget you would like to add to
               your account. Don't worry, you can add more and edit later!
             </span>
             <div class="flex flex-col w-full gap-2">
@@ -574,7 +574,7 @@
                           </div>
                           <div
                             *ngIf="
-                              isBudgetFormInvalid(true, i, 'currentamount')
+                              isBudgetFormInvalid(false, i, 'currentamount')
                             "
                             class="text-red-600 text-xs"
                           >
@@ -594,7 +594,9 @@
                             />
                           </div>
                           <div
-                            *ngIf="isBudgetFormInvalid(true, i, 'targetamount')"
+                            *ngIf="
+                              isBudgetFormInvalid(false, i, 'targetamount')
+                            "
                             class="text-red-600 text-xs"
                           >
                             Current amount is required
@@ -685,6 +687,7 @@
                         >
                         <input
                           type="date"
+                          [min]="minDate"
                           formControlName="duedate"
                           placeholder="Enter your due date"
                           class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
@@ -730,7 +733,19 @@
                         [formGroupName]="i"
                         class="flex flex-col gap-4 px-2 py-3 rounded-sm border border-gray-400"
                       >
-                        <div class="flex flex-col">
+                        <div class="flex justify-between items-start px-2">
+                          <span
+                            class="flex w-6 h-6 bg-indigo-500 text-white rounded-full justify-center items-center"
+                            >{{ i }}</span
+                          >
+                          <fa-icon
+                            class="text-black hover:text-gray-500 cursor-pointer"
+                            [icon]="getIcon('faXmark')"
+                            (click)="removeGoal(i)"
+                          ></fa-icon>
+                        </div>
+                        <span class="text-center text-sm"> Goal Details </span>
+                        <div class="flex flex-col gap-2">
                           <div class="grid grid-cols-5 w-full text-sm gap-2">
                             <span class="col-span-1 whitespace-nowrap"
                               >Goal Name:</span
@@ -742,12 +757,6 @@
                               class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
                             />
                           </div>
-                          <!-- <div
-                            *ngIf="isGoalFormInvalid(i, 'goalname')"
-                            class="text-red-600 text-xs"
-                          >
-                            Goal name is required
-                          </div> -->
                           <div
                             *ngIf="isGoalFormInvalid(i, 'goalname')"
                             class="text-red-600 text-sm"
@@ -807,6 +816,7 @@
                             >
                             <input
                               type="date"
+                              [min]="minDate"
                               formControlName="duedate"
                               placeholder="Enter your due date"
                               class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
@@ -818,6 +828,136 @@
                           >
                             Due date is required
                           </div>
+                        </div>
+                        <span class="text-center text-sm mt-8">
+                          Tag Creation
+                        </span>
+                        <div class="flex flex-col">
+                          <div class="grid grid-cols-5 w-full text-sm gap-2">
+                            <span class="col-span-1 whitespace-nowrap"
+                              >Tag Name:</span
+                            >
+                            <input
+                              type="text"
+                              formControlName="tagname"
+                              placeholder="Enter your tag name"
+                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+                            />
+                          </div>
+                          <div
+                            *ngIf="isGoalFormInvalid(i, 'tagname')"
+                            class="text-red-600 text-xs"
+                          >
+                            Tag name is required
+                          </div>
+                        </div>
+                        <div class="grid grid-cols-2 w-full mt-4">
+                          <div
+                            class="col-span-1 flex flex-col items-center gap-2 w-full relative"
+                          >
+                            <span class="text-sm">Display Color</span>
+                            <div class="flex flex-row justify-center w-full">
+                              <div
+                                *ngIf="colorOverlayOpen3"
+                                #colorOverlayPanel3
+                                class="hidden md:block absolute z-10 w-72 bottom-full -mb-4 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
+                              >
+                                <div class="flex flex-col gap-2">
+                                  <span class="text-sm font-bold"
+                                    >Display Color</span
+                                  >
+                                  <div class="grid grid-cols-4 gap-1">
+                                    <ng-container *ngFor="let color of colors">
+                                      <div
+                                        class="col-span-1 flex justify-center"
+                                      >
+                                        <span
+                                          class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                                          [ngClass]="getColors(color, 'dark')"
+                                          (click)="setTagColor(color, i)"
+                                        ></span>
+                                      </div>
+                                    </ng-container>
+                                  </div>
+                                </div>
+                              </div>
+                              <span
+                                #colorTriggerButton3
+                                class="w-10 h-10 rounded-full border border-slate-300 hover:border-slate-500 cursor-pointer"
+                                [ngClass]="
+                                  getColors(goals.at(i).value['color'], 'dark')
+                                "
+                                (click)="toggleOverlay3()"
+                              ></span>
+                            </div>
+                          </div>
+                          <div
+                            class="col-span-1 flex flex-col items-center gap-2 w-full relative"
+                          >
+                            <span class="text-sm">Icon</span>
+                            <div
+                              *ngIf="iconOverlay"
+                              #iconOverlayPanel
+                              class="hidden md:block absolute z-10 w-96 bottom-full -mb-4 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
+                            >
+                              <div class="flex flex-col gap-2">
+                                <span class="text-sm font-bold"
+                                  >Display Icon</span
+                                >
+                                <div class="grid grid-cols-8 gap-1">
+                                  <ng-container
+                                    *ngFor="let icon of getIconStringArray()"
+                                  >
+                                    <div class="col-span-1 flex justify-center">
+                                      <span
+                                        class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
+                                        (click)="setIcon(icon, i)"
+                                      >
+                                        <fa-icon
+                                          [icon]="getIcon(icon)"
+                                        ></fa-icon>
+                                      </span>
+                                    </div>
+                                  </ng-container>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="flex flex-row w-full justify-center">
+                              <span
+                                #iconTriggerButton
+                                class="w-20 h-full rounded-full border border-slate-300 hover:border-slate-500 cursor-pointer"
+                                (click)="toggleIconOverlay()"
+                              >
+                                <div
+                                  class="flex flex-row w-full h-full justify-evenly items-center"
+                                >
+                                  <fa-icon
+                                    class="text-lg"
+                                    [icon]="getIcon(goals.at(i).value['icon'])"
+                                  ></fa-icon>
+                                  <fa-icon
+                                    class="text-sm text-gray-600 dark:text-gray-200"
+                                    [icon]="getIcon('faChevronDown')"
+                                  ></fa-icon>
+                                </div>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <span class="text-sm text-center">Tag Preview</span>
+                        <div class="flex justify-center">
+                          <span
+                            class="text-xxs lg:text-xs text-white rounded-2xl p-1 justify-start inline-flex"
+                            [ngClass]="
+                              getColors(goals.at(i).value['color'], 'dark')
+                            "
+                            ><fa-icon
+                              [icon]="getIcon(goals.at(i).value['icon'])"
+                            ></fa-icon
+                            >{{
+                              goals.at(i).value["tagname"] | uppercase
+                            }}</span
+                          >
                         </div>
                       </div>
                     </ng-container>
@@ -835,7 +975,7 @@
               </button>
               <button
                 class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
-                (click)="viewgoal()"
+                (click)="onSubmit()"
                 [ngClass]="
                   goalForm.valid
                     ? 'bg-indigo-500 hover:bg-indigo-700'
@@ -857,7 +997,7 @@
 <p-dialog
   class="block md:hidden"
   header="header"
-  [(visible)]="overlayOpen"
+  [(visible)]="colorOverlayOpen"
   [modal]="true"
   [dismissableMask]="true"
 >
@@ -879,8 +1019,8 @@
             <div class="col-span-1 flex justify-center">
               <span
                 class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                [ngClass]="getColors(color)"
-                (click)="setColor(color, true)"
+                [ngClass]="getColors(color, 'light')"
+                (click)="setAccountColor(color, true)"
               ></span>
             </div>
           </ng-container>
@@ -893,7 +1033,7 @@
 <p-dialog
   class="block md:hidden"
   header="header"
-  [(visible)]="overlayOpen2"
+  [(visible)]="colorOverlayOpen2"
   [modal]="true"
   [dismissableMask]="true"
 >
@@ -915,8 +1055,8 @@
             <div class="col-span-1 flex justify-center">
               <span
                 class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                [ngClass]="getColors(color)"
-                (click)="setColor(color, false)"
+                [ngClass]="getColors(color, 'light')"
+                (click)="setAccountColor(color, false)"
               ></span>
             </div>
           </ng-container>

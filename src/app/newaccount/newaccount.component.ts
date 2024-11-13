@@ -29,8 +29,9 @@ import {
 } from '@angular/forms';
 import { ColorService } from '../service/color.service';
 import { DialogModule } from 'primeng/dialog';
-import { icons } from '../component/icons/icons';
+import { icons, tagIconsString } from '../component/icons/icons';
 import { TagComponent } from '../component/tag/tag.component';
+import { ToastService } from '../service/toast.service';
 
 @Component({
   selector: 'app-newaccount',
@@ -115,7 +116,7 @@ export class NewaccountComponent implements OnInit {
   faArrowLeft = faArrowLeft;
   faCheck = faCheck;
 
-  currentStep = 0;
+  currentStep = 3;
 
   userSession: AuthSession | any;
   user: User | any;
@@ -129,13 +130,19 @@ export class NewaccountComponent implements OnInit {
   expenseBudgetForm: FormGroup | any;
   goalForm: FormGroup | any;
 
+  minDate: string | any;
+
   constructor(
     private router: Router,
     private formBuilder: FormBuilder,
     private authService: AuthService,
     private supabase: SupabaseService,
-    private colorService: ColorService
+    private colorService: ColorService,
+    private toastService: ToastService
   ) {
+    const today = new Date();
+    const min = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
+    this.minDate = min.toISOString().split('T')[0];
     this.profileForm = this.formBuilder.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
       firstname: ['', [Validators.required, Validators.minLength(3)]],
@@ -185,11 +192,121 @@ export class NewaccountComponent implements OnInit {
   async getDefaultTags() {
     this.defaultTags = await this.supabase.allDefaultTag();
     this.defaultIncomes = this.defaultTags.data.filter(
-      (tag: any) => tag.type === 'income'
+      (tag: any) => tag.tagtype === 'income'
     );
     this.defaultExpenses = this.defaultTags.data.filter(
-      (tag: any) => tag.type === 'expense'
+      (tag: any) => tag.tagtype === 'expense'
     );
+  }
+
+  async submitProfile(): Promise<void> {
+    // let profile = {
+    //   username: this.profileForm.value['username'] as string,
+    //   firstname: this.profileForm.value['firstname'] as string,
+    //   lastname: this.profileForm.value['lastname'] as string,
+    //   id: this.user.id,
+    // };
+
+    // try {
+    //   const { data, error } = await this.supabase.updateProfile(profile);
+    //   if (error) {
+    //     console.log(error);
+    //   } else {
+    //     console.log('Data', data[0]);
+    //   }
+    // } catch (error) {
+    //   console.error(error);
+    // }
+
+    // let account = {
+    //   userid: this.user.id,
+    //   accountname: this.accountForm.value['accountname'],
+    //   accounttype: this.accountForm.value['accounttype'],
+    //   currentbalance: this.accountForm.value['currentbalance'],
+    //   color1: this.accountForm.value['color1'],
+    //   color2: this.accountForm.value['color2'],
+    // };
+
+    // console.log(account);
+    // const accountcreated = await this.supabase.createAccount(account);
+    // console.log(accountcreated.data?.at(0));
+
+    let budget: any[] = [];
+    for (let i = 0; i < this.incomebudgets.length; i++) {
+      budget.push({
+        budgetname: this.incomebudgets.at(i).value['budgetname'],
+        tagid: this.incomebudgets.at(i).value['tagid'],
+        description: this.incomebudgets.at(i).value['description'],
+        currentamount: this.incomebudgets.at(i).value['currentamount'],
+        targetamount: this.incomebudgets.at(i).value['targetamount'],
+        accountid: null,
+        userid: this.user.id,
+        budgettype: 'income',
+      });
+    }
+
+    for (let i = 0; i < this.expensebudgets.length; i++) {
+      budget.push({
+        budgetname: this.expensebudgets.at(i).value['budgetname'],
+        tagid: this.expensebudgets.at(i).value['tagid'],
+        description: this.expensebudgets.at(i).value['description'],
+        currentamount: this.expensebudgets.at(i).value['currentamount'],
+        targetamount: this.expensebudgets.at(i).value['targetamount'],
+        accountid: null,
+        userid: this.user.id,
+        budgettype: 'expense',
+      });
+    }
+
+    const newbudgets = await this.supabase.createMultipleBudget(budget);
+    console.log(newbudgets.data);
+
+    // for (let i = 0; i < budget.length; i++) {
+    //   console.log(budget[i]);
+    //   const newbudgets = await this.supabase.createBudget(budget);
+    //   console.log(newbudgets.data);
+    // }
+
+    // let budget = {
+    //   budgetname: 'ngeh',
+    //   tagid: null,
+    //   description: '',
+    //   currentamount: 500,
+    //   targetamount: 1000,
+    //   accountid: null,
+    //   userid: this.user.id,
+    //   budgettype: 'expense',
+    // };
+
+    // console.log(budget);
+    // const newbudget = await this.supabase.createBudget(budget);
+    // console.log(newbudget.data);
+
+    // let goal = {
+    //   goalname: 'ngehhhh',
+    //   tagid: '',
+    //   description: '',
+    //   currentamount: 200,
+    //   targetamount: 500,
+    //   duedate: new Date(),
+    //   userid: this.user.id,
+    // };
+
+    // console.log(goal);
+    // const newGoal = await this.supabase.createGoal(goal);
+    // console.log(newGoal.data);
+
+    let tag = {
+      userid: null,
+      tagname: 'ngeh',
+      tagtype: 'goal',
+      color: 'purple',
+      icon: 'faBurger',
+    };
+
+    console.log(tag);
+    const newTag = await this.supabase.createTag(tag);
+    console.log(newTag.data);
   }
 
   async onSubmit(): Promise<void> {
@@ -200,25 +317,105 @@ export class NewaccountComponent implements OnInit {
       this.expenseBudgetForm.valid &&
       this.goalForm.valid
     ) {
-      let profile = {
-        username: this.profileForm.value['username'] as string,
-        firstname: this.profileForm.value['firstname'] as string,
-        lastname: this.profileForm.value['lastname'] as string,
-      };
-
-      let account = {
-        username: this.profileForm.value['username'] as string,
-        firstname: this.profileForm.value['firstname'] as string,
-        lastname: this.profileForm.value['lastname'] as string,
-      };
-
       try {
-        await this.supabase.updateProfile({
+        let profile = {
+          username: this.profileForm.value['username'] as string,
+          firstname: this.profileForm.value['firstname'] as string,
+          lastname: this.profileForm.value['lastname'] as string,
           id: this.user.id,
-          profile
-        });
+        };
+
+        const newprofile = await this.supabase.updateProfile(profile);
+
+        let account = {
+          userid: this.user.id,
+          accountname: this.accountForm.value['accountname'] as string,
+          accounttype: this.accountForm.value['accounttype'] as string,
+          currentbalance: this.accountForm.value['currentbalance'],
+          color1: this.accountForm.value['color1'] as string,
+          color2: this.accountForm.value['color2'] as string,
+        };
+
+        const newaccount = await this.supabase.createAccount(account);
+
+        let budget: any[] = [];
+        for (let i = 0; i < this.incomebudgets.length; i++) {
+          budget.push({
+            budgetname: this.incomebudgets.at(i).value['budgetname'],
+            tagid: this.incomebudgets.at(i).value['tagid'],
+            description: this.incomebudgets.at(i).value['description'],
+            currentamount: this.incomebudgets.at(i).value['currentamount'],
+            targetamount: this.incomebudgets.at(i).value['targetamount'],
+            accountid: newaccount.data?.at(0).id,
+            userid: this.user.id,
+            budgettype: 'income',
+          });
+        }
+
+        for (let i = 0; i < this.expensebudgets.length; i++) {
+          budget.push({
+            budgetname: this.expensebudgets.at(i).value['budgetname'],
+            tagid: this.expensebudgets.at(i).value['tagid'],
+            description: this.expensebudgets.at(i).value['description'],
+            currentamount: this.expensebudgets.at(i).value['currentamount'],
+            targetamount: this.expensebudgets.at(i).value['targetamount'],
+            accountid: newaccount.data?.at(0).id,
+            userid: this.user.id,
+            budgettype: 'expense',
+          });
+        }
+
+        const newbudgets = await this.supabase.createMultipleBudget(budget);
+        console.log(newbudgets.data);
+
+        for (let i = 0; i < this.goals.length; i++) {
+          if (i === 0) {
+            await this.supabase.updateGoal({
+              goalname: this.goals.at(i).value['goalname'],
+              tagid: null,
+              description: this.goals.at(i).value['description'],
+              currentamount: this.accountForm.value['currentbalance'],
+              targetamount: this.goals.at(i).value['targetamount'],
+              duedate: this.goals.at(i).value['duedate'],
+              userid: this.user.id,
+              accountid: newaccount.data?.at(0).id,
+            });
+          } else {
+            const newTag = await this.supabase.createTag({
+              userid: this.user.id,
+              tagname: this.goals.at(i).value['tagname'],
+              tagtype: 'goal',
+              color: this.goals.at(i).value['color'],
+              icon: this.goals.at(i).value['icon'],
+            });
+            const newGoal = await this.supabase.createGoal({
+              goalname: this.goals.at(i).value['goalname'],
+              tagid: newTag.data?.at(0).id,
+              description: this.goals.at(i).value['description'],
+              currentamount: 0,
+              targetamount: this.goals.at(i).value['targetamount'],
+              duedate: this.goals.at(i).value['duedate'],
+              userid: this.user.id,
+              accountid: null,
+            });
+          }
+        }
+        this.toastService.showSuccessToast(
+          'Welcome to Sakumate!',
+          'New account registration is complete.'
+        );
+        this.router.navigate(['/dashboard']);
+      } catch (e) {
+        this.toastService.showErrorToast(
+          'Error',
+          'There was an error during with your new account registration. Try again later.'
+        );
       } finally {
         this.profileForm.reset();
+        this.accountForm.reset();
+        this.incomeBudgetForm.reset();
+        this.expenseBudgetForm.reset();
+        this.goalForm.reset();
       }
     }
   }
@@ -233,7 +430,7 @@ export class NewaccountComponent implements OnInit {
       this.defaultIncomes = this.defaultIncomes.filter(
         (tag: any) => tag.tagname !== income.tagname
       );
-      this.addIncomeBudgetForm();
+      this.addIncomeBudgetForm(income);
       console.log('Adding budget form');
     }
   }
@@ -253,8 +450,10 @@ export class NewaccountComponent implements OnInit {
     return this.incomeBudgetForm.get('budgets') as FormArray;
   }
 
-  addIncomeBudgetForm(): void {
+  addIncomeBudgetForm(income: any): void {
     let budgetGroup = this.formBuilder.group({
+      budgetname: [income.tagname],
+      tagid: [income.id],
       description: [''],
       currentamount: ['', [Validators.required]],
       targetamount: ['', [Validators.required]],
@@ -277,7 +476,7 @@ export class NewaccountComponent implements OnInit {
       this.defaultExpenses = this.defaultExpenses.filter(
         (tag: any) => tag.tagname !== expense.tagname
       );
-      this.addExpenseBudgetForm();
+      this.addExpenseBudgetForm(expense);
     }
   }
 
@@ -295,8 +494,10 @@ export class NewaccountComponent implements OnInit {
     return this.expenseBudgetForm.get('budgets') as FormArray;
   }
 
-  addExpenseBudgetForm(): void {
+  addExpenseBudgetForm(expense: any): void {
     let budgetGroup = this.formBuilder.group({
+      budgetname: [expense.tagname],
+      tagid: [expense.id],
       description: [''],
       currentamount: ['', [Validators.required]],
       targetamount: ['', [Validators.required]],
@@ -321,6 +522,9 @@ export class NewaccountComponent implements OnInit {
       goalname: ['', [Validators.required, Validators.minLength(3)]],
       targetamount: ['', [Validators.required]],
       duedate: ['', [Validators.required]],
+      tagname: ['preview...', [Validators.required]],
+      color: ['blue', [Validators.required]],
+      icon: ['faBurger', [Validators.required]],
     });
 
     this.goals.push(goalGroup);
@@ -375,7 +579,7 @@ export class NewaccountComponent implements OnInit {
     this.currentStep = step;
   }
 
-  nextStep(step: number) {
+  async nextStep(step: number) {
     if (step === 1 && this.profileForm.valid) {
       this.currentStep = 1;
     } else if (step === 2 && this.accountForm.valid) {
@@ -397,8 +601,8 @@ export class NewaccountComponent implements OnInit {
     this.router.navigate(['/dashboard']);
   }
 
-  getColors(colorName: string) {
-    return this.colorService.getColor(colorName, 'light');
+  getColors(colorName: string, type: string) {
+    return this.colorService.getColor(colorName, type);
   }
 
   getGradientClasses(color1: string, color2: string) {
@@ -408,50 +612,97 @@ export class NewaccountComponent implements OnInit {
     )} + ${this.colorService.getColor(color2, 'lightTo')}`;
   }
 
-  setColor(color: string, isColor1: boolean) {
+  setAccountColor(color: string, isColor1: boolean) {
     if (isColor1) {
       this.accountForm.get('color1').setValue(color);
-      this.overlayOpen = false;
+      this.colorOverlayOpen = false;
     } else {
       this.accountForm.get('color2').setValue(color);
-      this.overlayOpen2 = false;
+      this.colorOverlayOpen2 = false;
     }
   }
 
-  overlayOpen: boolean = false;
-  overlayOpen2: boolean = false;
+  setTagColor(color: string, index: number) {
+    this.goals.at(index).get('color')?.setValue(color);
+    this.colorOverlayOpen3 = false;
+  }
 
-  @ViewChild('triggerButton', { static: false }) triggerButton!: ElementRef;
-  @ViewChild('triggerButton2', { static: false }) triggerButton2!: ElementRef;
-  @ViewChild('overlayPanel', { static: false }) overlayPanel!: ElementRef;
-  @ViewChild('overlayPanel2', { static: false }) overlayPanel2!: ElementRef;
+  setIcon(icon: string, index: number) {
+    this.goals.at(index).get('icon')?.setValue(icon);
+    this.iconOverlay = false;
+  }
+
+  getIconStringArray() {
+    return tagIconsString;
+  }
+
+  //--------------------------------Overlay--------------------------------------
+
+  colorOverlayOpen: boolean = false;
+  colorOverlayOpen2: boolean = false;
+  colorOverlayOpen3: boolean = false;
+  iconOverlay: boolean = false;
+
+  @ViewChild('colorTriggerButton', { static: false })
+  colorTriggerButton!: ElementRef;
+  @ViewChild('colorTriggerButton2', { static: false })
+  colorTriggerButton2!: ElementRef;
+  @ViewChild('colorTriggerButton3', { static: false })
+  colorTriggerButton3!: ElementRef;
+  @ViewChild('colorOverlayPanel', { static: false })
+  colorOverlayPanel!: ElementRef;
+  @ViewChild('colorOverlayPanel2', { static: false })
+  colorOverlayPanel2!: ElementRef;
+  @ViewChild('colorOverlayPanel3', { static: false })
+  colorOverlayPanel3!: ElementRef;
+  @ViewChild('iconTriggerButton', { static: false })
+  iconTriggerButton!: ElementRef;
+  @ViewChild('iconOverlayPanel', { static: false })
+  iconOverlayPanel!: ElementRef;
 
   @HostListener('document:click', ['$event.target'])
   onClickOutside(target: HTMLElement) {
     if (
-      this.overlayOpen2 &&
-      !this.triggerButton2.nativeElement.contains(target) &&
-      (!this.overlayPanel2 ||
-        !this.overlayPanel2.nativeElement.contains(target))
+      this.colorOverlayOpen2 &&
+      !this.colorTriggerButton2.nativeElement.contains(target) &&
+      (!this.colorOverlayPanel2 ||
+        !this.colorOverlayPanel2.nativeElement.contains(target))
     ) {
-      this.overlayOpen2 = false;
+      this.colorOverlayOpen2 = false;
     }
     if (
-      this.overlayOpen &&
-      !this.triggerButton.nativeElement.contains(target) &&
-      (!this.overlayPanel || !this.overlayPanel.nativeElement.contains(target))
+      this.colorOverlayOpen &&
+      !this.colorTriggerButton.nativeElement.contains(target) &&
+      (!this.colorOverlayPanel ||
+        !this.colorOverlayPanel.nativeElement.contains(target))
     ) {
-      this.overlayOpen = false;
+      this.colorOverlayOpen = false;
+    }
+    if (
+      this.colorOverlayOpen3 &&
+      !this.colorTriggerButton3.nativeElement.contains(target) &&
+      (!this.colorOverlayPanel3 ||
+        !this.colorOverlayPanel3.nativeElement.contains(target))
+    ) {
+      this.colorOverlayOpen3 = false;
     }
   }
 
   toggleOverlay() {
-    this.overlayOpen = !this.overlayOpen;
-    this.overlayOpen2 = false;
+    this.colorOverlayOpen = !this.colorOverlayOpen;
+    this.colorOverlayOpen2 = false;
   }
 
   toggleOverlay2() {
-    this.overlayOpen2 = !this.overlayOpen2;
-    this.overlayOpen = false;
+    this.colorOverlayOpen2 = !this.colorOverlayOpen2;
+    this.colorOverlayOpen = false;
+  }
+
+  toggleOverlay3() {
+    this.colorOverlayOpen3 = !this.colorOverlayOpen3;
+  }
+
+  toggleIconOverlay() {
+    this.iconOverlay = !this.iconOverlay;
   }
 }
