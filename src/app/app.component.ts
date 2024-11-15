@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { SupabaseService } from './service/supabase.service';
 import { ToastModule } from 'primeng/toast';
 
 

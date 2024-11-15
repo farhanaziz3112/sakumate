@@ -11,14 +11,12 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdialog.component';
-import { SupabaseService } from '../../service/supabase.service';
 import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [
-    ConfirmdialogComponent,
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
@@ -36,7 +34,6 @@ export class LoginComponent {
   constructor(
     private router: Router,
     private formBuilder: FormBuilder,
-    private readonly supabase: SupabaseService,
     private authService: AuthService
   ) {
     this.signInForm = this.formBuilder.group({
@@ -58,8 +55,7 @@ export class LoginComponent {
         this.signInForm.value['email'],
         this.signInForm.value['password']
       );
-    }
-    finally {
+    } finally {
       this.signInForm.reset();
     }
   }
@@ -72,12 +68,12 @@ export class LoginComponent {
 
   async resetPassword(): Promise<void> {
     try {
-      await this.authService.resetPassword(this.resetPasswordForm.value['email']);
-    }
-    finally {
+      await this.authService.resetPassword(
+        this.resetPasswordForm.value['email']
+      );
+    } finally {
       this.resetPasswordForm.reset();
       this.resetPasswordDialog = false;
     }
   }
-
 }

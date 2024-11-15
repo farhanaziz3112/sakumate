@@ -1,5 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faMinus,
@@ -24,7 +30,6 @@ import { DonutComponent } from '../component/donut/donut.component';
 import { TagComponent } from '../component/tag/tag.component';
 import { ThemeService } from '../service/theme.service';
 import { DialogModule } from 'primeng/dialog';
-import { SupabaseService } from '../service/supabase.service';
 import { Router } from '@angular/router';
 import { AuthService } from '../service/auth.service';
 import { AuthSession, User } from '@supabase/supabase-js';
@@ -37,6 +42,10 @@ import {
   Validators,
 } from '@angular/forms';
 import { descriptors } from 'chart.js/dist/core/core.defaults';
+import { ToastService } from '../service/toast.service';
+import { loginFailure } from '../state/auth/auth.actions';
+import { DatabaseService } from '../service/database.service';
+import { ColorService } from '../service/color.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -147,7 +156,7 @@ export class DashboardComponent implements OnInit {
   currentTheme = 'light';
   private chartInstance: Chart | any;
 
-  addMoneyDialog: boolean = true;
+  addMoneyDialog: boolean = false;
   minusMoneyDialog: boolean = false;
 
   accountDropdown: boolean = false;
@@ -155,9 +164,10 @@ export class DashboardComponent implements OnInit {
   selectedAccount: any = null;
 
   selectAccount(acc: any) {
-    this.selectedAccount = acc;
+    if (acc != this.selectedAccount) {
+      this.selectedAccount = acc;
+    }
     this.accountDropdown = false;
-    this.getBudgets(acc.id);
   }
 
   toggleAccountDropdown() {
@@ -166,10 +176,21 @@ export class DashboardComponent implements OnInit {
 
   budgetDropdown: boolean = false;
 
-  selectedBudget: any = null;
+  selectedIncomeBudget: any = null;
+  selectedIncomeTag: any = null;
 
-  selectBudget(budget: any) {
-    this.selectedBudget = budget;
+  selectedExpenseBudget: any = null;
+  selectedExpenseTag: any = null;
+
+  selectIncomeBudget(budget: any, index: number) {
+    this.selectedIncomeBudget = budget;
+    this.selectedIncomeTag = this.incometags[index];
+    this.budgetDropdown = false;
+  }
+
+  selectExpenseBudget(budget: any, index: number) {
+    this.selectedExpenseBudget = budget;
+    this.selectedExpenseTag = this.expensetags[index];
     this.budgetDropdown = false;
   }
 
@@ -193,57 +214,169 @@ export class DashboardComponent implements OnInit {
   allAccTotal: number = 0;
 
   addMoneyForm: FormGroup | any;
+  minusMoneyForm: FormGroup | any;
 
   constructor(
     private themeService: ThemeService,
-    private supabase: SupabaseService,
+    private dbService: DatabaseService,
     private authService: AuthService,
     private router: Router,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private toastService: ToastService,
+    private colorService: ColorService
   ) {
     Chart.register(this.customPlugin);
     this.currentTheme = this.themeService.currentTheme;
     this.authService.user$.subscribe((user) => {
-      this.user = user;
-      this.getProfile();
-      this.getAccounts();
+        console.log(user);
+      // if (user) {
+      //   console.log(user);
+      //   this.user = user;
+      //   this.getProfile();
+      //   this.getBudgets();
+      // }
+    });
+    this.dbService.accounts$.subscribe((acc) => {
+      this.accounts = acc;
+      this.getTotalBalanceAllAcc(acc);
     });
     this.addMoneyForm = this.fb.group({
       amount: ['', [Validators.required]],
       description: [''],
-      name: [''],
-      budgetid: ['', [Validators.required]],
-      accountid: ['', [Validators.required]],
+      title: [''],
+    });
+    this.minusMoneyForm = this.fb.group({
+      amount: ['', [Validators.required]],
+      description: [''],
+      title: [''],
+    });
+  }
+
+  ngOnInit() {
+    this.themeService.theme$.subscribe((theme) => {
+      this.currentTheme = theme;
+      // this.updateChart();
     });
   }
 
   async getProfile() {
-    const { data } = await this.supabase.profile(this.user);
+    const { data } = await this.dbService.profile();
     this.profile = data;
   }
 
-  async getAccounts() {
-    const { data } = await this.supabase.allaccount(this.user);
-    this.accounts = data;
-    this.getTotalBalanceAllAcc(data);
-  }
-
-  async getBudgets(accId: string) {
-    const { data } = await this.supabase.budgetByAccountId(accId);
-    this.incomebudgets = data?.filter(
-      (budget) => budget.budgettype === 'income'
+  async getBudgets() {
+    console.log('get budgets function called');
+    
+    let income_budgets = await this.dbService.budgetByUserId_type(
+      this.user,
+      'income'
     );
-    this.expensebudgets = data?.filter(
-      (budget) => budget.budgettype === 'expense'
+    let expense_budgets = await this.dbService.budgetByUserId_type(
+      this.user,
+      'expense'
     );
+    this.incomebudgets = income_budgets.data;
+    this.expensebudgets = expense_budgets.data;
     console.log(this.incomebudgets);
     console.log(this.expensebudgets);
+
+    if (expense_budgets && income_budgets) {
+      console.log(this.incomebudgets.length);
+      for (let i = 0; i < this.incomebudgets.length; i++) {
+        console.log(this.incomebudgets.at(i));
+        const tag = await this.getTag(this.incomebudgets.at(i).tagid);
+        if (tag) {
+          this.incometags.push(tag);
+        }
+      }
+      for (let i = 0; i < this.expensebudgets.length; i++) {
+        const tag = await this.getTag(this.expensebudgets.at(i).tagid);
+        if (tag) {
+          this.expensetags.push(tag);
+        }
+      }
+    }
   }
 
+  incometags: any[] = [];
+  expensetags: any[] = [];
+
   async getTag(tagId: string) {
-    const { data } = await this.supabase.tagById(tagId);
-    console.log(data);
+    const { data } = await this.dbService.tagById(tagId);
     return data;
+  }
+
+  async submitTransaction(isIncome: boolean) {
+    try {
+      if (isIncome) {
+        await this.dbService.createTransaction({
+          amount: this.addMoneyForm.value['amount'],
+          description: this.addMoneyForm.value['description'],
+          title: this.addMoneyForm.value['title'],
+          budgetid: this.selectedIncomeBudget.id,
+          accountid: this.selectedAccount.id,
+          userid: this.user.id,
+          type: 'income',
+        });
+        await this.dbService.updateAccount({
+          ...this.selectedAccount,
+          currentbalance:
+            this.selectedAccount.currentbalance +
+            this.addMoneyForm.value['amount'],
+        });
+      } else {
+        await this.dbService.createTransaction({
+          amount: this.minusMoneyForm.value['amount'],
+          description: this.minusMoneyForm.value['description'],
+          title: this.minusMoneyForm.value['title'],
+          budgetid: this.selectedExpenseBudget.id,
+          accountid: this.selectedAccount.id,
+          userid: this.user.id,
+          type: 'expense',
+        });
+        await this.dbService.updateAccount({
+          ...this.selectedAccount,
+          currentbalance:
+            this.selectedAccount.currentbalance -
+            this.minusMoneyForm.value['amount'],
+        });
+      }
+      this.toastService.showSuccessToast(
+        'New Transaction!',
+        'Transaction successfully submitted.'
+      );
+    } catch (error) {
+      this.toastService.showErrorToast(
+        'Error',
+        'There was an error during with your new account registration. Try again later.'
+      );
+    } finally {
+      this.selectedIncomeBudget = null;
+      this.selectedIncomeTag = null;
+      this.selectedExpenseBudget = null;
+      this.selectedExpenseTag = null;
+      this.selectedAccount = null;
+      this.minusMoneyForm.reset();
+      this.addMoneyForm.reset();
+      this.addMoneyDialog = false;
+      this.minusMoneyDialog = false;
+      this.incometags = [];
+      this.expensetags = [];
+    }
+  }
+
+  closeDialog() {
+    this.selectedIncomeBudget = null;
+    this.selectedIncomeTag = null;
+    this.selectedExpenseBudget = null;
+    this.selectedExpenseTag = null;
+    this.selectedAccount = null;
+    this.minusMoneyForm.reset();
+    this.addMoneyForm.reset();
+    this.addMoneyDialog = false;
+    this.minusMoneyDialog = false;
+    this.budgetDropdown = false;
+    this.accountDropdown = false;
   }
 
   getTotalBalanceAllAcc(acc: any) {
@@ -260,69 +393,79 @@ export class DashboardComponent implements OnInit {
     return isInvalid;
   }
 
-  // async submitProfile(): Promise<void> {
-  //   let profile = {
-  //     username: 'Farhan Aziz',
-  //     firstname: 'Farhan',
-  //     lastname: 'Aziz',
-  //   };
-
-  //   try {
-  //     await this.supabase.updateProfile({
-  //       id: this.user.id,
-  //       username: 'Ngehhhhhhhhhhh',
-  //       firstname: 'Farhan',
-  //       lastname: 'Aziz',
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // }
-
-  ngOnInit() {
-    this.themeService.theme$.subscribe((theme) => {
-      this.currentTheme = theme;
-      // this.updateChart();
-    });
+  isMinusMoneyFormInvalid(controlName: string): boolean {
+    const control = this.minusMoneyForm.get(controlName);
+    let isInvalid = control?.invalid && (control?.dirty || control?.touched);
+    return isInvalid;
   }
 
-  incomeTags = [
-    'Salary',
-    'Investments',
-    'Bonuses',
-    'Freelance',
-    'Savings',
-    'Interest',
-    'Commission',
-    'Tips',
-    'Investment Returns',
-    'Other Income',
-  ];
+  getColors(colorName: string, type: string) {
+    return this.colorService.getColor(colorName, type);
+  }
 
-  expenseTags = [
-    'Food',
-    'Shopping',
-    'Transport',
-    'Entertainment',
-    'Utilities',
-    'Healthcare',
-    'Gifts',
-    'Education',
-    'Insurance',
-    'Rent',
-    'Dining Out',
-    'Groceries',
-    'Clothing',
-    'Travel',
-    'Loan Payment',
-    'Charity',
-    'Childcare',
-    'Electronics',
-    'Pet Care',
-    'Subscriptions',
-    'Household',
-    'Miscellaneous',
-  ];
+  getGradientClasses(color1: string, color2: string) {
+    if (this.currentTheme === 'light') {
+      return `${this.colorService.getColor(
+        color1,
+        'lightFrom'
+      )} + ${this.colorService.getColor(color2, 'lightTo')}`;
+    } else {
+      return `${this.colorService.getColor(
+        color1,
+        'darkFrom'
+      )} + ${this.colorService.getColor(color2, 'darkTo')}`;
+    }
+  }
+
+  // @ViewChild('transactionOverlayPanel', { static: false })
+  // transactionOverlayPanel!: ElementRef;
+  // @ViewChild('insidePanel', { static: false })
+  // insidePanel!: ElementRef;
+  // @ViewChild('triggerButton', { static: false })
+  // triggerButton!: ElementRef;
+  // @ViewChild('transactionOverlayPanel2', { static: false })
+  // transactionOverlayPanel2!: ElementRef;
+  // @ViewChild('insidePanel2', { static: false })
+  // insidePanel2!: ElementRef;
+  // @ViewChild('triggerButton2', { static: false })
+  // triggerButton2!: ElementRef;
+
+  // @HostListener('document:click', ['$event.target'])
+  // onClickOutside(target: HTMLElement) {
+  //   const clickInsidePanel =
+  //     this.transactionOverlayPanel &&
+  //     this.transactionOverlayPanel.nativeElement.contains(target);
+  //   const clickInsideAccountDropdown =
+  //     this.insidePanel && this.insidePanel.nativeElement.contains(target);
+  //   const clickInsideTriggerButton =
+  //     this.triggerButton && this.triggerButton.nativeElement.contains(target);
+  //   const clickInsidePanel2 =
+  //     this.transactionOverlayPanel2 &&
+  //     this.transactionOverlayPanel2.nativeElement.contains(target);
+  //   const clickInsideAccountDropdown2 =
+  //     this.insidePanel2 && this.insidePanel2.nativeElement.contains(target);
+  //   const clickInsideTriggerButton2 =
+  //     this.triggerButton2 && this.triggerButton2.nativeElement.contains(target);
+
+  //   if (
+  //     !clickInsidePanel &&
+  //     !clickInsideAccountDropdown &&
+  //     !clickInsideTriggerButton
+  //   ) {
+  //     this.addMoneyDialog = false;
+  //     this.accountDropdown = false;
+  //     this.budgetDropdown = false;
+  //   }
+  //   if (
+  //     !clickInsidePanel2 &&
+  //     !clickInsideAccountDropdown2 &&
+  //     !clickInsideTriggerButton2
+  //   ) {
+  //     this.minusMoneyDialog = false;
+  //     this.accountDropdown = false;
+  //     this.budgetDropdown = false;
+  //   }
+  // }
 
   // onChartReady(chart: any) {
   //   this.chartInstance = chart; // Store the chart instance

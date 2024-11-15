@@ -8,7 +8,7 @@ import {
 } from '@supabase/supabase-js';
 import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../environments/environments';
-import { SupabaseService } from './supabase.service';
+import { supabase } from './supabase.service';
 import { ToastService } from './toast.service';
 
 @Injectable({
@@ -17,28 +17,80 @@ import { ToastService } from './toast.service';
 export class AuthService {
   private userSession = new BehaviorSubject<AuthSession | null>(null);
   private user = new BehaviorSubject<User | null>(null);
+
   userSession$ = this.userSession.asObservable();
   user$ = this.user.asObservable();
 
-  constructor(
-    private router: Router,
-    private supabase: SupabaseService,
-    private toastService: ToastService
-  ) {
-    this.supabase.session$.subscribe((session) => {
+  constructor(private router: Router, private toastService: ToastService) {
+    this.initializeSession();
+    // this._restoreSession();
+    // // Listen for auth changes
+    // supabase.auth.onAuthStateChange((_, session) => {
+    //   this.userSession.next(session);
+    //   this.user.next(session ? session!.user : null);
+    //   this._persistSession(session);
+    // });
+    // // this.supabase.session$.subscribe((session) => {
+    // //   this.userSession.next(session);
+    // //   this.user.next(session ? session!.user : null);
+    // // });
+  }
+
+  private initializeSession() {
+    // Restore session from local storage
+    this._restoreSession();
+
+    // Set up listener for authentication state changes only once
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session);
+
+      // Update BehaviorSubjects
       this.userSession.next(session);
-      this.user.next(session ? session!.user : null);
+      this.user.next(session ? session.user : null);
+
+      // Persist session in local storage
+      this._persistSession(session);
     });
+  }
+
+  /**
+   * Restores the session from local storage if available.
+   */
+  private _restoreSession() {
+    const sessionData = localStorage.getItem('supabase.session');
+    if (sessionData) {
+      const session = JSON.parse(sessionData) as AuthSession;
+
+      // Update BehaviorSubjects with restored session
+      this.userSession.next(session);
+      this.user.next(session.user);
+    }
+  }
+
+  /**
+   * Persists the session in local storage.
+   * Removes it if the session is null.
+   *
+   * @param session - The authentication session to be persisted.
+   */
+  private _persistSession(session: AuthSession | null) {
+    if (session) {
+      localStorage.setItem('supabase.session', JSON.stringify(session));
+    } else {
+      localStorage.removeItem('supabase.session');
+    }
   }
 
   // Sign Up with Email and Password
   async signUp(email: string, password: string) {
     try {
-      const { error } = await this.supabase.signUp(
+      const { error } = await supabase.auth.signUp({
         email,
         password,
-        'http://localhost:4200/newaccount'
-      );
+        options: {
+          emailRedirectTo: 'http://localhost:4200/newaccount',
+        },
+      });
       if (error) {
         this.toastService.showErrorToast(
           'Error',
@@ -64,7 +116,10 @@ export class AuthService {
   // Sign In with Email and Password
   async signInWithEmail(email: string, password: string) {
     try {
-      const { error } = await this.supabase.signInWithEmail(email, password);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) {
         this.toastService.showErrorToast(
           'Sign In Failed',
@@ -89,7 +144,7 @@ export class AuthService {
 
   async signOut() {
     try {
-      const { error } = await this.supabase.signOut();
+      const { error } = await supabase.auth.signOut();
       if (error) {
         this.toastService.showErrorToast(
           'Sign Out Failed',
@@ -97,6 +152,7 @@ export class AuthService {
         );
       } else {
         this.router.navigate(['/login']);
+        localStorage.removeItem('supabase.session');
         this.toastService.showInfoToast(
           'Sign Out Successful',
           'Till we meet again!'
@@ -114,10 +170,9 @@ export class AuthService {
 
   async resetPassword(email: string) {
     try {
-      const { error } = await this.supabase.resetPassword(
-        email,
-        'http://localhost:4200/forgotpassword'
-      );
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'http://localhost:4200/forgotpassword',
+      });
       if (error) {
         this.toastService.showErrorToast(
           'Reset Password Failed',
@@ -142,14 +197,16 @@ export class AuthService {
 
   async updatePassword(newPassword: string) {
     try {
-      const { error } = await this.supabase.updatePassword(newPassword);
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
       if (error) {
         this.toastService.showErrorToast(
           'Update Password Failed',
           'There was an error updating your password. Try again later.'
         );
       } else {
-        await this.supabase.signOut();
+        await supabase.auth.signOut();
         this.toastService.showSuccessToast(
           'Updating Password',
           'New password has been updated.'
@@ -164,6 +221,11 @@ export class AuthService {
         );
       }
     }
+  }
+
+  async validateToken() {
+    let session = await supabase.auth.getSession();
+    return session?.data?.session !== null;
   }
 
   isAuthenticated(): boolean {

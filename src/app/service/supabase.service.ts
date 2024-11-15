@@ -10,275 +10,211 @@ import { environment } from '../../environments/environments';
 import { BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class SupabaseService {
-  private supabase: SupabaseClient = createClient(
-    environment.supabaseUrl,
-    environment.supabaseKey
-  );
-  private sessionSubject = new BehaviorSubject<AuthSession | null>(null);
-  session$ = this.sessionSubject.asObservable();
+export const supabase = createClient(
+  environment.supabaseUrl,
+  environment.supabaseKey
+);
 
-  constructor(private router: Router) {
-    // Restore session on initialization
-    this._restoreSession();
+// const changes = supabase
+//   .channel('schema-db-changes')
+//   .on(
+//     'postgres_changes',
+//     {
+//       schema: 'public', // Subscribes to the "public" schema in Postgres
+//       event: '*',       // Listen to all changes
+//       table: 'budget'
+//     },
+//     (payload) => console.log(payload)
+//   )
+//   .subscribe()
 
-    // Listen for auth changes
-    this.supabase.auth.onAuthStateChange((_, session) => {
-      this.sessionSubject.next(session);
-      this._persistSession(session);
-    });
-  }
 
-  // Load the initial session from Supabase
-  private _restoreSession() {
-    const sessionData = localStorage.getItem('supabase.session');
-    if (sessionData) {
-      const session = JSON.parse(sessionData) as AuthSession;
-      this.sessionSubject.next(session);
-    }
-  }
-
-  // Persist session in local storage
-  private _persistSession(session: AuthSession | null) {
-    if (session) {
-      localStorage.setItem('supabase.session', JSON.stringify(session));
-    } else {
-      localStorage.removeItem('supabase.session');
-    }
-  }
-
-  // Sign Up with Email and Password
-  signUp(email: string, password: string, redirectUrl: string) {
-    return this.supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-      },
-    });
-  }
-
-  // Sign In with Email and Password
-  signInWithEmail(email: string, password: string) {
-    return this.supabase.auth.signInWithPassword({ email, password });
-  }
-
-  // Sign Out and clear session
-  signOut() {
-    localStorage.removeItem('supabase.session'); // Clear from storage
-    return this.supabase.auth.signOut();
-  }
-
-  resetPassword(email: string, redirectUrl: string) {
-    return this.supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
-    });
-  }
-
-  updatePassword(newPassword: string) {
-    return this.supabase.auth.updateUser({
-      password: newPassword,
-    });
-  }
-
-  async validateToken() {
-    let session = await this.supabase.auth.getSession();
-    return session?.data?.session !== null;
-  }
-
-  // Get the current session
-  getSession(): AuthSession | null {
-    return this.sessionSubject.value;
-  }
 
   //-------------------------------Database---------------------------------
 
   //-------------------------------Profile---------------------------------
 
-  profile(user: User) {
-    return this.supabase
-      .from('profiles')
-      .select(`*`)
-      .eq('id', user.id)
-      .single();
-  }
+//   profile(user: User) {
+//     return this.supabase
+//       .from('profiles')
+//       .select(`*`)
+//       .eq('id', user.id)
+//       .single();
+//   }
 
-  updateProfile(profile: any) {
-    let updatedProfile = {
-      ...profile,
-      updated_at: new Date(),
-    };
+//   updateProfile(profile: any) {
+//     let updatedProfile = {
+//       ...profile,
+//       updated_at: new Date(),
+//     };
 
-    return this.supabase.from('profiles').upsert(updatedProfile).select('*');
-  }
+//     return this.supabase.from('profiles').upsert(updatedProfile).select('*');
+//   }
 
-  //-------------------------------Account---------------------------------
+//   //-------------------------------Account---------------------------------
 
-  allaccount(user: User) {
-    return this.supabase.from('account').select(`*`).eq('userid', user.id);
-  }
+//   allaccount(user: User) {
+//     return this.supabase.from('account').select(`*`).eq('userid', user.id);
+//   }
 
-  createAccount(account: any) {
-    let newAccount = {
-      ...account,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
-    return this.supabase.from('account').insert(newAccount).select('*');
-  }
+//   createAccount(account: any) {
+//     let newAccount = {
+//       ...account,
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//     };
+//     return this.supabase.from('account').insert(newAccount).select('*');
+//   }
 
-  updateAccount(account: any) {
-    let updatedAccount = {
-      ...account,
-      updated_at: new Date(),
-    };
-    return this.supabase.from('account').upsert(updatedAccount).select('*');
-  }
+//   updateAccount(account: any) {
+//     let updatedAccount = {
+//       ...account,
+//       updated_at: new Date(),
+//     };
+//     return this.supabase.from('account').upsert(updatedAccount).select('*');
+//   }
 
-  //-------------------------------Tags---------------------------------
+//   //-------------------------------Tags---------------------------------
 
-  tagById(tagId: string) {
-    return this.supabase.from('tag').select(`*`).is('id', tagId);
-  }
-  
-  allDefaultTag() {
-    return this.supabase.from('tag').select(`*`).is('userid', null);
-  }
+//   tagById(tagId: string) {
+//     return this.supabase.from('tag').select(`*`).eq('id', tagId).single();
+//   }
 
-  createTag(tag: any) {
-    let newTag = {
-      ...tag,
-      created_at: new Date(),
-    };
-    return this.supabase.from('tag').insert(newTag).select('*');
-  }
+//   allDefaultTag() {
+//     return this.supabase.from('tag').select(`*`).is('userid', null);
+//   }
 
-  createMultipleTags(tags: any[]) {
-    const newTags = tags.map((tag) => ({
-      ...tag,
-      created_at: new Date(),
-      updated_at: new Date(),
-    }));
-    return this.supabase.from('tag').insert(newTags).select('*');
-  }
+//   createTag(tag: any) {
+//     let newTag = {
+//       ...tag,
+//       created_at: new Date(),
+//     };
+//     return this.supabase.from('tag').insert(newTag).select('*');
+//   }
 
-  updateTag(tag: any) {
-    let updatedTag = {
-      ...tag,
-    };
-    return this.supabase.from('tag').upsert(updatedTag).select('*');
-  }
+//   createMultipleTags(tags: any[]) {
+//     const newTags = tags.map((tag) => ({
+//       ...tag,
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//     }));
+//     return this.supabase.from('tag').insert(newTags).select('*');
+//   }
 
-  //-------------------------------Budgets---------------------------------
+//   updateTag(tag: any) {
+//     let updatedTag = {
+//       ...tag,
+//     };
+//     return this.supabase.from('tag').upsert(updatedTag).select('*');
+//   }
 
-  budgetByUserId(user: User) {
-    return this.supabase.from('budget').select(`*`).eq('userid', user.id);
-  }
+//   //-------------------------------Budgets---------------------------------
 
-  budgetByAccountId(accId: string) {
-    return this.supabase.from('budget').select(`*`).eq('accountid', accId);
-  }
+//   budgetByUserId(user: User) {
+//     return this.supabase.from('budget').select(`*`).eq('userid', user.id);
+//   }
 
-  createBudget(budget: any) {
-    let newBudget = {
-      ...budget,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
-    return this.supabase.from('budget').insert(newBudget).select('*');
-  }
+//   budgetByAccountId(accId: string) {
+//     return this.supabase.from('budget').select(`*`).eq('accountid', accId);
+//   }
 
-  createMultipleBudget(budgets: any[]) {
-    const newBudgets = budgets.map((budget) => ({
-      ...budget,
-      created_at: new Date(),
-      updated_at: new Date(),
-    }));
-    return this.supabase.from('budget').insert(newBudgets).select('*');
-  }
+//   createBudget(budget: any) {
+//     let newBudget = {
+//       ...budget,
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//     };
+//     return this.supabase.from('budget').insert(newBudget).select('*');
+//   }
 
-  updateBudget(budget: any) {
-    let updatedBudget = {
-      ...budget,
-      updated_at: new Date(),
-    };
-    return this.supabase.from('tag').upsert(updatedBudget).select('*');
-  }
+//   createMultipleBudget(budgets: any[]) {
+//     const newBudgets = budgets.map((budget) => ({
+//       ...budget,
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//     }));
+//     return this.supabase.from('budget').insert(newBudgets).select('*');
+//   }
 
-  //-------------------------------Goals---------------------------------
+//   updateBudget(budget: any) {
+//     let updatedBudget = {
+//       ...budget,
+//       updated_at: new Date(),
+//     };
+//     return this.supabase.from('tag').upsert(updatedBudget).select('*');
+//   }
 
-  goal(user: User) {
-    return this.supabase.from('goal').select(`*`).eq('userid', user.id);
-  }
+//   //-------------------------------Goals---------------------------------
 
-  createGoal(goal: any) {
-    let newGoal = {
-      ...goal,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
-    return this.supabase.from('goal').insert(newGoal).select('*');
-  }
+//   goal(user: User) {
+//     return this.supabase.from('goal').select(`*`).eq('userid', user.id);
+//   }
 
-  createMultipleGoals(goals: any[]) {
-    const newGoals = goals.map((goal) => ({
-      ...goal,
-      created_at: new Date(),
-      updated_at: new Date(),
-    }));
-    return this.supabase.from('goal').insert(newGoals).select('*');
-  }
+//   createGoal(goal: any) {
+//     let newGoal = {
+//       ...goal,
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//     };
+//     return this.supabase.from('goal').insert(newGoal).select('*');
+//   }
 
-  updateGoal(goal: any) {
-    let updatedGoal = {
-      ...goal,
-      updated_at: new Date(),
-    };
-    return this.supabase.from('goal').upsert(updatedGoal).select('*');
-  }
+//   createMultipleGoals(goals: any[]) {
+//     const newGoals = goals.map((goal) => ({
+//       ...goal,
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//     }));
+//     return this.supabase.from('goal').insert(newGoals).select('*');
+//   }
 
-  //-------------------------------Transaction---------------------------------
+//   updateGoal(goal: any) {
+//     let updatedGoal = {
+//       ...goal,
+//       updated_at: new Date(),
+//     };
+//     return this.supabase.from('goal').upsert(updatedGoal).select('*');
+//   }
 
-  transactionByAccountId(accId: string) {
-    return this.supabase.from('transaction').select(`*`).eq('accountid', accId);
-  }
+//   //-------------------------------Transaction---------------------------------
 
-  transactionByUserId(user: User) {
-    return this.supabase.from('transaction').select(`*`).eq('userid', user.id);
-  }
+//   transactionByAccountId(accId: string) {
+//     return this.supabase.from('transaction').select(`*`).eq('accountid', accId);
+//   }
 
-  createTransaction(transaction: any) {
-    let newTransaction = {
-      ...transaction,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
-    return this.supabase.from('transaction').insert(newTransaction).select('*');
-  }
+//   transactionByUserId(user: User) {
+//     return this.supabase.from('transaction').select(`*`).eq('userid', user.id);
+//   }
 
-  createMultipleTransactions(transactions: any[]) {
-    const newTransactions = transactions.map((transaction) => ({
-      ...transaction,
-      created_at: new Date(),
-      updated_at: new Date(),
-    }));
-    return this.supabase
-      .from('transaction')
-      .insert(newTransactions)
-      .select('*');
-  }
+//   createTransaction(transaction: any) {
+//     let newTransaction = {
+//       ...transaction,
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//     };
+//     return this.supabase.from('transaction').insert(newTransaction).select('*');
+//   }
 
-  updateTransaction(transaction: any) {
-    let updatedTransaction = {
-      ...transaction,
-      updated_at: new Date(),
-    };
-    return this.supabase
-      .from('transaction')
-      .upsert(updatedTransaction)
-      .select('*');
-  }
-}
+//   createMultipleTransactions(transactions: any[]) {
+//     const newTransactions = transactions.map((transaction) => ({
+//       ...transaction,
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//     }));
+//     return this.supabase
+//       .from('transaction')
+//       .insert(newTransactions)
+//       .select('*');
+//   }
+
+//   updateTransaction(transaction: any) {
+//     let updatedTransaction = {
+//       ...transaction,
+//       updated_at: new Date(),
+//     };
+//     return this.supabase
+//       .from('transaction')
+//       .upsert(updatedTransaction)
+//       .select('*');
+//   }
+// }

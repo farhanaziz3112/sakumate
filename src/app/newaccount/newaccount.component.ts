@@ -18,7 +18,6 @@ import {
 import { Router } from '@angular/router';
 import { AuthService } from '../service/auth.service';
 import { AuthSession, User } from '@supabase/supabase-js';
-import { SupabaseService } from '../service/supabase.service';
 import {
   FormArray,
   FormBuilder,
@@ -32,6 +31,7 @@ import { DialogModule } from 'primeng/dialog';
 import { icons, tagIconsString } from '../component/icons/icons';
 import { TagComponent } from '../component/tag/tag.component';
 import { ToastService } from '../service/toast.service';
+import { DatabaseService } from '../service/database.service';
 
 @Component({
   selector: 'app-newaccount',
@@ -116,7 +116,7 @@ export class NewaccountComponent implements OnInit {
   faArrowLeft = faArrowLeft;
   faCheck = faCheck;
 
-  currentStep = 3;
+  currentStep = 0;
 
   userSession: AuthSession | any;
   user: User | any;
@@ -136,9 +136,9 @@ export class NewaccountComponent implements OnInit {
     private router: Router,
     private formBuilder: FormBuilder,
     private authService: AuthService,
-    private supabase: SupabaseService,
     private colorService: ColorService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private dbService: DatabaseService
   ) {
     const today = new Date();
     const min = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
@@ -190,7 +190,7 @@ export class NewaccountComponent implements OnInit {
   defaultExpenses: any;
 
   async getDefaultTags() {
-    this.defaultTags = await this.supabase.allDefaultTag();
+    this.defaultTags = await this.dbService.allDefaultTag();
     this.defaultIncomes = this.defaultTags.data.filter(
       (tag: any) => tag.tagtype === 'income'
     );
@@ -208,7 +208,7 @@ export class NewaccountComponent implements OnInit {
     // };
 
     // try {
-    //   const { data, error } = await this.supabase.updateProfile(profile);
+    //   const { data, error } = await this.dbService.updateProfile(profile);
     //   if (error) {
     //     console.log(error);
     //   } else {
@@ -228,7 +228,7 @@ export class NewaccountComponent implements OnInit {
     // };
 
     // console.log(account);
-    // const accountcreated = await this.supabase.createAccount(account);
+    // const accountcreated = await this.dbService.createAccount(account);
     // console.log(accountcreated.data?.at(0));
 
     let budget: any[] = [];
@@ -239,7 +239,6 @@ export class NewaccountComponent implements OnInit {
         description: this.incomebudgets.at(i).value['description'],
         currentamount: this.incomebudgets.at(i).value['currentamount'],
         targetamount: this.incomebudgets.at(i).value['targetamount'],
-        accountid: null,
         userid: this.user.id,
         budgettype: 'income',
       });
@@ -252,18 +251,16 @@ export class NewaccountComponent implements OnInit {
         description: this.expensebudgets.at(i).value['description'],
         currentamount: this.expensebudgets.at(i).value['currentamount'],
         targetamount: this.expensebudgets.at(i).value['targetamount'],
-        accountid: null,
         userid: this.user.id,
         budgettype: 'expense',
       });
     }
 
-    const newbudgets = await this.supabase.createMultipleBudget(budget);
-    console.log(newbudgets.data);
+    const newbudgets = await this.dbService.createMultipleBudget(budget);
 
     // for (let i = 0; i < budget.length; i++) {
     //   console.log(budget[i]);
-    //   const newbudgets = await this.supabase.createBudget(budget);
+    //   const newbudgets = await this.dbService.createBudget(budget);
     //   console.log(newbudgets.data);
     // }
 
@@ -279,7 +276,7 @@ export class NewaccountComponent implements OnInit {
     // };
 
     // console.log(budget);
-    // const newbudget = await this.supabase.createBudget(budget);
+    // const newbudget = await this.dbService.createBudget(budget);
     // console.log(newbudget.data);
 
     // let goal = {
@@ -293,7 +290,7 @@ export class NewaccountComponent implements OnInit {
     // };
 
     // console.log(goal);
-    // const newGoal = await this.supabase.createGoal(goal);
+    // const newGoal = await this.dbService.createGoal(goal);
     // console.log(newGoal.data);
 
     let tag = {
@@ -304,9 +301,7 @@ export class NewaccountComponent implements OnInit {
       icon: 'faBurger',
     };
 
-    console.log(tag);
-    const newTag = await this.supabase.createTag(tag);
-    console.log(newTag.data);
+    const newTag = await this.dbService.createTag(tag);
   }
 
   async onSubmit(): Promise<void> {
@@ -325,7 +320,7 @@ export class NewaccountComponent implements OnInit {
           id: this.user.id,
         };
 
-        const newprofile = await this.supabase.updateProfile(profile);
+        const newprofile = await this.dbService.updateProfile(profile);
 
         let account = {
           userid: this.user.id,
@@ -336,7 +331,7 @@ export class NewaccountComponent implements OnInit {
           color2: this.accountForm.value['color2'] as string,
         };
 
-        const newaccount = await this.supabase.createAccount(account);
+        const newaccount = await this.dbService.createAccount(account);
 
         let budget: any[] = [];
         for (let i = 0; i < this.incomebudgets.length; i++) {
@@ -346,7 +341,6 @@ export class NewaccountComponent implements OnInit {
             description: this.incomebudgets.at(i).value['description'],
             currentamount: this.incomebudgets.at(i).value['currentamount'],
             targetamount: this.incomebudgets.at(i).value['targetamount'],
-            accountid: newaccount.data?.at(0).id,
             userid: this.user.id,
             budgettype: 'income',
           });
@@ -359,18 +353,16 @@ export class NewaccountComponent implements OnInit {
             description: this.expensebudgets.at(i).value['description'],
             currentamount: this.expensebudgets.at(i).value['currentamount'],
             targetamount: this.expensebudgets.at(i).value['targetamount'],
-            accountid: newaccount.data?.at(0).id,
             userid: this.user.id,
             budgettype: 'expense',
           });
         }
 
-        const newbudgets = await this.supabase.createMultipleBudget(budget);
-        console.log(newbudgets.data);
+        const newbudgets = await this.dbService.createMultipleBudget(budget);
 
         for (let i = 0; i < this.goals.length; i++) {
           if (i === 0) {
-            await this.supabase.updateGoal({
+            await this.dbService.updateGoal({
               goalname: this.goals.at(i).value['goalname'],
               tagid: null,
               description: this.goals.at(i).value['description'],
@@ -381,14 +373,14 @@ export class NewaccountComponent implements OnInit {
               accountid: newaccount.data?.at(0).id,
             });
           } else {
-            const newTag = await this.supabase.createTag({
+            const newTag = await this.dbService.createTag({
               userid: this.user.id,
               tagname: this.goals.at(i).value['tagname'],
               tagtype: 'goal',
               color: this.goals.at(i).value['color'],
               icon: this.goals.at(i).value['icon'],
             });
-            const newGoal = await this.supabase.createGoal({
+            const newGoal = await this.dbService.createGoal({
               goalname: this.goals.at(i).value['goalname'],
               tagid: newTag.data?.at(0).id,
               description: this.goals.at(i).value['description'],
@@ -408,7 +400,7 @@ export class NewaccountComponent implements OnInit {
       } catch (e) {
         this.toastService.showErrorToast(
           'Error',
-          'There was an error during with your new account registration. Try again later.'
+          'There was an error during your new account registration. Try again later.'
         );
       } finally {
         this.profileForm.reset();
@@ -431,7 +423,6 @@ export class NewaccountComponent implements OnInit {
         (tag: any) => tag.tagname !== income.tagname
       );
       this.addIncomeBudgetForm(income);
-      console.log('Adding budget form');
     }
   }
 
@@ -442,7 +433,6 @@ export class NewaccountComponent implements OnInit {
         (tag: any) => tag.tagname !== income.tagname
       );
       this.removeIncomeBudgetForm(index);
-      console.log('Remove budget form');
     }
   }
 
@@ -528,7 +518,6 @@ export class NewaccountComponent implements OnInit {
     });
 
     this.goals.push(goalGroup);
-    console.log(this.goalForm.value);
   }
 
   removeGoal(index: number): void {

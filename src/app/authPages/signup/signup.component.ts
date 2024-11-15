@@ -10,7 +10,6 @@ import {
 import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { SupabaseService } from '../../service/supabase.service';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
 import { AuthService } from '../../service/auth.service';
@@ -34,7 +33,6 @@ export class SignupComponent {
 
   constructor(
     private router: Router,
-    private readonly supabase: SupabaseService,
     private readonly formBuilder: FormBuilder,
     private authService: AuthService
   ) {

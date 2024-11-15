@@ -11,6 +11,7 @@ import {
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -26,6 +27,10 @@ import { ThemeService } from '../../service/theme.service';
 import { ColorService } from '../../service/color.service';
 import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdialog.component';
 import { DialogModule } from 'primeng/dialog';
+import { User } from '@supabase/supabase-js';
+import { AuthService } from '../../service/auth.service';
+import { DatabaseService } from '../../service/database.service';
+import { ToastService } from '../../service/toast.service';
 
 @Component({
   selector: 'app-addaccount',
@@ -38,7 +43,7 @@ import { DialogModule } from 'primeng/dialog';
     ReactiveFormsModule,
     FormsModule,
     ConfirmdialogComponent,
-    DialogModule
+    DialogModule,
   ],
   templateUrl: './addaccount.component.html',
   styleUrl: './addaccount.component.css',
@@ -68,8 +73,23 @@ export class AddaccountComponent implements OnInit {
   ];
 
   colors = [
-    'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal',
-    'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'
+    'red',
+    'orange',
+    'amber',
+    'yellow',
+    'lime',
+    'green',
+    'emerald',
+    'teal',
+    'cyan',
+    'sky',
+    'blue',
+    'indigo',
+    'violet',
+    'purple',
+    'fuchsia',
+    'pink',
+    'rose',
   ];
 
   faArrowRight = faArrowRight;
@@ -77,7 +97,8 @@ export class AddaccountComponent implements OnInit {
   faCheck = faCheck;
   faXmark = faXmark;
 
-  addAccountForm: FormGroup | any;
+  accountForm: FormGroup | any;
+  user: User | any;
 
   currentTheme = 'light';
 
@@ -85,22 +106,33 @@ export class AddaccountComponent implements OnInit {
     private router: Router,
     private formBuilder: FormBuilder,
     private themeService: ThemeService,
-    private colorService: ColorService
+    private colorService: ColorService,
+    private authService: AuthService,
+    private dbService: DatabaseService,
+    private toastService: ToastService
   ) {
-    this.addAccountForm = this.formBuilder.group({
-      accName: [''],
-      accType: [''],
-      currentBalance: [0],
-      color1: ['yellow'],
-      color2: ['pink'],
+    this.accountForm = this.formBuilder.group({
+      accountname: ['', [Validators.required, Validators.minLength(3)]],
+      accounttype: ['', [Validators.required]],
+      currentbalance: ['', [Validators.required]],
+      color1: ['yellow', [Validators.required]],
+      color2: ['pink', [Validators.required]],
     });
     this.currentTheme = this.themeService.currentTheme;
-  }
-
-  ngOnInit() {
+    this.authService.user$.subscribe((user) => {
+      this.user = user;
+    });
     this.themeService.theme$.subscribe((theme) => {
       this.currentTheme = theme;
     });
+  }
+
+  ngOnInit() {}
+
+  isAccountFormInvalid(controlName: string): boolean {
+    const control = this.accountForm.get(controlName);
+    let isInvalid = control?.invalid && (control?.dirty || control?.touched);
+    return isInvalid;
   }
 
   goToAccount() {
@@ -117,18 +149,24 @@ export class AddaccountComponent implements OnInit {
 
   getGradientClasses(color1: string, color2: string) {
     if (this.currentTheme === 'light') {
-      return `${this.colorService.getColor(color1, 'lightFrom')} + ${this.colorService.getColor(color2, 'lightTo')}`;
+      return `${this.colorService.getColor(
+        color1,
+        'lightFrom'
+      )} + ${this.colorService.getColor(color2, 'lightTo')}`;
     } else {
-      return `${this.colorService.getColor(color1, 'darkFrom')} + ${this.colorService.getColor(color2, 'darkTo')}`;
+      return `${this.colorService.getColor(
+        color1,
+        'darkFrom'
+      )} + ${this.colorService.getColor(color2, 'darkTo')}`;
     }
   }
 
   setColor(color: string, isColor1: boolean) {
     if (isColor1) {
-      this.addAccountForm.get('color1').setValue(color);
+      this.accountForm.get('color1').setValue(color);
       this.overlayOpen = false;
     } else {
-      this.addAccountForm.get('color2').setValue(color);
+      this.accountForm.get('color2').setValue(color);
       this.overlayOpen2 = false;
     }
   }
@@ -179,12 +217,38 @@ export class AddaccountComponent implements OnInit {
     this.confirmDialog = true;
   }
 
-  submitAccount() {
-    this.confirmDialog = false;
+  async submitAccount(): Promise<void> {
+    if (this.accountForm.valid) {
+      try {
+        let account = {
+          userid: this.user.id,
+          accountname: this.accountForm.value['accountname'] as string,
+          accounttype: this.accountForm.value['accounttype'] as string,
+          currentbalance: this.accountForm.value['currentbalance'],
+          color1: this.accountForm.value['color1'] as string,
+          color2: this.accountForm.value['color2'] as string,
+        };
+        this.toastService.showSuccessToast(
+          'New Account!',
+          'Account: ' +
+            this.accountForm.value['accountname'] +
+            ' is successfully added.'
+        );
+        await this.dbService.createAccount(account);
+        this.router.navigate(['/account']);
+        this.confirmDialog = false;
+      } catch (error) {
+        this.toastService.showErrorToast(
+          'Error',
+          'There was an error during adding new account. Try again later.'
+        );
+      } finally {
+        this.accountForm.reset();
+      }
+    }
   }
 
   cancelAccount() {
     this.confirmDialog = false;
-
   }
 }
