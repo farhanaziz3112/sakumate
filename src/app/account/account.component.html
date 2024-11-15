@@ -22,8 +22,9 @@
   >
     <ng-container *ngFor="let acc of accounts">
       <div
-        class="col-span-1 flex flex-col justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b rounded-sm"
+        class="col-span-1 flex flex-col justify-between p-4 gap-2 lg-m:gap-5 bg-gradient-to-b rounded-sm cursor-pointer"
         [ngClass]="getGradientClasses(acc.color1, acc.color2)"
+        (click)="goToAccount(acc.id)"
       >
         <div class="flex flex-col">
           <span class="text-xs lg-m:text-sm">{{ acc.accountname }}</span>

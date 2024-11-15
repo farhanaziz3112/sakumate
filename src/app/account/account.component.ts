@@ -29,7 +29,6 @@ export class AccountComponent {
   ) {
     this.dbService.accounts$.subscribe((acc) => {
       this.accounts = acc;
-      console.log(acc);
     });
     this.themeService.theme$.subscribe((theme) => {
       this.currentTheme = theme;

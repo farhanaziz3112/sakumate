@@ -228,13 +228,11 @@ export class DashboardComponent implements OnInit {
     Chart.register(this.customPlugin);
     this.currentTheme = this.themeService.currentTheme;
     this.authService.user$.subscribe((user) => {
-        console.log(user);
-      // if (user) {
-      //   console.log(user);
-      //   this.user = user;
-      //   this.getProfile();
-      //   this.getBudgets();
-      // }
+      if (user) {
+        this.user = user;
+        this.getProfile();
+        this.getBudgets();
+      }
     });
     this.dbService.accounts$.subscribe((acc) => {
       this.accounts = acc;
@@ -265,8 +263,6 @@ export class DashboardComponent implements OnInit {
   }
 
   async getBudgets() {
-    console.log('get budgets function called');
-    
     let income_budgets = await this.dbService.budgetByUserId_type(
       this.user,
       'income'
@@ -277,21 +273,16 @@ export class DashboardComponent implements OnInit {
     );
     this.incomebudgets = income_budgets.data;
     this.expensebudgets = expense_budgets.data;
-    console.log(this.incomebudgets);
-    console.log(this.expensebudgets);
-
     if (expense_budgets && income_budgets) {
-      console.log(this.incomebudgets.length);
       for (let i = 0; i < this.incomebudgets.length; i++) {
-        console.log(this.incomebudgets.at(i));
         const tag = await this.getTag(this.incomebudgets.at(i).tagid);
-        if (tag) {
+        if (tag && !this.incometags.some(existingTag => existingTag.id === tag.id)) {
           this.incometags.push(tag);
         }
       }
       for (let i = 0; i < this.expensebudgets.length; i++) {
         const tag = await this.getTag(this.expensebudgets.at(i).tagid);
-        if (tag) {
+        if (tag && !this.expensetags.some(existingTag => existingTag.id === tag.id)) {
           this.expensetags.push(tag);
         }
       }
@@ -326,7 +317,7 @@ export class DashboardComponent implements OnInit {
         });
       } else {
         await this.dbService.createTransaction({
-          amount: this.minusMoneyForm.value['amount'],
+          amount: (-(this.minusMoneyForm.value['amount'])),
           description: this.minusMoneyForm.value['description'],
           title: this.minusMoneyForm.value['title'],
           budgetid: this.selectedExpenseBudget.id,
@@ -397,6 +388,10 @@ export class DashboardComponent implements OnInit {
     const control = this.minusMoneyForm.get(controlName);
     let isInvalid = control?.invalid && (control?.dirty || control?.touched);
     return isInvalid;
+  }
+
+  goToAccount(id: string) {
+    this.router.navigate(['/account', id]);
   }
 
   getColors(colorName: string, type: string) {

@@ -22,36 +22,36 @@ export class AuthService {
   user$ = this.user.asObservable();
 
   constructor(private router: Router, private toastService: ToastService) {
-    this.initializeSession();
-    // this._restoreSession();
-    // // Listen for auth changes
-    // supabase.auth.onAuthStateChange((_, session) => {
-    //   this.userSession.next(session);
-    //   this.user.next(session ? session!.user : null);
-    //   this._persistSession(session);
-    // });
-    // // this.supabase.session$.subscribe((session) => {
-    // //   this.userSession.next(session);
-    // //   this.user.next(session ? session!.user : null);
-    // // });
-  }
-
-  private initializeSession() {
-    // Restore session from local storage
+    // this.initializeSession();
     this._restoreSession();
-
-    // Set up listener for authentication state changes only once
-    supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session);
-
-      // Update BehaviorSubjects
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange((_, session) => {
       this.userSession.next(session);
-      this.user.next(session ? session.user : null);
-
-      // Persist session in local storage
+      this.user.next(session ? session!.user : null);
       this._persistSession(session);
     });
+    // this.supabase.session$.subscribe((session) => {
+    //   this.userSession.next(session);
+    //   this.user.next(session ? session!.user : null);
+    // });
   }
+
+  // private initializeSession() {
+  //   // Restore session from local storage
+  //   this._restoreSession();
+
+  //   // Set up listener for authentication state changes only once
+  //   supabase.auth.onAuthStateChange((event, session) => {
+  //     console.log('Auth state changed:', event, session);
+
+  //     // Update BehaviorSubjects
+  //     this.userSession.next(session);
+  //     this.user.next(session ? session.user : null);
+
+  //     // Persist session in local storage
+  //     this._persistSession(session);
+  //   });
+  // }
 
   /**
    * Restores the session from local storage if available.
@@ -60,19 +60,10 @@ export class AuthService {
     const sessionData = localStorage.getItem('supabase.session');
     if (sessionData) {
       const session = JSON.parse(sessionData) as AuthSession;
-
-      // Update BehaviorSubjects with restored session
       this.userSession.next(session);
-      this.user.next(session.user);
     }
   }
 
-  /**
-   * Persists the session in local storage.
-   * Removes it if the session is null.
-   *
-   * @param session - The authentication session to be persisted.
-   */
   private _persistSession(session: AuthSession | null) {
     if (session) {
       localStorage.setItem('supabase.session', JSON.stringify(session));

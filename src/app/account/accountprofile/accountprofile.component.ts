@@ -11,6 +11,18 @@ import { DonutComponent } from '../../component/donut/donut.component';
 import { ChartConfiguration, ChartData, ChartEvent, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { PaginatorComponent } from '../../component/paginator/paginator.component';
+import { DatabaseService } from '../../service/database.service';
+import { User } from '@supabase/supabase-js';
+import { AuthService } from '../../service/auth.service';
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { ToastService } from '../../service/toast.service';
 
 @Component({
   selector: 'app-accountprofile',
@@ -22,7 +34,9 @@ import { PaginatorComponent } from '../../component/paginator/paginator.componen
     TagComponent,
     DonutComponent,
     BaseChartDirective,
-    PaginatorComponent
+    PaginatorComponent,
+    FormsModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './accountprofile.component.html',
   styleUrl: './accountprofile.component.css',
@@ -30,20 +44,47 @@ import { PaginatorComponent } from '../../component/paginator/paginator.componen
 export class AccountprofileComponent implements OnInit {
   currentTheme = 'light';
   id: any;
+  user: User | any;
+  account: any;
+
+  addMoneyForm: FormGroup | any;
+  minusMoneyForm: FormGroup | any;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private dbService: DatabaseService,
+    private authService: AuthService,
+    private fb: FormBuilder,
+    private toastService: ToastService,
   ) {
-    this.currentTheme = this.themeService.currentTheme;
-  }
-
-  ngOnInit() {
     this.id = this.route.snapshot.paramMap.get('id');
     this.route.paramMap.subscribe((params) => {
       this.id = params.get('id');
     });
+    this.authService.user$.subscribe((user) => {
+      if (user) {
+        this.user = user;
+        this.getBudgets();
+      }
+    });
+    this.dbService.accounts$.subscribe((acc) => {
+      this.account = (acc.filter(account => account.id === this.id)).at(0);
+    });
+    this.addMoneyForm = this.fb.group({
+      amount: ['', [Validators.required]],
+      description: [''],
+      title: [''],
+    });
+    this.minusMoneyForm = this.fb.group({
+      amount: ['', [Validators.required]],
+      description: [''],
+      title: [''],
+    });
+  }
+
+  ngOnInit() {
     this.themeService.theme$.subscribe((theme) => {
       this.currentTheme = theme;
       this.updateLineChartColors();
@@ -61,20 +102,36 @@ export class AccountprofileComponent implements OnInit {
     return icons[icon] || null;
   }
 
+  incomebudgets: any;
+  expensebudgets: any;
+
   addMoneyDialog: boolean = false;
   minusMoneyDialog: boolean = false;
+  budgetDropdown: boolean = false;
 
-  dropdown: boolean = false;
+  selectedIncomeBudget: any = null;
+  selectedIncomeTag: any = null;
 
-  selectedTag: any = null;
+  selectedExpenseBudget: any = null;
+  selectedExpenseTag: any = null;
 
-  selectTag(tag: string) {
-    this.selectedTag = tag;
-    this.dropdown = false;
+  incometags: any[] = [];
+  expensetags: any[] = [];
+
+  selectIncomeBudget(budget: any, index: number) {
+    this.selectedIncomeBudget = budget;
+    this.selectedIncomeTag = this.incometags[index];
+    this.budgetDropdown = false;
   }
 
-  toggleDropdown() {
-    this.dropdown = !this.dropdown;
+  selectExpenseBudget(budget: any, index: number) {
+    this.selectedExpenseBudget = budget;
+    this.selectedExpenseTag = this.expensetags[index];
+    this.budgetDropdown = false;
+  }
+
+  toggleBudgetDropdown() {
+    this.budgetDropdown = !this.budgetDropdown;
   }
 
   toggleAddMoneyDialog() {
@@ -84,6 +141,109 @@ export class AccountprofileComponent implements OnInit {
   toggleMinusMoneyDialog() {
     this.minusMoneyDialog = !this.minusMoneyDialog;
   }
+
+  async getBudgets() {
+    let income_budgets = await this.dbService.budgetByUserId_type(
+      this.user,
+      'income'
+    );
+    let expense_budgets = await this.dbService.budgetByUserId_type(
+      this.user,
+      'expense'
+    );
+    this.incomebudgets = income_budgets.data;
+    this.expensebudgets = expense_budgets.data;
+    if (expense_budgets && income_budgets) {
+      for (let i = 0; i < this.incomebudgets.length; i++) {
+        const tag = await this.getTag(this.incomebudgets.at(i).tagid);
+        if (tag && !this.incometags.some(existingTag => existingTag.id === tag.id)) {
+          this.incometags.push(tag);
+        }
+      }
+      for (let i = 0; i < this.expensebudgets.length; i++) {
+        const tag = await this.getTag(this.expensebudgets.at(i).tagid);
+        if (tag && !this.expensetags.some(existingTag => existingTag.id === tag.id)) {
+          this.expensetags.push(tag);
+        }
+      }
+    }
+  }
+
+  async getTag(tagId: string) {
+    const { data } = await this.dbService.tagById(tagId);
+    return data;
+  }
+
+  async submitTransaction(isIncome: boolean) {
+    try {
+      if (isIncome) {
+        await this.dbService.createTransaction({
+          amount: this.addMoneyForm.value['amount'],
+          description: this.addMoneyForm.value['description'],
+          title: this.addMoneyForm.value['title'],
+          budgetid: this.selectedIncomeBudget.id,
+          accountid: this.account.id,
+          userid: this.user.id,
+          type: 'income',
+        });
+        await this.dbService.updateAccount({
+          ...this.account,
+          currentbalance:
+            this.account.currentbalance +
+            this.addMoneyForm.value['amount'],
+        });
+      } else {
+        await this.dbService.createTransaction({
+          amount: (-(this.minusMoneyForm.value['amount'])),
+          description: this.minusMoneyForm.value['description'],
+          title: this.minusMoneyForm.value['title'],
+          budgetid: this.selectedExpenseBudget.id,
+          accountid: this.account.id,
+          userid: this.user.id,
+          type: 'expense',
+        });
+        await this.dbService.updateAccount({
+          ...this.account,
+          currentbalance:
+            this.account.currentbalance -
+            this.minusMoneyForm.value['amount'],
+        });
+      }
+      this.toastService.showSuccessToast(
+        'New Transaction!',
+        'Transaction successfully submitted.'
+      );
+    } catch (error) {
+      this.toastService.showErrorToast(
+        'Error',
+        'There was an error during with your new account registration. Try again later.'
+      );
+    } finally {
+      this.selectedIncomeBudget = null;
+      this.selectedIncomeTag = null;
+      this.selectedExpenseBudget = null;
+      this.selectedExpenseTag = null;
+      this.minusMoneyForm.reset();
+      this.addMoneyForm.reset();
+      this.addMoneyDialog = false;
+      this.minusMoneyDialog = false;
+      this.incometags = [];
+      this.expensetags = [];
+    }
+  }
+
+  closeDialog() {
+    this.selectedIncomeBudget = null;
+    this.selectedIncomeTag = null;
+    this.selectedExpenseBudget = null;
+    this.selectedExpenseTag = null;
+    this.minusMoneyForm.reset();
+    this.addMoneyForm.reset();
+    this.addMoneyDialog = false;
+    this.minusMoneyDialog = false;
+    this.budgetDropdown = false;
+  }
+
 
   incomeTags = [
     'Salary',
@@ -173,6 +333,18 @@ export class AccountprofileComponent implements OnInit {
     this.selectedMonth = month;
     this.monthDropdown = false;
     this.updateBarChartColors();
+  }
+
+  isAddMoneyFormInvalid(controlName: string): boolean {
+    const control = this.addMoneyForm.get(controlName);
+    let isInvalid = control?.invalid && (control?.dirty || control?.touched);
+    return isInvalid;
+  }
+
+  isMinusMoneyFormInvalid(controlName: string): boolean {
+    const control = this.minusMoneyForm.get(controlName);
+    let isInvalid = control?.invalid && (control?.dirty || control?.touched);
+    return isInvalid;
   }
 
   transactions = [
