@@ -4,23 +4,35 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ThemeService } from '../service/theme.service';
 import { icons } from '../component/icons/icons';
-import { ReactiveFormsModule, FormsModule, FormGroup, FormBuilder } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormsModule,
+  FormGroup,
+  FormBuilder,
+  Validators,
+} from '@angular/forms';
 import { CalendarModule } from 'primeng/calendar';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmdialogComponent } from '../component/confirmdialog/confirmdialog.component';
 import { AuthService } from '../service/auth.service';
+import { ColorService } from '../service/color.service';
+import { DatabaseService } from '../service/database.service';
+import { ToastService } from '../service/toast.service';
+import { User } from '@supabase/supabase-js';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [ConfirmdialogComponent,
+  imports: [
+    ConfirmdialogComponent,
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
     CalendarModule,
     FontAwesomeModule,
     ConfirmdialogComponent,
-    DialogModule,],
+    DialogModule,
+  ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.css',
 })
@@ -69,44 +81,134 @@ export class SettingsComponent implements OnInit {
     };
   }
 
-  currentTheme = 'light';
+  minDate: string | any;
+
+  currentTheme = '';
 
   profileForm: FormGroup | any;
+
+  user: User | any;
+  profile: any;
 
   constructor(
     private themeService: ThemeService,
     private router: Router,
     private route: ActivatedRoute,
     private formBuilder: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private colorService: ColorService,
+    private toastService: ToastService,
+    private dbService: DatabaseService
   ) {
-    this.currentTheme = this.themeService.currentTheme;
+    const today = new Date();
+    const min = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 2
+    );
+    this.minDate = min.toISOString().split('T')[0];
+    this.themeService.theme$.subscribe((theme) => {
+      this.currentTheme = theme;
+    });
     this.profileForm = this.formBuilder.group({
-      userName: [''],
-      firstName: [''],
-      lastName: [''],
-      email: [''],
+      username: [
+        { value: '', disabled: true },
+        [Validators.required, Validators.minLength(3)],
+      ],
+      firstname: [
+        { value: '', disabled: true },
+        [Validators.required, Validators.minLength(3)],
+      ],
+      lastname: [
+        { value: '', disabled: true },
+        [Validators.required, Validators.minLength(3)],
+      ],
+    });
+    this.authService.user$.subscribe((user) => {
+      if (user) {
+        this.user = user;
+        console.log(user?.email);
+        this.getProfile();
+      }
     });
   }
 
-  ngOnInit() { }
+  ngOnInit() {}
 
-  confirmDialog: boolean = false;
-
-  showConfirmDialog() {
-    this.confirmDialog = true;
+  isProfileFormInvalid(controlName: string): boolean {
+    const control = this.profileForm.get(controlName);
+    let isInvalid = control?.invalid && (control?.dirty || control?.touched);
+    return isInvalid;
   }
 
-  submitAccount() {
-    this.confirmDialog = false;
+  async getProfile() {
+    const { data } = await this.dbService.profile();
+    this.profile = data;
+    this.profileForm.patchValue({
+      username: this.profile.username,
+      firstname: this.profile.firstname,
+      lastname: this.profile.lastname,
+    });
   }
 
-  cancelAccount() {
-    this.confirmDialog = false;
+  editProfile: boolean = false;
+
+  enableEditProfile() {
+    this.editProfile = true;
+    this.profileForm.enable();
+  }
+
+  disableEditProfile() {
+    this.editProfile = false;
+    this.profileForm.patchValue({
+      username: this.profile.username,
+      firstname: this.profile.firstname,
+      lastname: this.profile.lastname,
+    });
+    this.profileForm.disable();
+  }
+
+  confirmEditAccount: boolean = false;
+
+  showConfirmEditAccount() {
+    this.confirmEditAccount = true;
+  }
+
+  async onConfirmEditAccount() {
+    try {
+      let profile = {
+        username: this.profileForm.value['username'] as string,
+        firstname: this.profileForm.value['firstname'] as string,
+        lastname: this.profileForm.value['lastname'] as string,
+        id: this.user.id,
+      };
+
+      const newprofile = await this.dbService.updateProfile(profile);
+
+      this.toastService.showSuccessToast(
+        'Edit Profile',
+        'Your profile has been updated!'
+      );
+
+      this.confirmEditAccount = false;
+    } catch (error) {
+      this.toastService.showErrorToast(
+        'Error',
+        'There was an error editing your profile. Try again later.'
+      );
+      this.confirmEditAccount = false;
+    } finally {
+      this.editProfile = false;
+      this.confirmEditAccount = false;
+    }
+  }
+
+  onCancelEditAccount() {
+    this.confirmEditAccount = false;
   }
 
   async signOut(): Promise<void> {
-    this.authService.signOut()
+    this.authService.signOut();
   }
 
   confirmSignOut: boolean = false;
@@ -117,5 +219,24 @@ export class SettingsComponent implements OnInit {
 
   cancelSignOut() {
     this.confirmSignOut = false;
+  }
+
+  confirmEditAuth: boolean = false;
+
+  showConfirmEditAuth() {
+    this.confirmEditAuth = true;
+  }
+
+  async onConfirmEditAuth(): Promise<void> {
+    try {
+      await this.authService.signOut();
+      await this.authService.resetPassword(this.user?.email);
+    } finally {
+      this.confirmEditAuth = false;
+    }
+  }
+
+  onCancelEditAuth() {
+    this.confirmEditAuth = false;
   }
 }

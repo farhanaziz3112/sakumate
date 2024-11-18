@@ -6,11 +6,12 @@
       class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200 text-sm"
     >
       <th class="w-1/5 py-3 px-6 text-left">Type</th>
-      <th class="w-2/5 py-3 px-6 text-left">Name</th>
+      <th class="w-2/5 py-3 px-6 text-left">Title</th>
       <th class="w-1/5 py-3 px-6 text-left">Amount</th>
       <th class="w-1/5 py-3 px-6 text-left">Date</th>
     </tr>
   </thead>
+
   <tbody class="text-black dark:text-white text-sm font-light">
     <tr
       *ngFor="let transaction of paginatedData"
@@ -26,12 +27,12 @@
         {{ transaction.type | uppercase }}
       </td>
       <td class="w-1/5 py-3 px-6 text-left">
-        {{ transaction.transactionName }}
+        {{ transaction.title }}
       </td>
       <td class="w-1/5 py-3 px-6 text-left">
         {{ transaction.amount | number : "1.2-2" }}
       </td>
-      <td class="w-1/5 py-3 px-6 text-left">{{ transaction.createdDate }}</td>
+      <td class="w-1/5 py-3 px-6 text-left">{{ transaction.created_at }}</td>
     </tr>
   </tbody>
 </table>
@@ -55,14 +56,14 @@
     <fa-icon [icon]="getIcon('faChevronLeft')"></fa-icon>
   </button>
 
-  <ng-container *ngFor="let page of displayedPages;">
+  <ng-container *ngFor="let page of displayedPages">
     <button
       class="px-3 py-1 rounded-full hover:bg-indigo-500 hover:text-white"
       [class.bg-indigo-500]="currentPage === page"
       [class.text-white]="currentPage === page"
       (click)="goToPage(page)"
     >
-      {{page}}
+      {{ page }}
     </button>
   </ng-container>
 

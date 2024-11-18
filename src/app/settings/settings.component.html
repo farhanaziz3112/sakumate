@@ -1,18 +1,24 @@
 <div class="flex flex-col w-full h-screen">
   <div class="flex flex-row justify-between">
-    <span class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium">Settings</span>
+    <span
+      class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
+      >Settings</span
+    >
   </div>
   <div class="h-px bg-gray-200 dark:bg-gray-600 w-full my-4"></div>
   <div class="grid grid-cols-12 h-full">
     <div class="col-span-2 flex flex-row h-full w-full px-2">
       <div class="flex flex-col h-full w-full justify-start items-end">
         <ng-container *ngFor="let item of settingsLink">
-          <span class="h-12 flex flex-row justify-end items-center gap-3 p-2 rounded-md cursor-pointer"
-            (click)="setActivePage(item.id)" [ngClass]="
+          <span
+            class="h-12 flex flex-row justify-end items-center gap-3 p-2 rounded-md cursor-pointer"
+            (click)="setActivePage(item.id)"
+            [ngClass]="
               activePage === item.id
                 ? 'text-black dark:text-white'
                 : 'text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white'
-            ">
+            "
+          >
             <fa-icon [icon]="getIcon(item.icon)"></fa-icon>
             <span>
               {{ item.label }}
@@ -21,16 +27,16 @@
         </ng-container>
         <span
           class="h-12 flex flex-row justify-end items-center gap-3 p-2 rounded-md cursor-pointer text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white"
-          (click)="showConfirmSignOut()">
+          (click)="showConfirmSignOut()"
+        >
           <fa-icon [icon]="getIcon('faSignOut')"></fa-icon>
-          <span>
-            Sign Out
-          </span>
+          <span> Sign Out </span>
         </span>
       </div>
       <div
         class="h-10 w-1 rounded-full transition-transform duration-500 ease-in-out bg-gradient-to-b from-indigo-500 to-pink-300"
-        [ngStyle]="indicatorStyle"></div>
+        [ngStyle]="indicatorStyle"
+      ></div>
     </div>
     <div class="col-span-1 flex justify-start items-center">
       <div class="h-full w-px bg-gray-200 dark:bg-gray-600 flex"></div>
@@ -38,37 +44,135 @@
     <div class="col-span-9">
       <ng-container *ngIf="activePage === 0">
         <div class="flex flex-col w-full h-full gap-4 py-4">
-          <span class="text-sm lg-m:text-base font-semibold"> Profile </span>
           <div class="grid grid-cols-2">
-            <div class="col-span-1">
+            <div class="col-span-1 flex flex-col gap-16">
+              <div class="flex flex-col gap-6 w-full h-full justify-between">
+                <span class="text-sm lg-m:text-base font-semibold">
+                  Authentication
+                </span>
+                <div class="flex flex-col gap-2 w-full">
+                  <span class="text-sm">Email</span>
+                  <span class="text-base">{{ user?.email }}</span>
+                </div>
+                <div class="flex flex-row justify-center relative">
+                  <button
+                    class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+                    (click)="showConfirmEditAuth()"
+                  >
+                    Change Password
+                    <fa-icon [icon]="getIcon('faEdit')"></fa-icon>
+                  </button>
+                </div>
+              </div>
               <form [formGroup]="profileForm">
-                <div class="flex flex-col gap-8 w-full h-full justify-between">
+                <div class="flex flex-col gap-4 w-full h-full justify-between">
+                  <span class="text-sm lg-m:text-base font-semibold">
+                    Profile
+                  </span>
                   <div class="flex flex-col gap-2 w-full">
-                    <span class="text-sm">Username</span>
-                    <input formControlName="userName" type="text" placeholder="Enter your username"
-                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent" />
+                    <span class="text-sm">User Name</span>
+                    <input
+                      type="text"
+                      formControlName="username"
+                      placeholder="Enter your user name"
+                      class="outline-none border-b-2 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+                      [ngClass]="
+                        editProfile
+                          ? 'border-slate-300 dark:border-slate-700'
+                          : 'border-slate-100 dark:border-slate-800'
+                      "
+                    />
+                    <div
+                      *ngIf="isProfileFormInvalid('username')"
+                      class="text-red-600 text-sm"
+                    >
+                      <small
+                        *ngIf="profileForm.get('username')?.errors?.required"
+                        >User name is required</small
+                      >
+                      <small
+                        *ngIf="profileForm.get('username')?.errors?.minlength"
+                        >User name must be at least 3 characters long</small
+                      >
+                    </div>
                   </div>
                   <div class="flex flex-col gap-2 w-full">
                     <span class="text-sm">First Name</span>
-                    <input formControlName="firstName" type="text" placeholder="Enter your first name"
-                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent" />
+                    <input
+                      type="text"
+                      formControlName="firstname"
+                      placeholder="Enter your first name"
+                      class="outline-none border-b-2 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+                      [ngClass]="
+                        editProfile
+                          ? 'border-slate-300 dark:border-slate-700'
+                          : 'border-slate-100 dark:border-slate-800'
+                      "
+                    />
+                    <div
+                      *ngIf="isProfileFormInvalid('firstname')"
+                      class="text-red-600 text-sm"
+                    >
+                      <small
+                        *ngIf="profileForm.get('firstname')?.errors?.required"
+                        >First name is required</small
+                      >
+                      <small
+                        *ngIf="profileForm.get('firstname')?.errors?.minlength"
+                        >First name must be at least 3 characters long</small
+                      >
+                    </div>
                   </div>
                   <div class="flex flex-col gap-2 w-full">
                     <span class="text-sm">Last Name</span>
-                    <input formControlName="lastName" type="text" placeholder="Enter your last name"
-                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent" />
+                    <input
+                      type="text"
+                      formControlName="lastname"
+                      placeholder="Enter your last name"
+                      class="outline-none border-b-2 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+                      [ngClass]="
+                        editProfile
+                          ? 'border-slate-300 dark:border-slate-700'
+                          : 'border-slate-100 dark:border-slate-800'
+                      "
+                    />
+                    <div
+                      *ngIf="isProfileFormInvalid('lastname')"
+                      class="text-red-600 text-sm"
+                    >
+                      <small
+                        *ngIf="profileForm.get('lastname')?.errors?.required"
+                        >Last name is required</small
+                      >
+                      <small
+                        *ngIf="profileForm.get('lastname')?.errors?.minlength"
+                        >Last name must be at least 3 characters long</small
+                      >
+                    </div>
                   </div>
-                  <div class="flex flex-col gap-2 w-full">
-                    <span class="text-sm">Email</span>
-                    <input formControlName="email" type="email" placeholder="Enter your email"
-                      class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent" />
-                  </div>
-                  <div class="flex flex-row justify-center relative">
+                  <div class="flex flex-row justify-center relative gap-2">
+                    <button
+                      *ngIf="editProfile"
+                      class="rounded-3xl bg-gray-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-gray-700"
+                      (click)="disableEditProfile()"
+                    >
+                      Cancel
+                      <fa-icon [icon]="getIcon('faXmark')"></fa-icon>
+                    </button>
                     <button
                       class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-                      (click)="showConfirmDialog()">
-                      Submit
-                      <fa-icon [icon]="getIcon('faCheck')"></fa-icon>
+                      (click)="
+                        editProfile
+                          ? showConfirmEditAccount()
+                          : enableEditProfile()
+                      "
+                    >
+                      {{ editProfile ? "Submit" : "Edit" }}
+                      <fa-icon
+                        [icon]="
+                          editProfile ? getIcon('faCheck') : getIcon('faEdit')
+                        "
+                      ></fa-icon>
                     </button>
                   </div>
                 </div>
@@ -113,8 +217,26 @@
   </div>
 </div>
 
-<app-confirmdialog [visible]="confirmDialog" title="Add New Account" message="Are sure you want to proceed?"
-  (onConfirm)="submitAccount()" (onCancel)="cancelAccount()"></app-confirmdialog>
+<app-confirmdialog
+  [visible]="confirmEditAccount"
+  title="Add New Account"
+  message="Are sure you want to proceed?"
+  (onConfirm)="onConfirmEditAccount()"
+  (onCancel)="onCancelEditAccount()"
+></app-confirmdialog>
 
-<app-confirmdialog [visible]="confirmSignOut" title="Sign Out" message="Are sure you want to sign out your account?"
-  (onConfirm)="signOut()" (onCancel)="cancelSignOut()"></app-confirmdialog>
+<app-confirmdialog
+  [visible]="confirmEditAuth"
+  title="Change Password"
+  message="We will send you an email for further steps to edit the password. Also, you will be logged out after this. Are sure you want to continue?"
+  (onConfirm)="onConfirmEditAuth()"
+  (onCancel)="onCancelEditAuth()"
+></app-confirmdialog>
+
+<app-confirmdialog
+  [visible]="confirmSignOut"
+  title="Sign Out"
+  message="Are sure you want to sign out your account?"
+  (onConfirm)="signOut()"
+  (onCancel)="cancelSignOut()"
+></app-confirmdialog>

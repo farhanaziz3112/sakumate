@@ -46,6 +46,9 @@ export class AccountprofileComponent implements OnInit {
   id: any;
   user: User | any;
   account: any;
+  transactions: any;
+  incomeTransactions: any;
+  expenseTransactions: any;
 
   addMoneyForm: FormGroup | any;
   minusMoneyForm: FormGroup | any;
@@ -57,7 +60,7 @@ export class AccountprofileComponent implements OnInit {
     private dbService: DatabaseService,
     private authService: AuthService,
     private fb: FormBuilder,
-    private toastService: ToastService,
+    private toastService: ToastService
   ) {
     this.id = this.route.snapshot.paramMap.get('id');
     this.route.paramMap.subscribe((params) => {
@@ -70,7 +73,23 @@ export class AccountprofileComponent implements OnInit {
       }
     });
     this.dbService.accounts$.subscribe((acc) => {
-      this.account = (acc.filter(account => account.id === this.id)).at(0);
+      this.account = acc.filter((account) => account.id === this.id).at(0);
+    });
+    this.dbService.transactions$.subscribe((trans) => {
+      this.transactions = trans.filter(
+        (transaction) => transaction.accountid === this.id
+      );
+      this.incomeTransactions = trans.filter(
+        (transaction) =>
+          transaction.type === 'income' && transaction.accountid === this.id
+      );
+      this.expenseTransactions = trans.filter(
+        (transaction) =>
+          transaction.type === 'expense' && transaction.accountid === this.id
+      );
+      this.totalPage = Math.ceil(this.transactions.length / this.itemsPerPage);
+      this.updatePaginatedData();
+      this.extractUniqueMonths();
     });
     this.addMoneyForm = this.fb.group({
       amount: ['', [Validators.required]],
@@ -101,6 +120,97 @@ export class AccountprofileComponent implements OnInit {
   getIcon(icon: string) {
     return icons[icon] || null;
   }
+
+  getTotalTransactions(transactions: any): number {
+    let total = 0;
+    for (let i = 0; i < transactions.length; i++) {
+      total += transactions[i].amount;
+    }
+    return total;
+  }
+
+  //-----------------------------------Month Set--------------------------------
+
+  uniquemonths: any[] = [];
+  monthSet = new Set<any[]>();
+
+  extractUniqueMonths() {
+    const monthSet = new Set<string>();
+
+    this.transactions.forEach((transaction: any) => {
+      const date = new Date(transaction.created_at);
+      const monthYear = date.toLocaleString('default', {
+        month: 'short',
+        year: 'numeric',
+      });
+      monthSet.add(monthYear);
+    });
+
+    this.uniquemonths = Array.from(monthSet).sort((a, b) => {
+      const [monthA, yearA] = a.split(' ');
+      const [monthB, yearB] = b.split(' ');
+      const dateA = new Date(`${monthA} 1, ${yearA}`);
+      const dateB = new Date(`${monthB} 1, ${yearB}`);
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    console.log(this.uniquemonths);
+  }
+
+  //-----------------------------------Paginators--------------------------------
+
+  viewTransactionDialog: boolean = false;
+  clickedTransaction: any;
+
+  toggleTransactionDialog(transaction: any) {
+    this.viewTransactionDialog = !this.viewTransactionDialog;
+    this.clickedTransaction = transaction;
+  }
+
+  itemsPerPage: number = 5;
+  currentPage: number = 1;
+  totalPage: number = 0;
+  paginatedData: any[] = [];
+  displayedPages: number[] = [];
+
+  updatePaginatedData() {
+    this.getDisplayedPages();
+    let startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    let endIndex = startIndex + this.itemsPerPage;
+    this.paginatedData = this.transactions.slice(startIndex, endIndex);
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPage) {
+      this.currentPage = page;
+      console.log(page);
+      this.updatePaginatedData();
+    }
+  }
+
+  getDisplayedPages() {
+    let pages: number[] = [];
+    let total = this.totalPage;
+    let range = 2;
+
+    let start = Math.max(1, this.currentPage - range);
+    let end = Math.min(total, this.currentPage + range);
+
+    if (this.currentPage <= range + 1) {
+      end = Math.min(total, range * 2 + 1);
+    }
+    if (this.currentPage >= total - range) {
+      start = Math.max(1, total - range * 2);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    this.displayedPages = pages;
+  }
+
+  //-----------------------------------Add / Minus Money --------------------------------
 
   incomebudgets: any;
   expensebudgets: any;
@@ -156,13 +266,19 @@ export class AccountprofileComponent implements OnInit {
     if (expense_budgets && income_budgets) {
       for (let i = 0; i < this.incomebudgets.length; i++) {
         const tag = await this.getTag(this.incomebudgets.at(i).tagid);
-        if (tag && !this.incometags.some(existingTag => existingTag.id === tag.id)) {
+        if (
+          tag &&
+          !this.incometags.some((existingTag) => existingTag.id === tag.id)
+        ) {
           this.incometags.push(tag);
         }
       }
       for (let i = 0; i < this.expensebudgets.length; i++) {
         const tag = await this.getTag(this.expensebudgets.at(i).tagid);
-        if (tag && !this.expensetags.some(existingTag => existingTag.id === tag.id)) {
+        if (
+          tag &&
+          !this.expensetags.some((existingTag) => existingTag.id === tag.id)
+        ) {
           this.expensetags.push(tag);
         }
       }
@@ -189,12 +305,11 @@ export class AccountprofileComponent implements OnInit {
         await this.dbService.updateAccount({
           ...this.account,
           currentbalance:
-            this.account.currentbalance +
-            this.addMoneyForm.value['amount'],
+            this.account.currentbalance + this.addMoneyForm.value['amount'],
         });
       } else {
         await this.dbService.createTransaction({
-          amount: (-(this.minusMoneyForm.value['amount'])),
+          amount: -this.minusMoneyForm.value['amount'],
           description: this.minusMoneyForm.value['description'],
           title: this.minusMoneyForm.value['title'],
           budgetid: this.selectedExpenseBudget.id,
@@ -205,8 +320,7 @@ export class AccountprofileComponent implements OnInit {
         await this.dbService.updateAccount({
           ...this.account,
           currentbalance:
-            this.account.currentbalance -
-            this.minusMoneyForm.value['amount'],
+            this.account.currentbalance - this.minusMoneyForm.value['amount'],
         });
       }
       this.toastService.showSuccessToast(
@@ -227,8 +341,6 @@ export class AccountprofileComponent implements OnInit {
       this.addMoneyForm.reset();
       this.addMoneyDialog = false;
       this.minusMoneyDialog = false;
-      this.incometags = [];
-      this.expensetags = [];
     }
   }
 
@@ -244,97 +356,6 @@ export class AccountprofileComponent implements OnInit {
     this.budgetDropdown = false;
   }
 
-
-  incomeTags = [
-    'Salary',
-    'Investments',
-    'Bonuses',
-    'Freelance',
-    'Savings',
-    'Interest',
-    'Commission',
-    'Tips',
-    'Investment Returns',
-    'Other Income',
-  ];
-
-  expenseTags = [
-    'Food',
-    'Shopping',
-    'Transport',
-    'Entertainment',
-    'Utilities',
-    'Healthcare',
-    'Gifts',
-    'Education',
-    'Insurance',
-    'Rent',
-    'Dining Out',
-    'Groceries',
-    'Clothing',
-    'Travel',
-    'Loan Payment',
-    'Charity',
-    'Childcare',
-    'Electronics',
-    'Pet Care',
-    'Subscriptions',
-    'Household',
-    'Miscellaneous',
-  ];
-
-  months = [
-    'Jan 2022',
-    'Feb 2022',
-    'Mar 2022',
-    'Apr 2022',
-    'May 2022',
-    'Jun 2022',
-    'Jul 2022',
-    'Aug 2022',
-    'Sep 2022',
-    'Oct 2022',
-    'Nov 2022',
-    'Dec 2022',
-    'Jan 2023',
-    'Feb 2023',
-    'Mar 2023',
-    'Apr 2023',
-    'May 2023',
-    'Jun 2023',
-    'Jul 2023',
-    'Aug 2023',
-    'Sep 2023',
-    'Oct 2023',
-    'Nov 2023',
-    'Dec 2023',
-    'Jan 2024',
-    'Feb 2024',
-    'Mar 2024',
-    'Apr 2024',
-    'May 2024',
-    'Jun 2024',
-    'Jul 2024',
-    'Aug 2024',
-    'Sep 2024',
-    'Oct 2024',
-    'Nov 2024',
-  ];
-
-  selectedMonth: any = 'Oct 2024';
-
-  monthDropdown: boolean = false;
-
-  toggleMonthDropdown() {
-    this.monthDropdown = !this.monthDropdown;
-  }
-
-  selectMonth(month: string) {
-    this.selectedMonth = month;
-    this.monthDropdown = false;
-    this.updateBarChartColors();
-  }
-
   isAddMoneyFormInvalid(controlName: string): boolean {
     const control = this.addMoneyForm.get(controlName);
     let isInvalid = control?.invalid && (control?.dirty || control?.touched);
@@ -346,109 +367,6 @@ export class AccountprofileComponent implements OnInit {
     let isInvalid = control?.invalid && (control?.dirty || control?.touched);
     return isInvalid;
   }
-
-  transactions = [
-    {
-      transactionName: 'Salary',
-      accountID: 'ACC123',
-      userID: 'USR001',
-      tagsID: 'TAG001',
-      amount: 3000,
-      type: 'income',
-      description: 'Monthly salary for November 2024',
-      createdDate: '2024-11-01',
-    },
-    {
-      transactionName: 'Grocery Shopping',
-      accountID: 'ACC124',
-      userID: 'USR001',
-      tagsID: 'TAG002',
-      amount: 150,
-      type: 'expense',
-      description: 'Groceries for the week',
-      createdDate: '2024-11-02',
-    },
-    {
-      transactionName: 'Freelance Project',
-      accountID: 'ACC123',
-      userID: 'USR001',
-      tagsID: 'TAG003',
-      amount: 800,
-      type: 'income',
-      description: 'Payment received for web development project',
-      createdDate: '2024-11-03',
-    },
-    {
-      transactionName: 'Electricity Bill',
-      accountID: 'ACC125',
-      userID: 'USR001',
-      tagsID: 'TAG004',
-      amount: 120,
-      type: 'expense',
-      description: 'Monthly electricity bill payment',
-      createdDate: '2024-11-04',
-    },
-    {
-      transactionName: 'Dining Out',
-      accountID: 'ACC126',
-      userID: 'USR002',
-      tagsID: 'TAG005',
-      amount: 60,
-      type: 'expense',
-      description: 'Dinner at a restaurant with friends',
-      createdDate: '2024-11-02',
-    },
-    {
-      transactionName: 'Investment Returns',
-      accountID: 'ACC127',
-      userID: 'USR003',
-      tagsID: 'TAG006',
-      amount: 500,
-      type: 'income',
-      description: 'Returns from stock market investment',
-      createdDate: '2024-11-05',
-    },
-    {
-      transactionName: 'Gasoline Purchase',
-      accountID: 'ACC128',
-      userID: 'USR001',
-      tagsID: 'TAG007',
-      amount: 40,
-      type: 'expense',
-      description: 'Gasoline for the car',
-      createdDate: '2024-11-03',
-    },
-    {
-      transactionName: 'Online Course',
-      accountID: 'ACC129',
-      userID: 'USR002',
-      tagsID: 'TAG008',
-      amount: 200,
-      type: 'expense',
-      description: 'Payment for an online programming course',
-      createdDate: '2024-11-01',
-    },
-    {
-      transactionName: 'Gift Received',
-      accountID: 'ACC130',
-      userID: 'USR003',
-      tagsID: 'TAG009',
-      amount: 150,
-      type: 'income',
-      description: 'Birthday gift money from relatives',
-      createdDate: '2024-11-05',
-    },
-    {
-      transactionName: 'Monthly Subscription',
-      accountID: 'ACC131',
-      userID: 'USR002',
-      tagsID: 'TAG010',
-      amount: 15,
-      type: 'expense',
-      description: 'Monthly subscription to a music streaming service',
-      createdDate: '2024-11-04',
-    },
-  ];
 
   //------------------------------------Line chart------------------------------------
 
@@ -982,5 +900,57 @@ export class AccountprofileComponent implements OnInit {
     }
     this.donutChart?.update();
     this.donutChart2?.update();
+  }
+
+  months = [
+    'Jan 2022',
+    'Feb 2022',
+    'Mar 2022',
+    'Apr 2022',
+    'May 2022',
+    'Jun 2022',
+    'Jul 2022',
+    'Aug 2022',
+    'Sep 2022',
+    'Oct 2022',
+    'Nov 2022',
+    'Dec 2022',
+    'Jan 2023',
+    'Feb 2023',
+    'Mar 2023',
+    'Apr 2023',
+    'May 2023',
+    'Jun 2023',
+    'Jul 2023',
+    'Aug 2023',
+    'Sep 2023',
+    'Oct 2023',
+    'Nov 2023',
+    'Dec 2023',
+    'Jan 2024',
+    'Feb 2024',
+    'Mar 2024',
+    'Apr 2024',
+    'May 2024',
+    'Jun 2024',
+    'Jul 2024',
+    'Aug 2024',
+    'Sep 2024',
+    'Oct 2024',
+    'Nov 2024',
+  ];
+
+  selectedMonth: any = 'Oct 2024';
+
+  monthDropdown: boolean = false;
+
+  toggleMonthDropdown() {
+    this.monthDropdown = !this.monthDropdown;
+  }
+
+  selectMonth(month: string) {
+    this.selectedMonth = month;
+    this.monthDropdown = false;
+    this.updateBarChartColors();
   }
 }

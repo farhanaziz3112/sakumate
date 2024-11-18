@@ -5,6 +5,7 @@ import {
   FormsModule,
   FormGroup,
   FormBuilder,
+  Validators,
 } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { CalendarModule } from 'primeng/calendar';
@@ -14,6 +15,10 @@ import { Router } from '@angular/router';
 import { ColorService } from '../../service/color.service';
 import { ThemeService } from '../../service/theme.service';
 import { icons, tagIconsString } from '../../component/icons/icons';
+import { User } from '@supabase/supabase-js';
+import { AuthService } from '../../service/auth.service';
+import { DatabaseService } from '../../service/database.service';
+import { ToastService } from '../../service/toast.service';
 
 @Component({
   selector: 'app-addbudget',
@@ -32,9 +37,11 @@ import { icons, tagIconsString } from '../../component/icons/icons';
 })
 export class AddbudgetComponent {
   budgetForm: FormGroup | any;
-  tagForm: FormGroup | any;
+
+  user: User | any;
 
   currentTheme = '';
+  minDate: string | any;
 
   colors = [
     'red',
@@ -63,7 +70,7 @@ export class AddbudgetComponent {
     },
     {
       label: 'Expense',
-      value: 'Expense',
+      value: 'expense',
     },
   ];
 
@@ -71,27 +78,41 @@ export class AddbudgetComponent {
     private router: Router,
     private formBuilder: FormBuilder,
     private themeService: ThemeService,
-    private colorService: ColorService
+    private colorService: ColorService,
+    private toastService: ToastService,
+    private dbService: DatabaseService,
+    private authService: AuthService
   ) {
+    const today = new Date();
+    const min = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 2
+    );
+    this.minDate = min.toISOString().split('T')[0];
     this.budgetForm = this.formBuilder.group({
-      budgetName: [''],
-      type: ['income'],
-      targetAmount: [0],
+      budgetname: ['', [Validators.required, Validators.minLength(3)]],
+      budgettype: ['', [Validators.required]],
+      description: [''],
+      currentamount: 0,
+      targetamount: ['', [Validators.required]],
+      tagname: ['preview...', [Validators.required]],
+      color: ['blue', [Validators.required]],
+      icon: ['faBurger', [Validators.required]],
     });
-    this.tagForm = this.formBuilder.group({
-      tagName: ['tagname...'],
-      type: ['budget'],
-      color: ['green'],
-      icon: ['faBurger'],
-      createdDate: [''],
+    this.authService.user$.subscribe((user) => {
+      this.user = user;
+    });
+    this.themeService.theme$.subscribe((theme) => {
+      this.currentTheme = theme;
     });
   }
 
-  ngOnInit() {
-    this.themeService.theme$.subscribe((theme) => {
-      this.currentTheme = theme;
-      console.log(theme);
-    });
+  ngOnInit() {}
+
+  isBudgetFormInvalid(controlName: string): boolean {
+    const control = this.budgetForm.get(controlName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
   @HostListener('document:click', ['$event.target'])
@@ -129,7 +150,7 @@ export class AddbudgetComponent {
   }
 
   setColor(color: string) {
-    this.tagForm.get('color').setValue(color);
+    this.budgetForm.get('color').setValue(color);
     this.colorOverlay = false;
   }
 
@@ -148,7 +169,7 @@ export class AddbudgetComponent {
   }
 
   setIcon(icon: string) {
-    this.tagForm.get('icon').setValue(icon);
+    this.budgetForm.get('icon').setValue(icon);
     this.iconOverlay = false;
   }
 
@@ -168,11 +189,46 @@ export class AddbudgetComponent {
     this.confirmDialog = true;
   }
 
-  submitAccount() {
-    this.confirmDialog = false;
+  async onSubmit() {
+    if (this.budgetForm.valid) {
+      try {
+        const newTag = await this.dbService.createTag({
+          userid: this.user.id,
+          tagname: this.budgetForm.value['tagname'],
+          tagtype: this.budgetForm.value['budgettype'],
+          color: this.budgetForm.value['color'],
+          icon: this.budgetForm.value['icon'],
+        });
+        const newBudget = await this.dbService.createBudget({
+          budgetname: this.budgetForm.value['budgetname'],
+          tagid: newTag.data?.at(0).id,
+          description: this.budgetForm.value['description'],
+          currentamount: this.budgetForm.value['currentamount'],
+          targetamount: this.budgetForm.value['targetamount'],
+          userid: this.user.id,
+          budgettype: this.budgetForm.value['budgettype'],
+        });
+        this.toastService.showSuccessToast(
+          'New Budget',
+          'Budget: ' +
+            this.budgetForm.value['goalname'] +
+            ' is successfully added.'
+        );
+        this.router.navigate(['/budget']);
+        this.confirmDialog = false;
+      } catch (error) {
+        this.toastService.showErrorToast(
+          'Error',
+          'There was an error adding new goal. Try again later.'
+        );
+        this.confirmDialog = false;
+      } finally {
+        this.budgetForm.reset();
+      }
+    }
   }
 
-  cancelAccount() {
+  onCancel() {
     this.confirmDialog = false;
   }
 }

@@ -231,32 +231,32 @@ export class NewaccountComponent implements OnInit {
     // const accountcreated = await this.dbService.createAccount(account);
     // console.log(accountcreated.data?.at(0));
 
-    let budget: any[] = [];
-    for (let i = 0; i < this.incomebudgets.length; i++) {
-      budget.push({
-        budgetname: this.incomebudgets.at(i).value['budgetname'],
-        tagid: this.incomebudgets.at(i).value['tagid'],
-        description: this.incomebudgets.at(i).value['description'],
-        currentamount: this.incomebudgets.at(i).value['currentamount'],
-        targetamount: this.incomebudgets.at(i).value['targetamount'],
-        userid: this.user.id,
-        budgettype: 'income',
-      });
-    }
+    // let budget: any[] = [];
+    // for (let i = 0; i < this.incomebudgets.length; i++) {
+    //   budget.push({
+    //     budgetname: this.incomebudgets.at(i).value['budgetname'],
+    //     tagid: this.incomebudgets.at(i).value['tagid'],
+    //     description: this.incomebudgets.at(i).value['description'],
+    //     currentamount: this.incomebudgets.at(i).value['currentamount'],
+    //     targetamount: this.incomebudgets.at(i).value['targetamount'],
+    //     userid: this.user.id,
+    //     budgettype: 'income',
+    //   });
+    // }
 
-    for (let i = 0; i < this.expensebudgets.length; i++) {
-      budget.push({
-        budgetname: this.expensebudgets.at(i).value['budgetname'],
-        tagid: this.expensebudgets.at(i).value['tagid'],
-        description: this.expensebudgets.at(i).value['description'],
-        currentamount: this.expensebudgets.at(i).value['currentamount'],
-        targetamount: this.expensebudgets.at(i).value['targetamount'],
-        userid: this.user.id,
-        budgettype: 'expense',
-      });
-    }
+    // for (let i = 0; i < this.expensebudgets.length; i++) {
+    //   budget.push({
+    //     budgetname: this.expensebudgets.at(i).value['budgetname'],
+    //     tagid: this.expensebudgets.at(i).value['tagid'],
+    //     description: this.expensebudgets.at(i).value['description'],
+    //     currentamount: this.expensebudgets.at(i).value['currentamount'],
+    //     targetamount: this.expensebudgets.at(i).value['targetamount'],
+    //     userid: this.user.id,
+    //     budgettype: 'expense',
+    //   });
+    // }
 
-    const newbudgets = await this.dbService.createMultipleBudget(budget);
+    // const newbudgets = await this.dbService.createMultipleBudget(budget);
 
     // for (let i = 0; i < budget.length; i++) {
     //   console.log(budget[i]);
@@ -339,7 +339,7 @@ export class NewaccountComponent implements OnInit {
             budgetname: this.incomebudgets.at(i).value['budgetname'],
             tagid: this.incomebudgets.at(i).value['tagid'],
             description: this.incomebudgets.at(i).value['description'],
-            currentamount: this.incomebudgets.at(i).value['currentamount'],
+            currentamount: 0,
             targetamount: this.incomebudgets.at(i).value['targetamount'],
             userid: this.user.id,
             budgettype: 'income',
@@ -351,7 +351,7 @@ export class NewaccountComponent implements OnInit {
             budgetname: this.expensebudgets.at(i).value['budgetname'],
             tagid: this.expensebudgets.at(i).value['tagid'],
             description: this.expensebudgets.at(i).value['description'],
-            currentamount: this.expensebudgets.at(i).value['currentamount'],
+            currentamount: 0,
             targetamount: this.expensebudgets.at(i).value['targetamount'],
             userid: this.user.id,
             budgettype: 'expense',
@@ -389,6 +389,7 @@ export class NewaccountComponent implements OnInit {
               duedate: this.goals.at(i).value['duedate'],
               userid: this.user.id,
               accountid: null,
+              status: 'incomplete'
             });
           }
         }
@@ -445,7 +446,6 @@ export class NewaccountComponent implements OnInit {
       budgetname: [income.tagname],
       tagid: [income.id],
       description: [''],
-      currentamount: ['', [Validators.required]],
       targetamount: ['', [Validators.required]],
     });
 
@@ -489,7 +489,6 @@ export class NewaccountComponent implements OnInit {
       budgetname: [expense.tagname],
       tagid: [expense.id],
       description: [''],
-      currentamount: ['', [Validators.required]],
       targetamount: ['', [Validators.required]],
     });
 

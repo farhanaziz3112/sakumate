@@ -455,27 +455,6 @@
                           />
                         </div>
                         <div class="flex flex-col w-full">
-                          <div class="grid grid-cols-5 w-full text-sm">
-                            <span class="col-span-1 whitespace-nowrap"
-                              >Current Amount:</span
-                            >
-                            <input
-                              type="number"
-                              formControlName="currentamount"
-                              placeholder="Enter your current amount"
-                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
-                            />
-                          </div>
-                          <div
-                            *ngIf="
-                              isBudgetFormInvalid(true, i, 'currentamount')
-                            "
-                            class="text-red-600 text-xs"
-                          >
-                            Current amount is required
-                          </div>
-                        </div>
-                        <div class="flex flex-col w-full">
                           <div class="grid grid-cols-5 w-full text-sm gap-2">
                             <span class="col-span-1 whitespace-nowrap"
                               >Monthly Target:</span
@@ -505,7 +484,7 @@
               <div
                 class="flex flex-col gap-2 px-2 py-3 rounded-md border border-gray-200 text-gray-600"
               >
-                <span class="text-sm">Available Incomes</span>
+                <span class="text-sm">Available Expenses</span>
                 <div class="flex flex-wrap gap-1">
                   <ng-container *ngFor="let tag of defaultExpenses">
                     <app-tag
@@ -561,27 +540,6 @@
                           />
                         </div>
                         <div class="flex flex-col w-full">
-                          <div class="grid grid-cols-5 w-full text-sm">
-                            <span class="col-span-1 whitespace-nowrap"
-                              >Current Amount:</span
-                            >
-                            <input
-                              type="number"
-                              formControlName="currentamount"
-                              placeholder="Enter your current amount"
-                              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
-                            />
-                          </div>
-                          <div
-                            *ngIf="
-                              isBudgetFormInvalid(false, i, 'currentamount')
-                            "
-                            class="text-red-600 text-xs"
-                          >
-                            Current amount is required
-                          </div>
-                        </div>
-                        <div class="flex flex-col w-full">
                           <div class="grid grid-cols-5 w-full text-sm gap-2">
                             <span class="col-span-1 whitespace-nowrap"
                               >Monthly Target:</span
@@ -599,7 +557,7 @@
                             "
                             class="text-red-600 text-xs"
                           >
-                            Current amount is required
+                            Monthly target is required
                           </div>
                         </div>
                       </div>

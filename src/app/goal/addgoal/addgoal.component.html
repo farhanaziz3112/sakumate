@@ -20,51 +20,80 @@
   </div>
   <div class="grid grid-cols-2 gap-16">
     <div class="col-span-2 sm:col-span-1">
-      <form [formGroup]="addGoalForm">
+      <form [formGroup]="goalForm">
         <div class="flex flex-col gap-8 w-full h-full justify-between">
           <div class="flex flex-col gap-2 w-full">
             <span class="text-sm">Goal Name</span>
             <input
-              formControlName="goalName"
+              formControlName="goalname"
               type="text"
               placeholder="Enter your goal name"
               class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
             />
+            <div
+              *ngIf="isGoalFormInvalid('goalname')"
+              class="text-red-600 text-sm"
+            >
+              <small
+                *ngIf="
+              goalForm.get('goalname')?.errors?.['required']
+            "
+                >Goal name is required</small
+              >
+              <small *ngIf="goalForm.get('goalname')?.errors?.['minlength']"
+                >Goal name must be at least 3 characters long</small
+              >
+            </div>
           </div>
           <div class="flex flex-col gap-2 w-full">
-            <span class="text-sm">Current Amount</span>
+            <span class="text-sm">Description</span>
             <input
-              formControlName="currentAmount"
-              type="number"
-              placeholder="Enter your balance amount"
+              formControlName="description"
+              type="text"
+              placeholder="Enter your description"
               class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
             />
           </div>
           <div class="flex flex-col gap-2 w-full">
             <span class="text-sm">Target Amount</span>
             <input
-              formControlName="currentAmount"
+              formControlName="targetamount"
               type="number"
-              placeholder="Enter your balance amount"
+              placeholder="Enter your target amount"
               class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
             />
+            <div
+              *ngIf="isGoalFormInvalid('targetamount')"
+              class="text-red-600 text-xs"
+            >
+              Target amount is required
+            </div>
           </div>
           <div class="flex flex-col gap-2 w-full">
             <span class="text-sm">Due Date</span>
-            <p-calendar styleClass="custom-calendar" />
+            <!-- <p-calendar styleClass="custom-calendar" /> -->
+            <input
+              type="date"
+              [min]="minDate"
+              formControlName="duedate"
+              placeholder="Enter your due date"
+              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+            />
           </div>
-        </div>
-      </form>
-      <form [formGroup]="tagForm">
-        <div class="flex flex-col gap-8 w-full h-full justify-between mt-8">
           <div class="flex flex-col gap-2 w-full">
             <span class="text-sm">Tag Name</span>
             <input
-              formControlName="tagName"
+              formControlName="tagname"
               type="text"
               placeholder="Enter your tag name"
               class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
             />
+            <div
+              *ngIf="isGoalFormInvalid('tagname')"
+              class="text-red-600 text-xs"
+            >
+              Tag name is required
+            </div>
           </div>
           <div class="grid grid-cols-2">
             <div
@@ -95,7 +124,7 @@
                 <span
                   #colorTriggerButton
                   class="w-10 h-10 rounded-full border border-slate-300 hover:border-slate-500 cursor-pointer"
-                  [ngClass]="getColors(tagForm.value['color'])"
+                  [ngClass]="getColors(goalForm.value['color'])"
                   (click)="toggleColorOverlay()"
                 ></span>
               </div>
@@ -136,7 +165,7 @@
                   >
                     <fa-icon
                       class="text-lg"
-                      [icon]="getIcon(tagForm.value['icon'])"
+                      [icon]="getIcon(goalForm.value['icon'])"
                     ></fa-icon>
                     <fa-icon
                       class="text-sm text-gray-600 dark:text-gray-200"
@@ -151,15 +180,21 @@
           <div class="flex justify-center">
             <span
               class="text-xxs lg:text-xs text-white rounded-2xl p-1 justify-start inline-flex"
-              [ngClass]="getColors(tagForm.value['color'])"
-              ><fa-icon [icon]="getIcon(tagForm.value['icon'])"></fa-icon
-              >{{ tagForm.value["tagName"] | uppercase }}</span
+              [ngClass]="getColors(goalForm.value['color'])"
+              ><fa-icon [icon]="getIcon(goalForm.value['icon'])"></fa-icon
+              >{{ goalForm.value["tagname"] | uppercase }}</span
             >
           </div>
           <div class="flex flex-row justify-center relative">
             <button
-              class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
+              class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
               (click)="showConfirmDialog()"
+              [ngClass]="
+                goalForm.valid
+                  ? 'bg-indigo-500 hover:bg-indigo-700'
+                  : 'bg-gray-700'
+              "
+              [disabled]="!goalForm.valid"
             >
               Submit
               <fa-icon [icon]="getIcon('faCheck')"></fa-icon>
@@ -175,8 +210,8 @@
   [visible]="confirmDialog"
   title="Add New Account"
   message="Are sure you want to proceed?"
-  (onConfirm)="submitAccount()"
-  (onCancel)="cancelAccount()"
+  (onConfirm)="onSubmit()"
+  (onCancel)="onCancel()"
 ></app-confirmdialog>
 
 <p-dialog

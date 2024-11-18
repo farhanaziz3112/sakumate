@@ -240,7 +240,7 @@ export class AddaccountComponent implements OnInit {
       } catch (error) {
         this.toastService.showErrorToast(
           'Error',
-          'There was an error during adding new account. Try again later.'
+          'There was an error adding new account. Try again later.'
         );
       } finally {
         this.accountForm.reset();

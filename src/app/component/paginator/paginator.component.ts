@@ -3,6 +3,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { icons } from '../../component/icons/icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { DialogModule } from 'primeng/dialog';
+import { DatabaseService } from '../../service/database.service';
 
 @Component({
   selector: 'app-paginator',
@@ -12,211 +13,10 @@ import { DialogModule } from 'primeng/dialog';
   styleUrl: './paginator.component.css',
 })
 export class PaginatorComponent implements OnInit {
-  transactions = [
-    {
-      transactionName: 'Salary',
-      accountID: 'ACC123',
-      userID: 'USR001',
-      tagsID: 'TAG001',
-      amount: 3000,
-      type: 'income',
-      description: 'Monthly salary for November 2024',
-      createdDate: '2024-11-01',
-    },
-    {
-      transactionName: 'Grocery Shopping',
-      accountID: 'ACC124',
-      userID: 'USR001',
-      tagsID: 'TAG002',
-      amount: 150,
-      type: 'expense',
-      description: 'Groceries for the week',
-      createdDate: '2024-11-02',
-    },
-    {
-      transactionName: 'Freelance Project',
-      accountID: 'ACC123',
-      userID: 'USR001',
-      tagsID: 'TAG003',
-      amount: 800,
-      type: 'income',
-      description: 'Payment received for web development project',
-      createdDate: '2024-11-03',
-    },
-    {
-      transactionName: 'Electricity Bill',
-      accountID: 'ACC125',
-      userID: 'USR001',
-      tagsID: 'TAG004',
-      amount: 120,
-      type: 'expense',
-      description: 'Monthly electricity bill payment',
-      createdDate: '2024-11-04',
-    },
-    {
-      transactionName: 'Dining Out',
-      accountID: 'ACC126',
-      userID: 'USR002',
-      tagsID: 'TAG005',
-      amount: 60,
-      type: 'expense',
-      description: 'Dinner at a restaurant with friends',
-      createdDate: '2024-11-02',
-    },
-    {
-      transactionName: 'Investment Returns',
-      accountID: 'ACC127',
-      userID: 'USR003',
-      tagsID: 'TAG006',
-      amount: 500,
-      type: 'income',
-      description: 'Returns from stock market investment',
-      createdDate: '2024-11-05',
-    },
-    {
-      transactionName: 'Gasoline Purchase',
-      accountID: 'ACC128',
-      userID: 'USR001',
-      tagsID: 'TAG007',
-      amount: 40,
-      type: 'expense',
-      description: 'Gasoline for the car',
-      createdDate: '2024-11-03',
-    },
-    {
-      transactionName: 'Online Course',
-      accountID: 'ACC129',
-      userID: 'USR002',
-      tagsID: 'TAG008',
-      amount: 200,
-      type: 'expense',
-      description: 'Payment for an online programming course',
-      createdDate: '2024-11-01',
-    },
-    {
-      transactionName: 'Gift Received',
-      accountID: 'ACC130',
-      userID: 'USR003',
-      tagsID: 'TAG009',
-      amount: 150,
-      type: 'income',
-      description: 'Birthday gift money from relatives',
-      createdDate: '2024-11-05',
-    },
-    {
-      transactionName: 'Monthly Subscription',
-      accountID: 'ACC131',
-      userID: 'USR002',
-      tagsID: 'TAG010',
-      amount: 15,
-      type: 'expense',
-      description: 'Monthly subscription to a music streaming service',
-      createdDate: '2024-11-04',
-    },
-    {
-      transactionName: 'Salary',
-      accountID: 'ACC123',
-      userID: 'USR001',
-      tagsID: 'TAG001',
-      amount: 3000,
-      type: 'income',
-      description: 'Monthly salary for November 2024',
-      createdDate: '2024-11-01',
-    },
-    {
-      transactionName: 'Grocery Shopping',
-      accountID: 'ACC124',
-      userID: 'USR001',
-      tagsID: 'TAG002',
-      amount: 150,
-      type: 'expense',
-      description: 'Groceries for the week',
-      createdDate: '2024-11-02',
-    },
-    {
-      transactionName: 'Freelance Project',
-      accountID: 'ACC123',
-      userID: 'USR001',
-      tagsID: 'TAG003',
-      amount: 800,
-      type: 'income',
-      description: 'Payment received for web development project',
-      createdDate: '2024-11-03',
-    },
-    {
-      transactionName: 'Electricity Bill',
-      accountID: 'ACC125',
-      userID: 'USR001',
-      tagsID: 'TAG004',
-      amount: 120,
-      type: 'expense',
-      description: 'Monthly electricity bill payment',
-      createdDate: '2024-11-04',
-    },
-    {
-      transactionName: 'Dining Out',
-      accountID: 'ACC126',
-      userID: 'USR002',
-      tagsID: 'TAG005',
-      amount: 60,
-      type: 'expense',
-      description: 'Dinner at a restaurant with friends',
-      createdDate: '2024-11-02',
-    },
-    {
-      transactionName: 'Investment Returns',
-      accountID: 'ACC127',
-      userID: 'USR003',
-      tagsID: 'TAG006',
-      amount: 500,
-      type: 'income',
-      description: 'Returns from stock market investment',
-      createdDate: '2024-11-05',
-    },
-    {
-      transactionName: 'Gasoline Purchase',
-      accountID: 'ACC128',
-      userID: 'USR001',
-      tagsID: 'TAG007',
-      amount: 40,
-      type: 'expense',
-      description: 'Gasoline for the car',
-      createdDate: '2024-11-03',
-    },
-    {
-      transactionName: 'Online Course',
-      accountID: 'ACC129',
-      userID: 'USR002',
-      tagsID: 'TAG008',
-      amount: 200,
-      type: 'expense',
-      description: 'Payment for an online programming course',
-      createdDate: '2024-11-01',
-    },
-    {
-      transactionName: 'Gift Received',
-      accountID: 'ACC130',
-      userID: 'USR003',
-      tagsID: 'TAG009',
-      amount: 150,
-      type: 'income',
-      description: 'Birthday gift money from relatives',
-      createdDate: '2024-11-05',
-    },
-    {
-      transactionName: 'Monthly Subscription',
-      accountID: 'ACC131',
-      userID: 'USR002',
-      tagsID: 'TAG010',
-      amount: 15,
-      type: 'expense',
-      description: 'Monthly subscription to a music streaming service',
-      createdDate: '2024-11-04',
-    },
-  ];
+  @Input() itemsPerPage: number = 2;
+  @Input() accountid: string = '';
 
-  @Input() itemsPerPage: number = 5;
-  @Input() name: string = '';
+  transactions: any;
 
   currentPage: number = 1;
   totalPage: number = 0;
@@ -233,15 +33,17 @@ export class PaginatorComponent implements OnInit {
     this.clickedData = data;
   }
 
-  constructor() {}
-
-  ngOnInit() {
-    if (this.name === 'transaction') {
-      this.data = this.transactions;
-      this.totalPage = Math.ceil(this.data.length / this.itemsPerPage);
+  constructor(private dbService: DatabaseService) {
+    this.dbService.transactions$.subscribe((trans) => {
+      this.transactions = trans.filter(
+        (transaction) => transaction.accountid === this.accountid
+      );
       this.updatedPaginatedData();
-    }
+      console.log(this.transactions);
+    });
   }
+
+  ngOnInit() {}
 
   updatedPaginatedData() {
     this.getDisplayedPages();
@@ -272,11 +74,15 @@ export class PaginatorComponent implements OnInit {
       start = Math.max(1, total - range * 2);
     }
 
+    console.log(start, end);
+    
+
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
     this.displayedPages = pages;
+    console.log(pages);
   }
 
   getIcon(icon: string) {

@@ -11,6 +11,7 @@ import {
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CalendarModule } from 'primeng/calendar';
@@ -20,6 +21,10 @@ import { icons, tagIconsString } from '../../component/icons/icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { DialogModule } from 'primeng/dialog';
 import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdialog.component';
+import { ToastService } from '../../service/toast.service';
+import { DatabaseService } from '../../service/database.service';
+import { User } from '@supabase/supabase-js';
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-addgoal',
@@ -37,10 +42,9 @@ import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdia
   styleUrl: './addgoal.component.css',
 })
 export class AddgoalComponent implements OnInit {
-  addGoalForm: FormGroup | any;
-  tagForm: FormGroup | any;
+  goalForm: FormGroup | any;
 
-  currentTheme = '';
+  minDate: string | any;
 
   colors = [
     'red',
@@ -62,25 +66,41 @@ export class AddgoalComponent implements OnInit {
     'rose',
   ];
 
+  user: User | any;
+
+  currentTheme = '';
+
   constructor(
     private router: Router,
     private formBuilder: FormBuilder,
     private themeService: ThemeService,
-    private colorService: ColorService
+    private colorService: ColorService,
+    private toastService: ToastService,
+    private dbService: DatabaseService,
+    private authService: AuthService
   ) {
-    this.addGoalForm = this.formBuilder.group({
-      goalName: [''],
-      currentAmount: [0],
-      targetAmount: [0],
-      dueDate: [''],
-      createdDate: [''],
+    const today = new Date();
+    const min = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 2
+    );
+    this.minDate = min.toISOString().split('T')[0];
+    this.goalForm = this.formBuilder.group({
+      description: [''],
+      goalname: ['', [Validators.required, Validators.minLength(3)]],
+      targetamount: ['', [Validators.required]],
+      duedate: ['', [Validators.required]],
+      tagname: ['preview...', [Validators.required]],
+      color: ['blue', [Validators.required]],
+      icon: ['faBurger', [Validators.required]],
     });
-    this.tagForm = this.formBuilder.group({
-      tagName: ['tag name'],
-      type: ['goal'],
-      color: ['green'],
-      icon: ['faBurger'],
-      createdDate: [''],
+    this.currentTheme = this.themeService.currentTheme;
+    this.authService.user$.subscribe((user) => {
+      this.user = user;
+    });
+    this.themeService.theme$.subscribe((theme) => {
+      this.currentTheme = theme;
     });
   }
 
@@ -89,6 +109,11 @@ export class AddgoalComponent implements OnInit {
       this.currentTheme = theme;
       console.log(theme);
     });
+  }
+
+  isGoalFormInvalid(controlName: string): boolean {
+    const control = this.goalForm.get(controlName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
   @HostListener('document:click', ['$event.target'])
@@ -126,7 +151,7 @@ export class AddgoalComponent implements OnInit {
   }
 
   setColor(color: string) {
-    this.tagForm.get('color').setValue(color);
+    this.goalForm.get('color').setValue(color);
     this.colorOverlay = false;
   }
 
@@ -145,7 +170,7 @@ export class AddgoalComponent implements OnInit {
   }
 
   setIcon(icon: string) {
-    this.tagForm.get('icon').setValue(icon);
+    this.goalForm.get('icon').setValue(icon);
     this.iconOverlay = false;
   }
 
@@ -165,12 +190,46 @@ export class AddgoalComponent implements OnInit {
     this.confirmDialog = true;
   }
 
-  submitAccount() {
-    this.confirmDialog = false;
+  async onSubmit() {
+    if (this.goalForm.valid) {
+      try {
+        const newTag = await this.dbService.createTag({
+          userid: this.user.id,
+          tagname: this.goalForm.value['tagname'],
+          tagtype: 'goal',
+          color: this.goalForm.value['color'],
+          icon: this.goalForm.value['icon'],
+        });
+        const newGoal = await this.dbService.createGoal({
+          goalname: this.goalForm.value['goalname'],
+          tagid: newTag.data?.at(0).id,
+          description: this.goalForm.value['description'],
+          currentamount: 0,
+          targetamount: this.goalForm.value['targetamount'],
+          duedate: this.goalForm.value['duedate'],
+          userid: this.user.id,
+          accountid: null,
+          status: 'incomplete'
+        });
+        this.toastService.showSuccessToast(
+          'New Goal',
+          'Goal: ' + this.goalForm.value['goalname'] + ' is successfully added.'
+        );
+        this.router.navigate(['/goal']);
+        this.confirmDialog = false;
+      } catch (error) {
+        this.toastService.showErrorToast(
+          'Error',
+          'There was an error adding new goal. Try again later.'
+        );
+        this.confirmDialog = false;
+      } finally {
+        this.goalForm.reset();
+      }
+    }
   }
 
-  cancelAccount() {
+  onCancel() {
     this.confirmDialog = false;
-
   }
 }

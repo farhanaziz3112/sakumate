@@ -14,6 +14,9 @@ export class DatabaseService {
   private accounts = new BehaviorSubject<any[]>([]);
   public accounts$ = this.accounts.asObservable();
 
+  private transactions = new BehaviorSubject<any[]>([]);
+  public transactions$ = this.transactions.asObservable();
+
   userData: User | any;
 
   constructor(
@@ -26,11 +29,12 @@ export class DatabaseService {
         this.user.next(user ? user : null);
         this.userData = user;
         this.allaccount();
+        this.transactionByUserId();
       }
     });
   }
 
-  private changes = supabase
+  private accountChanges = supabase
     .channel('schema-db-changes')
     .on(
       'postgres_changes',
@@ -46,10 +50,30 @@ export class DatabaseService {
     )
     .subscribe();
 
+  private transactionChanges = supabase
+    .channel('schema-db-changes')
+    .on(
+      'postgres_changes',
+      {
+        schema: 'public', // Subscribes to the "public" schema in Postgres
+        event: '*', // Listen to all changes
+        table: 'transaction',
+      },
+      (payload) => {
+        console.log(payload);
+        this.transactionByUserId();
+      }
+    )
+    .subscribe();
+
   //-------------------------------Profile---------------------------------
 
   profile() {
-    return supabase.from('profiles').select(`*`).eq('id', this.userData.id).single();
+    return supabase
+      .from('profiles')
+      .select(`*`)
+      .eq('id', this.userData.id)
+      .single();
   }
 
   updateProfile(profile: any) {
@@ -132,7 +156,11 @@ export class DatabaseService {
   }
 
   budgetByUserId_type(user: User, type: string) {
-    return supabase.from('budget').select(`*`).eq('userid', user.id).eq('budgettype', type);
+    return supabase
+      .from('budget')
+      .select(`*`)
+      .eq('userid', user.id)
+      .eq('budgettype', type);
   }
 
   // budgetByAccountId(accId: string) {
@@ -203,8 +231,15 @@ export class DatabaseService {
     return supabase.from('transaction').select(`*`).eq('accountid', accId);
   }
 
-  transactionByUserId(user: User) {
-    return supabase.from('transaction').select(`*`).eq('userid', user.id);
+  async transactionByUserId() {
+    const { data, error } = await supabase
+      .from('transaction')
+      .select(`*`)
+      .eq('userid', this.userData.id);
+    if (data && !error) {
+      this.transactions.next(data);
+    }
+    // return supabase.from('transaction').select(`*`).eq('userid', user.id);
   }
 
   createTransaction(transaction: any) {

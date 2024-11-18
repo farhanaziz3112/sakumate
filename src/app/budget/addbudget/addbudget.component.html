@@ -1,250 +1,290 @@
 <div class="flex flex-col w-full h-full gap-8">
-    <div class="flex flex-row gap-2 text-gray-800 dark:text-gray-200">
-      <span
-        class="underline hover:text-gray-500 dark:hover:text-gray-300 cursor-pointer"
-        (click)="goToBudget()"
-        >Budget</span
-      >
-      <span>></span>
-      <span>Add Budget</span>
-    </div>
-    <div class="flex flex-row justify-between items-center">
-      <span
-        class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
-        >Add New Budget</span
-      >
-      <span
-        class="cursor-pointer text-xs lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
-        >MYR</span
-      >
-    </div>
-    <div class="grid grid-cols-2 gap-16">
-      <div class="col-span-2 sm:col-span-1">
-        <form [formGroup]="budgetForm">
-          <div class="flex flex-col gap-8 w-full h-full justify-between">
-            <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Budget Name</span>
-              <input
-                formControlName="budget"
-                type="text"
-                placeholder="Enter your budget name"
-                class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-              />
-            </div>
-            <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Budget Type</span>
-              <ng-container *ngFor="let item of budgetType">
-                <div class="flex flex-row">
-                  <input type="radio" [value]="item.value" formControlName="type" />
-                  <span class="ml-1">{{ item.label }}</span>
-                </div>
-              </ng-container>
-            </div>
-            <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Target Amount</span>
-              <input
-                formControlName="targetAmount"
-                type="number"
-                placeholder="Enter your target amount"
-                class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-              />
+  <div class="flex flex-row gap-2 text-gray-800 dark:text-gray-200">
+    <span
+      class="underline hover:text-gray-500 dark:hover:text-gray-300 cursor-pointer"
+      (click)="goToBudget()"
+      >Budget</span
+    >
+    <span>></span>
+    <span>Add Budget</span>
+  </div>
+  <div class="flex flex-row justify-between items-center">
+    <span
+      class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
+      >Add New Budget</span
+    >
+    <span
+      class="cursor-pointer text-xs lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+      >MYR</span
+    >
+  </div>
+  <div class="grid grid-cols-2 gap-16">
+    <div class="col-span-2 sm:col-span-1">
+      <form [formGroup]="budgetForm">
+        <div class="flex flex-col gap-8 w-full h-full justify-between">
+          <div class="flex flex-col gap-2 w-full">
+            <span class="text-sm">Budget Name</span>
+            <input
+              formControlName="budgetname"
+              type="text"
+              placeholder="Enter your budget name"
+              class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+            />
+            <div
+              *ngIf="isBudgetFormInvalid('budgetname')"
+              class="text-red-600 text-sm"
+            >
+              <small
+                *ngIf="
+              budgetForm.get('budgetname')?.errors?.['required']
+            "
+                >Budget name is required</small
+              >
+              <small *ngIf="budgetForm.get('budgetname')?.errors?.['minlength']"
+                >Budget name must be at least 3 characters long</small
+              >
             </div>
           </div>
-        </form>
-        <form [formGroup]="tagForm">
-          <div class="flex flex-col gap-8 w-full h-full justify-between mt-8">
-            <div class="flex flex-col gap-2 w-full">
-              <span class="text-sm">Tag Name</span>
-              <input
-                formControlName="tagName"
-                type="text"
-                placeholder="Enter your tag name"
-                class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
-              />
-            </div>
-            <div class="grid grid-cols-2">
-              <div
-                class="col-span-1 flex flex-col items-center gap-2 w-full relative"
-              >
-                <span class="text-sm">Display Color</span>
-                <div class="flex flex-row justify-center w-full">
-                  <div
-                    *ngIf="colorOverlay"
-                    #colorOverlayPanel
-                    class="hidden md:block absolute z-10 w-72 bottom-full -mb-4 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
-                  >
-                    <div class="flex flex-col gap-2">
-                      <span class="text-sm font-bold">Display Color</span>
-                      <div class="grid grid-cols-4 gap-1">
-                        <ng-container *ngFor="let color of colors">
-                          <div class="col-span-1 flex justify-center">
-                            <span
-                              class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                              [ngClass]="getColors(color)"
-                              (click)="setColor(color)"
-                            ></span>
-                          </div>
-                        </ng-container>
-                      </div>
-                    </div>
-                  </div>
-                  <span
-                    #colorTriggerButton
-                    class="w-10 h-10 rounded-full border border-slate-300 hover:border-slate-500 cursor-pointer"
-                    [ngClass]="getColors(tagForm.value['color'])"
-                    (click)="toggleColorOverlay()"
-                  ></span>
-                </div>
+          <div class="flex flex-col gap-2 w-full">
+            <span class="text-sm">Budget Type</span>
+            <ng-container *ngFor="let item of budgetType">
+              <div class="flex flex-row">
+                <input
+                  type="radio"
+                  [value]="item.value"
+                  formControlName="budgettype"
+                  name="budgettype"
+                />
+                <span class="ml-1">{{ item.label }}</span>
               </div>
-              <div
-                class="col-span-1 flex flex-col items-center gap-2 w-full relative"
+            </ng-container>
+            <div
+              *ngIf="isBudgetFormInvalid('budgettype')"
+              class="text-red-600 text-sm"
+            >
+              <small *ngIf="budgetForm.get('budgettype')?.errors?.required"
+                >Budget type is required</small
               >
-                <span class="text-sm">Icon</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-2 w-full">
+            <span class="text-sm">Monthly Target</span>
+            <input
+              formControlName="targetamount"
+              type="number"
+              placeholder="Enter your monthly target"
+              class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+            />
+            <div
+              *ngIf="isBudgetFormInvalid('targetamount')"
+              class="text-red-600 text-xs"
+            >
+              Monthly target is required
+            </div>
+          </div>
+          <div class="flex flex-col gap-2 w-full">
+            <span class="text-sm">Tag Name</span>
+            <input
+              formControlName="tagname"
+              type="text"
+              placeholder="Enter your tag name"
+              class="outline-none border-b-2 border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:focus:border-slate-500 bg-transparent"
+            />
+            <div
+              *ngIf="isBudgetFormInvalid('tagname')"
+              class="text-red-600 text-xs"
+            >
+              Tag name is required
+            </div>
+          </div>
+          <div class="grid grid-cols-2">
+            <div
+              class="col-span-1 flex flex-col items-center gap-2 w-full relative"
+            >
+              <span class="text-sm">Display Color</span>
+              <div class="flex flex-row justify-center w-full">
                 <div
-                  *ngIf="iconOverlay"
-                  #iconOverlayPanel
-                  class="hidden md:block absolute z-10 w-96 bottom-full -mb-4 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
+                  *ngIf="colorOverlay"
+                  #colorOverlayPanel
+                  class="hidden md:block absolute z-10 w-72 bottom-full -mb-4 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
                 >
                   <div class="flex flex-col gap-2">
-                    <span class="text-sm font-bold">Display Icon</span>
-                    <div class="grid grid-cols-8 gap-1">
-                      <ng-container *ngFor="let icon of getIconStringArray()">
+                    <span class="text-sm font-bold">Display Color</span>
+                    <div class="grid grid-cols-4 gap-1">
+                      <ng-container *ngFor="let color of colors">
                         <div class="col-span-1 flex justify-center">
                           <span
-                            class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
-                            (click)="setIcon(icon)"
-                          >
-                            <fa-icon [icon]="getIcon(icon)"></fa-icon>
-                          </span>
+                            class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                            [ngClass]="getColors(color)"
+                            (click)="setColor(color)"
+                          ></span>
                         </div>
                       </ng-container>
                     </div>
                   </div>
                 </div>
-                <div class="flex flex-row w-full justify-center">
-                  <span
-                    #iconTriggerButton
-                    class="w-20 h-full rounded-full border border-slate-300 hover:border-slate-500 cursor-pointer"
-                    (click)="toggleIconOverlay()"
-                  >
-                    <div
-                      class="flex flex-row w-full h-full justify-evenly items-center"
-                    >
-                      <fa-icon
-                        class="text-lg"
-                        [icon]="getIcon(tagForm.value['icon'])"
-                      ></fa-icon>
-                      <fa-icon
-                        class="text-sm text-gray-600 dark:text-gray-200"
-                        [icon]="getIcon('faChevronDown')"
-                      ></fa-icon>
-                    </div>
-                  </span>
-                </div>
-              </div>
-            </div>
-            <span class="text-sm text-center">Tag Preview</span>
-            <div class="flex justify-center">
-              <span
-                class="text-xxs lg:text-xs text-white rounded-2xl p-1 justify-start inline-flex"
-                [ngClass]="getColors(tagForm.value['color'])"
-                ><fa-icon [icon]="getIcon(tagForm.value['icon'])"></fa-icon
-                >{{ tagForm.value["tagName"] | uppercase }}</span
-              >
-            </div>
-            <div class="flex flex-row justify-center relative">
-              <button
-                class="rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-                (click)="showConfirmDialog()"
-              >
-                Submit
-                <fa-icon [icon]="getIcon('faCheck')"></fa-icon>
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  
-  <app-confirmdialog
-    [visible]="confirmDialog"
-    title="Add New Account"
-    message="Are sure you want to proceed?"
-    (onConfirm)="submitAccount()"
-    (onCancel)="cancelAccount()"
-  ></app-confirmdialog>
-  
-  <p-dialog
-    class="block md:hidden"
-    header="header"
-    [(visible)]="colorOverlay"
-    [modal]="true"
-    [dismissableMask]="true"
-  >
-    <ng-template pTemplate="headless">
-      <div
-        class="w-72 h-auto lg-m:w-96 lg-m:h-auto bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8"
-      >
-        <div class="flex flex-col gap-4 w-full h-full justify-start">
-          <div class="flex flex-row justify-between">
-            <span class="text-base font-bold">Color</span>
-            <span
-              class="cursor-pointer text-gray-400 hover:text-black"
-              (click)="toggleColorOverlay()"
-              ><fa-icon [icon]="getIcon('faXMark')"></fa-icon
-            ></span>
-          </div>
-          <div class="grid grid-cols-4 gap-1">
-            <ng-container *ngFor="let color of colors">
-              <div class="col-span-1 flex justify-center">
                 <span
-                  class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
-                  [ngClass]="getColors(color)"
-                  (click)="setColor(color)"
+                  #colorTriggerButton
+                  class="w-10 h-10 rounded-full border border-slate-300 hover:border-slate-500 cursor-pointer"
+                  [ngClass]="getColors(budgetForm.value['color'])"
+                  (click)="toggleColorOverlay()"
                 ></span>
               </div>
-            </ng-container>
-          </div>
-        </div>
-      </div>
-    </ng-template>
-  </p-dialog>
-  
-  <p-dialog
-    class="block md:hidden"
-    header="header"
-    [(visible)]="iconOverlay"
-    [modal]="true"
-    [dismissableMask]="true"
-  >
-    <ng-template pTemplate="headless">
-      <div
-        class="w-72 h-auto lg-m:w-96 lg-m:h-auto bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8"
-      >
-        <div class="flex flex-col gap-4 w-full h-full justify-start">
-          <div class="flex flex-row justify-between">
-            <span class="text-base font-bold">Icon</span>
-            <span
-              class="cursor-pointer text-gray-400 hover:text-black"
-              (click)="toggleColorOverlay()"
-              ><fa-icon [icon]="getIcon('faXMark')"></fa-icon
-            ></span>
-          </div>
-          <div class="grid grid-cols-4 gap-1">
-            <ng-container *ngFor="let icon of getIconStringArray()">
-              <div class="col-span-1 flex justify-center">
+            </div>
+            <div
+              class="col-span-1 flex flex-col items-center gap-2 w-full relative"
+            >
+              <span class="text-sm">Icon</span>
+              <div
+                *ngIf="iconOverlay"
+                #iconOverlayPanel
+                class="hidden md:block absolute z-10 w-96 bottom-full -mb-4 h-auto p-4 bg-white shadow-lg rounded-md border dark:bg-gray-800 dark:border-gray-700"
+              >
+                <div class="flex flex-col gap-2">
+                  <span class="text-sm font-bold">Display Icon</span>
+                  <div class="grid grid-cols-8 gap-1">
+                    <ng-container *ngFor="let icon of getIconStringArray()">
+                      <div class="col-span-1 flex justify-center">
+                        <span
+                          class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
+                          (click)="setIcon(icon)"
+                        >
+                          <fa-icon [icon]="getIcon(icon)"></fa-icon>
+                        </span>
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-row w-full justify-center">
                 <span
-                  class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
-                  (click)="setIcon(icon)"
+                  #iconTriggerButton
+                  class="w-20 h-full rounded-full border border-slate-300 hover:border-slate-500 cursor-pointer"
+                  (click)="toggleIconOverlay()"
                 >
-                  <fa-icon [icon]="getIcon(icon)"></fa-icon>
+                  <div
+                    class="flex flex-row w-full h-full justify-evenly items-center"
+                  >
+                    <fa-icon
+                      class="text-lg"
+                      [icon]="getIcon(budgetForm.value['icon'])"
+                    ></fa-icon>
+                    <fa-icon
+                      class="text-sm text-gray-600 dark:text-gray-200"
+                      [icon]="getIcon('faChevronDown')"
+                    ></fa-icon>
+                  </div>
                 </span>
               </div>
-            </ng-container>
+            </div>
+          </div>
+          <span class="text-sm text-center">Tag Preview</span>
+          <div class="flex justify-center">
+            <span
+              class="text-xxs lg:text-xs text-white rounded-2xl p-1 justify-start inline-flex"
+              [ngClass]="getColors(budgetForm.value['color'])"
+              ><fa-icon [icon]="getIcon(budgetForm.value['icon'])"></fa-icon
+              >{{ budgetForm.value["tagname"] | uppercase }}</span
+            >
+          </div>
+          <div class="flex flex-row justify-center relative">
+            <button
+              class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
+              (click)="showConfirmDialog()"
+              [ngClass]="
+                budgetForm.valid
+                  ? 'bg-indigo-500 hover:bg-indigo-700'
+                  : 'bg-gray-700'
+              "
+              [disabled]="!budgetForm.valid"
+            >
+              Submit
+              <fa-icon [icon]="getIcon('faCheck')"></fa-icon>
+            </button>
           </div>
         </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<app-confirmdialog
+  [visible]="confirmDialog"
+  title="Add New Account"
+  message="Are sure you want to proceed?"
+  (onConfirm)="onSubmit()"
+  (onCancel)="onCancel()"
+></app-confirmdialog>
+
+<p-dialog
+  class="block md:hidden"
+  header="header"
+  [(visible)]="colorOverlay"
+  [modal]="true"
+  [dismissableMask]="true"
+>
+  <ng-template pTemplate="headless">
+    <div
+      class="w-72 h-auto lg-m:w-96 lg-m:h-auto bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8"
+    >
+      <div class="flex flex-col gap-4 w-full h-full justify-start">
+        <div class="flex flex-row justify-between">
+          <span class="text-base font-bold">Color</span>
+          <span
+            class="cursor-pointer text-gray-400 hover:text-black"
+            (click)="toggleColorOverlay()"
+            ><fa-icon [icon]="getIcon('faXMark')"></fa-icon
+          ></span>
+        </div>
+        <div class="grid grid-cols-4 gap-1">
+          <ng-container *ngFor="let color of colors">
+            <div class="col-span-1 flex justify-center">
+              <span
+                class="w-10 h-10 rounded-full border border-slate-300 hover:border-2 hover:border-slate-500 cursor-pointer"
+                [ngClass]="getColors(color)"
+                (click)="setColor(color)"
+              ></span>
+            </div>
+          </ng-container>
+        </div>
       </div>
-    </ng-template>
-  </p-dialog>
-  
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog
+  class="block md:hidden"
+  header="header"
+  [(visible)]="iconOverlay"
+  [modal]="true"
+  [dismissableMask]="true"
+>
+  <ng-template pTemplate="headless">
+    <div
+      class="w-72 h-auto lg-m:w-96 lg-m:h-auto bg-white dark:bg-slate-900 rounded-2xl p-4 lg-m:p-8"
+    >
+      <div class="flex flex-col gap-4 w-full h-full justify-start">
+        <div class="flex flex-row justify-between">
+          <span class="text-base font-bold">Icon</span>
+          <span
+            class="cursor-pointer text-gray-400 hover:text-black"
+            (click)="toggleColorOverlay()"
+            ><fa-icon [icon]="getIcon('faXMark')"></fa-icon
+          ></span>
+        </div>
+        <div class="grid grid-cols-4 gap-1">
+          <ng-container *ngFor="let icon of getIconStringArray()">
+            <div class="col-span-1 flex justify-center">
+              <span
+                class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
+                (click)="setIcon(icon)"
+              >
+                <fa-icon [icon]="getIcon(icon)"></fa-icon>
+              </span>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
