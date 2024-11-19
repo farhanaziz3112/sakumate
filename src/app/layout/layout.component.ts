@@ -1,6 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule, Routes } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterModule,
+  Routes,
+} from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import {
   faArrowLeft,
@@ -15,6 +21,7 @@ import {
   faSun,
 } from '@fortawesome/free-solid-svg-icons';
 import { ThemeService } from '../service/theme.service';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
@@ -52,12 +59,19 @@ export class LayoutComponent implements OnInit {
   }
 
   ngOnInit() {
-    for (let i = 0; i < this.sideLink.length; i++) {
-      if (this.router.url.includes(this.sideLink[i].link)) {
-        this.currentActiveRoute = i;
-        this.setActiveRoute(i);
-      }
-    }
+    // for (let i = 0; i < this.sideLink.length; i++) {
+    //   if (this.router.url.includes(this.sideLink[i].link)) {
+    //     this.currentActiveRoute = i;
+    //     this.setActiveRoute(i);
+    //     console.log(i);
+    //   }
+    // }
+    this.router.events
+      .pipe(filter((event: any) => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.updateActiveRoute();
+      });
+    this.updateActiveRoute();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -97,6 +111,17 @@ export class LayoutComponent implements OnInit {
 
   verticalIndicatorStyle = {};
   horizontalIndicatorStyle = {};
+
+  updateActiveRoute() {
+    const currentUrl = this.router.url;
+    const foundIndex = this.sideLink.findIndex((link) =>
+      currentUrl.includes(link.link)
+    );
+
+    if (foundIndex !== -1) {
+      this.setActiveRoute(foundIndex);
+    }
+  }
 
   setActiveRoute(route: number) {
     this.currentActiveRoute = route;

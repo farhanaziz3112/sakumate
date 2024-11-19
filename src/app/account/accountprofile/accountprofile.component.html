@@ -286,12 +286,14 @@
       <span
         class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-auto px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
         (click)="toggleMonthDropdown()"
+        #monthDropdownButton
       >
         <span>{{ selectedMonth }}</span>
         <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
       </span>
       <div
         *ngIf="monthDropdown"
+        #monthDropdownPanel
         class="absolute z-10 mt-6 w-40 bg-white dark:bg-gray-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
       >
         <ul>
@@ -335,6 +337,21 @@
         </span>
       </div>
     </div>
+    <div class="flex flex-row justify-end gap-2">
+      <span
+        class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-auto px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 justify-center items-center rounded-full"
+        (click)="toggleFilterDialog()"
+      >
+        <fa-icon [icon]="getIcon('faFilter')"></fa-icon>
+      </span>
+      <span
+        *ngIf="(transactionSort || transactionType) && filterOn"
+        class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-auto px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-800 justify-center items-center rounded-full"
+        (click)="clearFilter()"
+      >
+        <fa-icon [icon]="getIcon('faTrash')"></fa-icon>
+      </span>
+    </div>
     <table
       class="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-slate-700 rounded-2xl"
     >
@@ -342,10 +359,11 @@
         <tr
           class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200 text-sm"
         >
-          <th class="w-1/5 py-3 px-6 text-left">Type</th>
-          <th class="w-2/5 py-3 px-6 text-left">Title</th>
-          <th class="w-1/5 py-3 px-6 text-left">Amount</th>
-          <th class="w-1/5 py-3 px-6 text-left">Date</th>
+          <th class="w-1/6 py-3 px-6 text-left">Type</th>
+          <th class="w-2/6 py-3 px-6 text-left">Title</th>
+          <th class="w-1/6 py-3 px-6 text-left">Budget</th>
+          <th class="w-1/6 py-3 px-6 text-left">Amount</th>
+          <th class="w-1/6 py-3 px-6 text-left">Date</th>
         </tr>
       </thead>
 
@@ -356,22 +374,25 @@
           (click)="toggleTransactionDialog(transaction)"
         >
           <td
-            class="w-1/5 py-3 px-6 text-left font-semibold"
+            class="w-1/6 py-3 px-6 text-left font-semibold"
             [ngClass]="
               transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
             "
           >
             {{ transaction.type | uppercase }}
           </td>
-          <td class="w-1/5 py-3 px-6 text-left">
+          <td class="w-2/6 py-3 px-6 text-left">
             {{ transaction.title }}
           </td>
-          <td class="w-1/5 py-3 px-6 text-left">
+          <td class="w-1/6 py-3 px-6 text-left">
+            <app-tag [tag]="transaction.budget.tag"></app-tag>
+          </td>
+          <td class="w-1/6 py-3 px-6 text-left font-semibold">
             {{ transaction.amount | number : "1.2-2" }}
           </td>
-          <td class="w-1/5 py-3 px-6 text-left">
+          <td class="w-1/6 py-3 px-6 text-left">
             {{
-              transaction.created_at | date : "MM" : "Asia/Kuala_Lumpur"
+              transaction.created_at | date : "yyyy-MM-dd" : "Asia/Kuala_Lumpur"
             }}
           </td>
         </tr>
@@ -524,11 +545,11 @@
           <button
             class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
             [ngClass]="
-              addMoneyForm.valid
+              addMoneyForm.valid && selectedIncomeBudget
                 ? 'bg-indigo-500 hover:bg-indigo-700'
                 : 'bg-gray-700'
             "
-            [disabled]="!addMoneyForm.valid"
+            [disabled]="!addMoneyForm.valid || !selectedIncomeBudget"
             (click)="submitTransaction(true)"
           >
             Submit
@@ -625,11 +646,11 @@
           <button
             class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
             [ngClass]="
-              minusMoneyForm.valid
+              minusMoneyForm.valid && selectedExpenseBudget
                 ? 'bg-indigo-500 hover:bg-indigo-700'
                 : 'bg-gray-700'
             "
-            [disabled]="!minusMoneyForm.valid"
+            [disabled]="!minusMoneyForm.valid || !selectedExpenseBudget"
             (click)="submitTransaction(false)"
           >
             Submit
@@ -701,3 +722,59 @@
     </div>
   </ng-template>
 </p-dialog>
+
+<p-sidebar
+  [(visible)]="viewFilterDialog"
+  position="right"
+  (onHide)="onHideFilterDialog()"
+>
+  <ng-template pTemplate="headless">
+    <div
+      class="gap-8 flex flex-col w-full h-full px-6 py-10 bg-white dark:bg-gray-900 text-black dark:text-white"
+    >
+      <span class="text-base">Transaction Filter</span>
+      <div class="flex flex-col gap-2">
+        <span class="text-sm">Types</span>
+        <ng-container *ngFor="let item of types">
+          <label class="flex flex-row gap-2 cursor-pointer">
+            <input
+              type="radio"
+              [value]="item.value"
+              [checked]="transactionType === item"
+              (change)="onTypeChange(item)"
+              class="cursor-pointer"
+            />
+            <span class="text-sm">{{ item.label }}</span>
+          </label>
+        </ng-container>
+      </div>
+      <div class="flex flex-col gap-2">
+        <span class="text-sm">Sorts</span>
+        <ng-container *ngFor="let item of sorts">
+          <label class="flex flex-row gap-2 cursor-pointer">
+            <input
+              type="radio"
+              [value]="item.value"
+              [checked]="transactionSort === item"
+              (change)="onSortChange(item)"
+              class="cursor-pointer"
+            />
+            <span class="text-sm">{{ item.label }}</span>
+          </label>
+        </ng-container>
+      </div>
+      <button
+        class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
+        [ngClass]="
+          transactionSort || transactionType
+            ? 'bg-indigo-500 hover:bg-indigo-700'
+            : 'bg-gray-700'
+        "
+        [disabled]="!transactionSort && !transactionType"
+        (click)="applyFilter()"
+      >
+        Apply Filter
+      </button>
+    </div>
+  </ng-template>
+</p-sidebar>

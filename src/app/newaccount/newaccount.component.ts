@@ -366,7 +366,7 @@ export class NewaccountComponent implements OnInit {
               goalname: this.goals.at(i).value['goalname'],
               tagid: null,
               description: this.goals.at(i).value['description'],
-              currentamount: this.accountForm.value['currentbalance'],
+              currentamount: null,
               targetamount: this.goals.at(i).value['targetamount'],
               duedate: this.goals.at(i).value['duedate'],
               userid: this.user.id,

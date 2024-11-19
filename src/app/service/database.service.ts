@@ -17,6 +17,9 @@ export class DatabaseService {
   private transactions = new BehaviorSubject<any[]>([]);
   public transactions$ = this.transactions.asObservable();
 
+  private transactionsBudgetTag = new BehaviorSubject<any[]>([]);
+  public transactionsBudgetTag$ = this.transactionsBudgetTag.asObservable();
+
   userData: User | any;
 
   constructor(
@@ -240,6 +243,27 @@ export class DatabaseService {
       this.transactions.next(data);
     }
     // return supabase.from('transaction').select(`*`).eq('userid', user.id);
+  }
+
+  async transactionBudgetTagByUserId() {
+    const { data, error } = await supabase
+      .from('transaction')
+      .select(
+        `
+      *,
+      budget (
+        *,
+        tag (*)
+      )
+    `
+      )
+      .eq('userid', this.userData.id);
+
+    if (data && !error) {
+      this.transactionsBudgetTag.next(data);
+    } else {
+      console.error('Error fetching transactions with related data:', error);
+    }
   }
 
   createTransaction(transaction: any) {

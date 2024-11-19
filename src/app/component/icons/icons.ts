@@ -70,7 +70,10 @@ import {
   faArrowDown,
   faCar,
   faEdit,
-  faPhone
+  faPhone,
+  faFilter,
+  faSlash,
+  faTrash
 } from '@fortawesome/free-solid-svg-icons';
 
 export const icons: { [key: string]: IconDefinition } = {
@@ -143,7 +146,10 @@ export const icons: { [key: string]: IconDefinition } = {
   faArrowDown,
   faCar,
   faEdit,
-  faPhone
+  faPhone,
+  faFilter,
+  faSlash,
+  faTrash
 };
 
 export const tagIconsString = [

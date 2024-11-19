@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { icons } from '../../component/icons/icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -23,6 +29,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { ToastService } from '../../service/toast.service';
+import { Sidebar } from 'primeng/sidebar';
+import { SidebarModule } from 'primeng/sidebar';
 
 @Component({
   selector: 'app-accountprofile',
@@ -37,6 +45,7 @@ import { ToastService } from '../../service/toast.service';
     PaginatorComponent,
     FormsModule,
     ReactiveFormsModule,
+    SidebarModule,
   ],
   templateUrl: './accountprofile.component.html',
   styleUrl: './accountprofile.component.css',
@@ -70,26 +79,20 @@ export class AccountprofileComponent implements OnInit {
       if (user) {
         this.user = user;
         this.getBudgets();
+        this.dbService.transactionBudgetTagByUserId();
       }
     });
     this.dbService.accounts$.subscribe((acc) => {
       this.account = acc.filter((account) => account.id === this.id).at(0);
     });
-    this.dbService.transactions$.subscribe((trans) => {
+    this.dbService.transactionsBudgetTag$.subscribe((trans) => {
       this.transactions = trans.filter(
         (transaction) => transaction.accountid === this.id
       );
-      this.incomeTransactions = trans.filter(
-        (transaction) =>
-          transaction.type === 'income' && transaction.accountid === this.id
-      );
-      this.expenseTransactions = trans.filter(
-        (transaction) =>
-          transaction.type === 'expense' && transaction.accountid === this.id
-      );
-      this.totalPage = Math.ceil(this.transactions.length / this.itemsPerPage);
-      this.updatePaginatedData();
+      this.unfilteredTransactions = [...this.transactions];
       this.extractUniqueMonths();
+      this.selectMonth(this.selectedMonth);
+      this.updatePaginatedData();
     });
     this.addMoneyForm = this.fb.group({
       amount: ['', [Validators.required]],
@@ -131,7 +134,64 @@ export class AccountprofileComponent implements OnInit {
 
   //-----------------------------------Month Set--------------------------------
 
-  uniquemonths: any[] = [];
+  monthDropdown: boolean = false;
+  @ViewChild('monthDropdownButton', { static: false })
+  monthDropdownButton!: ElementRef;
+  @ViewChild('monthDropdownPanel', { static: false })
+  monthDropdownPanel!: ElementRef;
+
+  @HostListener('document:click', ['$event.target'])
+  onClickOutside(target: HTMLElement) {
+    if (
+      this.monthDropdownPanel &&
+      !this.monthDropdownButton.nativeElement.contains(target) &&
+      (!this.monthDropdownPanel ||
+        !this.monthDropdownPanel.nativeElement.contains(target))
+    ) {
+      this.monthDropdown = false;
+    }
+  }
+
+  toggleMonthDropdown() {
+    this.monthDropdown = !this.monthDropdown;
+  }
+
+  selectMonth(month: any) {
+    this.selectedMonth = month;
+    this.monthDropdown = false;
+    if (month === 'All') {
+      this.unfilteredTransactions = [...this.transactions];
+    } else {
+      let tempTransactions: any[] = [];
+      this.transactions.forEach((transaction: any) => {
+        const date = new Date(transaction.created_at);
+        const monthYear = date.toLocaleString('default', {
+          month: 'short',
+          year: 'numeric',
+        });
+        if (monthYear === month) {
+          tempTransactions.push(transaction);
+        }
+      });
+      this.unfilteredTransactions = [...tempTransactions];
+    }
+    this.incomeTransactions = this.unfilteredTransactions.filter(
+      (transaction) =>
+        transaction.type === 'income' && transaction.accountid === this.id
+    );
+    this.expenseTransactions = this.unfilteredTransactions.filter(
+      (transaction) =>
+        transaction.type === 'expense' && transaction.accountid === this.id
+    );
+    this.currentPage = 1;
+    this.filteredTransactions = [...this.unfilteredTransactions];
+    this.updatePaginatedData();
+  }
+
+  selectedMonth: any;
+  unfilteredTransactions: any[] = [];
+  filteredTransactions: any[] = [];
+  months: any[] = [];
   monthSet = new Set<any[]>();
 
   extractUniqueMonths() {
@@ -146,7 +206,7 @@ export class AccountprofileComponent implements OnInit {
       monthSet.add(monthYear);
     });
 
-    this.uniquemonths = Array.from(monthSet).sort((a, b) => {
+    this.months = Array.from(monthSet).sort((a, b) => {
       const [monthA, yearA] = a.split(' ');
       const [monthB, yearB] = b.split(' ');
       const dateA = new Date(`${monthA} 1, ${yearA}`);
@@ -154,7 +214,139 @@ export class AccountprofileComponent implements OnInit {
       return dateA.getTime() - dateB.getTime();
     });
 
-    console.log(this.uniquemonths);
+    this.months.push('All');
+
+    let monthsLenght = this.months.length;
+    this.selectedMonth = this.months[monthsLenght - 1];
+  }
+
+  //-----------------------------------Transaction Filters--------------------------------
+
+  viewFilterDialog: boolean = false;
+  filterOn: boolean = false;
+
+  transactionType: any;
+  transactionSort: any;
+
+  types = [
+    {
+      label: 'Income',
+      value: 'income',
+    },
+    {
+      label: 'Expense',
+      value: 'expense',
+    },
+    {
+      label: 'Both',
+      value: 'both',
+    },
+  ];
+
+  sorts = [
+    {
+      label: 'Title: A to Z',
+      value: 'a-z',
+    },
+    {
+      label: 'Title: Z to A',
+      value: 'z-a',
+    },
+    {
+      label: 'Amount: Low to High',
+      value: 'high-to-low',
+    },
+    {
+      label: 'Amount: High to Low',
+      value: 'low-to-high',
+    },
+    {
+      label: 'Date: Latest to Oldest',
+      value: 'latest',
+    },
+    {
+      label: 'Date: Oldest to Latest',
+      value: 'oldest',
+    },
+  ];
+
+  toggleFilterDialog() {
+    this.viewFilterDialog = !this.viewFilterDialog;
+  }
+
+  onTypeChange(value: any) {
+    this.transactionType = value;
+  }
+
+  onSortChange(value: any) {
+    this.transactionSort = value;
+  }
+
+  onHideFilterDialog() {
+    if (!this.filterOn) {
+      this.transactionSort = null;
+      this.transactionType = null;
+    }
+  }
+
+  applyFilter() {
+    if (this.transactionType) {
+      this.filteredTransactions = this.unfilteredTransactions.filter(
+        (transaction: any) => {
+          if (this.transactionType.value === 'both') {
+            return (
+              transaction.type === 'income' || transaction.type === 'expense'
+            );
+          } else {
+            return transaction.type === this.transactionType.value;
+          }
+        }
+      );
+    }
+
+    if (this.transactionSort) {
+      if (this.transactionSort.value === 'a-z') {
+        this.filteredTransactions.sort((a: any, b: any) =>
+          a.title.localeCompare(b.title)
+        );
+      } else if (this.transactionSort.value === 'z-a') {
+        this.filteredTransactions.sort((a: any, b: any) =>
+          b.title.localeCompare(a.title)
+        );
+      } else if (this.transactionSort.value === 'high-to-low') {
+        this.filteredTransactions.sort((a: any, b: any) => a.amount - b.amount);
+      } else if (this.transactionSort.value === 'low-to-high') {
+        this.filteredTransactions.sort((a: any, b: any) => b.amount - a.amount);
+      } else if (this.transactionSort.value === 'latest') {
+        this.filteredTransactions.sort((a: any, b: any) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateB.getTime() - dateA.getTime();
+        });
+      } else {
+        this.filteredTransactions.sort((a: any, b: any) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateA.getTime() - dateB.getTime();
+        });
+      }
+    }
+    this.currentPage = 1;
+    this.updatePaginatedData();
+    this.viewFilterDialog = false;
+    this.filterOn = true;
+  }
+
+  clearFilter() {
+    console.log(this.filteredTransactions);
+    console.log(this.unfilteredTransactions);
+    this.filteredTransactions = [...this.unfilteredTransactions];
+    this.transactionSort = null;
+    this.transactionType = null;
+    this.currentPage = 1;
+    this.updatePaginatedData();
+    this.viewFilterDialog = false;
+    this.filterOn = false;
   }
 
   //-----------------------------------Paginators--------------------------------
@@ -167,23 +359,25 @@ export class AccountprofileComponent implements OnInit {
     this.clickedTransaction = transaction;
   }
 
-  itemsPerPage: number = 5;
+  itemsPerPage: number = 7;
   currentPage: number = 1;
   totalPage: number = 0;
   paginatedData: any[] = [];
   displayedPages: number[] = [];
 
   updatePaginatedData() {
+    this.totalPage = Math.ceil(
+      this.filteredTransactions.length / this.itemsPerPage
+    );
     this.getDisplayedPages();
     let startIndex = (this.currentPage - 1) * this.itemsPerPage;
     let endIndex = startIndex + this.itemsPerPage;
-    this.paginatedData = this.transactions.slice(startIndex, endIndex);
+    this.paginatedData = this.filteredTransactions.slice(startIndex, endIndex);
   }
 
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPage) {
       this.currentPage = page;
-      console.log(page);
       this.updatePaginatedData();
     }
   }
@@ -900,57 +1094,5 @@ export class AccountprofileComponent implements OnInit {
     }
     this.donutChart?.update();
     this.donutChart2?.update();
-  }
-
-  months = [
-    'Jan 2022',
-    'Feb 2022',
-    'Mar 2022',
-    'Apr 2022',
-    'May 2022',
-    'Jun 2022',
-    'Jul 2022',
-    'Aug 2022',
-    'Sep 2022',
-    'Oct 2022',
-    'Nov 2022',
-    'Dec 2022',
-    'Jan 2023',
-    'Feb 2023',
-    'Mar 2023',
-    'Apr 2023',
-    'May 2023',
-    'Jun 2023',
-    'Jul 2023',
-    'Aug 2023',
-    'Sep 2023',
-    'Oct 2023',
-    'Nov 2023',
-    'Dec 2023',
-    'Jan 2024',
-    'Feb 2024',
-    'Mar 2024',
-    'Apr 2024',
-    'May 2024',
-    'Jun 2024',
-    'Jul 2024',
-    'Aug 2024',
-    'Sep 2024',
-    'Oct 2024',
-    'Nov 2024',
-  ];
-
-  selectedMonth: any = 'Oct 2024';
-
-  monthDropdown: boolean = false;
-
-  toggleMonthDropdown() {
-    this.monthDropdown = !this.monthDropdown;
-  }
-
-  selectMonth(month: string) {
-    this.selectedMonth = month;
-    this.monthDropdown = false;
-    this.updateBarChartColors();
   }
 }
