@@ -7,6 +7,12 @@ import { BaseChartDirective } from 'ng2-charts';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ThemeService } from '../service/theme.service';
 import { DonutComponent } from '../component/donut/donut.component';
+import { FormBuilder } from '@angular/forms';
+import { AuthService } from '../service/auth.service';
+import { DatabaseService } from '../service/database.service';
+import { ToastService } from '../service/toast.service';
+import { User } from '@supabase/supabase-js';
+import { TagComponent } from "../component/tag/tag.component";
 
 @Component({
   selector: 'app-goal',
@@ -16,73 +22,40 @@ import { DonutComponent } from '../component/donut/donut.component';
     FontAwesomeModule,
     BaseChartDirective,
     DonutComponent,
-  ],
+    TagComponent
+],
   templateUrl: './goal.component.html',
   styleUrl: './goal.component.css',
 })
-export class GoalComponent implements OnInit {
-  accGoals = [
-    {
-      goalName: 'Account 1',
-      userId: 1,
-      currentAmount: 1500,
-      targetAmount: 5000,
-      dueDate: new Date('2025-06-30'),
-      createdDate: new Date('2024-01-15'),
-    },
-    {
-      goalName: 'Account 2',
-      userId: 2,
-      currentAmount: 800,
-      targetAmount: 2000,
-      dueDate: new Date('2024-12-01'),
-      createdDate: new Date('2024-03-20'),
-    },
-  ];
-
-  otherGoals = [
-    {
-      goalName: 'New Car Down Payment',
-      userId: 3,
-      currentAmount: 2000,
-      targetAmount: 10000,
-      dueDate: new Date('2026-01-01'),
-      createdDate: new Date('2024-05-10'),
-    },
-    {
-      goalName: 'Home Renovation',
-      userId: 1,
-      currentAmount: 5000,
-      targetAmount: 15000,
-      dueDate: new Date('2025-12-31'),
-      createdDate: new Date('2024-07-05'),
-    },
-    {
-      goalName: 'College Fund',
-      userId: 2,
-      currentAmount: 3000,
-      targetAmount: 20000,
-      dueDate: new Date('2028-09-01'),
-      createdDate: new Date('2024-09-12'),
-    },
-    {
-      goalName: 'Investments Fund',
-      userId: 3,
-      currentAmount: 1000,
-      targetAmount: 10000,
-      dueDate: new Date('2024-12-31'),
-      createdDate: new Date('2024-02-25'),
-    },
-  ];
+export class GoalComponent implements OnInit {  
 
   currentTheme = '';
+
+  user: User | any;
+  goals: any;
+  accgoals: any;
+  othergoals: any;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private dbService: DatabaseService,
+    private authService: AuthService,
+    private fb: FormBuilder,
+    private toastService: ToastService,
   ) {
-    this.currentTheme = this.themeService.currentTheme;
+    this.authService.user$.subscribe((user) => {
+      if (user) {
+        this.user = user;
+        this.dbService.goalTagByUserId();
+      }
+    });
+    this.dbService.goalTag$.subscribe((goal) => {
+      this.goals = goal;
+      this.accgoals = goal.filter((g) => g.tagid === null);
+      this.othergoals = goal.filter((g) => g.tagid != null);
+    });
   }
 
   ngOnInit() {

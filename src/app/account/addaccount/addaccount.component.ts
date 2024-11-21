@@ -31,6 +31,7 @@ import { User } from '@supabase/supabase-js';
 import { AuthService } from '../../service/auth.service';
 import { DatabaseService } from '../../service/database.service';
 import { ToastService } from '../../service/toast.service';
+import { icons } from '../../component/icons/icons';
 
 @Component({
   selector: 'app-addaccount',
@@ -102,6 +103,8 @@ export class AddaccountComponent implements OnInit {
 
   currentTheme = 'light';
 
+  minDate: string | any;
+
   constructor(
     private router: Router,
     private formBuilder: FormBuilder,
@@ -111,12 +114,22 @@ export class AddaccountComponent implements OnInit {
     private dbService: DatabaseService,
     private toastService: ToastService
   ) {
+    const today = new Date();
+    const min = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 2
+    );
+    this.minDate = min.toISOString().split('T')[0];
     this.accountForm = this.formBuilder.group({
       accountname: ['', [Validators.required, Validators.minLength(3)]],
       accounttype: ['', [Validators.required]],
       currentbalance: ['', [Validators.required]],
       color1: ['yellow', [Validators.required]],
       color2: ['pink', [Validators.required]],
+      description: [''],
+      targetamount: ['', [Validators.required]],
+      duedate: ['', [Validators.required]],
     });
     this.currentTheme = this.themeService.currentTheme;
     this.authService.user$.subscribe((user) => {
@@ -133,6 +146,10 @@ export class AddaccountComponent implements OnInit {
     const control = this.accountForm.get(controlName);
     let isInvalid = control?.invalid && (control?.dirty || control?.touched);
     return isInvalid;
+  }
+
+  getIcon(icon: string) {
+    return icons[icon] || null;
   }
 
   goToAccount() {
@@ -228,13 +245,24 @@ export class AddaccountComponent implements OnInit {
           color1: this.accountForm.value['color1'] as string,
           color2: this.accountForm.value['color2'] as string,
         };
+        const newAccount = await this.dbService.createAccount(account);
+        await this.dbService.createGoal({
+          goalname: this.accountForm.value['accountname'] as string,
+          tagid: null,
+          description: this.accountForm.value['description'] as string,
+          currentamount: null,
+          targetamount: this.accountForm.value['targetamount'],
+          duedate: this.accountForm.value['duedate'],
+          userid: this.user.id,
+          accountid: newAccount.data?.at(0).id,
+          status: 'incomplete',
+        });
         this.toastService.showSuccessToast(
           'New Account!',
           'Account: ' +
             this.accountForm.value['accountname'] +
             ' is successfully added.'
         );
-        await this.dbService.createAccount(account);
         this.router.navigate(['/account']);
         this.confirmDialog = false;
       } catch (error) {

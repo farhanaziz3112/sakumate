@@ -90,9 +90,20 @@
             />
             <div
               *ngIf="isGoalFormInvalid('tagname')"
-              class="text-red-600 text-xs"
+              class="text-red-600 text-sm"
             >
-              Tag name is required
+              <small
+                *ngIf="
+              goalForm.get('tagname')?.errors?.['required']
+            "
+                >Tag name is required</small
+              >
+              <small *ngIf="goalForm.get('tagname')?.errors?.['minlength']"
+                >Tag name must be at least 3 characters long</small
+              >
+              <small *ngIf="goalForm.get('tagname')?.errors?.['maxlength']"
+                >Tag name must not exceed 10 characters long</small
+              >
             </div>
           </div>
           <div class="grid grid-cols-2">

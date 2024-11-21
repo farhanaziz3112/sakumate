@@ -19,6 +19,7 @@ import { User } from '@supabase/supabase-js';
 import { AuthService } from '../../service/auth.service';
 import { DatabaseService } from '../../service/database.service';
 import { ToastService } from '../../service/toast.service';
+import { login } from '../../state/auth/auth.actions';
 
 @Component({
   selector: 'app-addbudget',
@@ -96,7 +97,14 @@ export class AddbudgetComponent {
       description: [''],
       currentamount: 0,
       targetamount: ['', [Validators.required]],
-      tagname: ['preview...', [Validators.required]],
+      tagname: [
+        'preview',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(10),
+        ],
+      ],
       color: ['blue', [Validators.required]],
       icon: ['faBurger', [Validators.required]],
     });

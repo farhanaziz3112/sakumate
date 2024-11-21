@@ -241,12 +241,12 @@ export class DashboardComponent implements OnInit {
     this.addMoneyForm = this.fb.group({
       amount: ['', [Validators.required]],
       description: [''],
-      title: [''],
+      title: ['', [Validators.required, Validators.minLength(3)]],
     });
     this.minusMoneyForm = this.fb.group({
       amount: ['', [Validators.required]],
       description: [''],
-      title: [''],
+      title: ['', [Validators.required, Validators.minLength(3)]],
     });
   }
 
@@ -276,13 +276,19 @@ export class DashboardComponent implements OnInit {
     if (expense_budgets && income_budgets) {
       for (let i = 0; i < this.incomebudgets.length; i++) {
         const tag = await this.getTag(this.incomebudgets.at(i).tagid);
-        if (tag && !this.incometags.some(existingTag => existingTag.id === tag.id)) {
+        if (
+          tag &&
+          !this.incometags.some((existingTag) => existingTag.id === tag.id)
+        ) {
           this.incometags.push(tag);
         }
       }
       for (let i = 0; i < this.expensebudgets.length; i++) {
         const tag = await this.getTag(this.expensebudgets.at(i).tagid);
-        if (tag && !this.expensetags.some(existingTag => existingTag.id === tag.id)) {
+        if (
+          tag &&
+          !this.expensetags.some((existingTag) => existingTag.id === tag.id)
+        ) {
           this.expensetags.push(tag);
         }
       }
@@ -317,7 +323,7 @@ export class DashboardComponent implements OnInit {
         });
       } else {
         await this.dbService.createTransaction({
-          amount: (-(this.minusMoneyForm.value['amount'])),
+          amount: -this.minusMoneyForm.value['amount'],
           description: this.minusMoneyForm.value['description'],
           title: this.minusMoneyForm.value['title'],
           budgetid: this.selectedExpenseBudget.id,

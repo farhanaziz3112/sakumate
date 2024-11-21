@@ -91,7 +91,14 @@ export class AddgoalComponent implements OnInit {
       goalname: ['', [Validators.required, Validators.minLength(3)]],
       targetamount: ['', [Validators.required]],
       duedate: ['', [Validators.required]],
-      tagname: ['preview...', [Validators.required]],
+      tagname: [
+        'preview',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(10),
+        ],
+      ],
       color: ['blue', [Validators.required]],
       icon: ['faBurger', [Validators.required]],
     });
@@ -209,7 +216,7 @@ export class AddgoalComponent implements OnInit {
           duedate: this.goalForm.value['duedate'],
           userid: this.user.id,
           accountid: null,
-          status: 'incomplete'
+          status: 'incomplete',
         });
         this.toastService.showSuccessToast(
           'New Goal',

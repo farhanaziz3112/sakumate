@@ -159,7 +159,6 @@ export class ColorService {
       darkTo: 'to-rose-600 hover:to-rose-500', // Set to 600
     },
   ];
-  
 
   constructor() {}
 
@@ -180,3 +179,106 @@ export class ColorService {
     }
   }
 }
+
+export const colorToHex = {
+  'bg-red-300': '#fca5a5',
+  'bg-red-400': '#f87171',
+  'bg-red-500': '#ef4444',
+  'bg-red-600': '#dc2626',
+
+  // Orange
+  'bg-orange-300': '#fdba74',
+  'bg-orange-400': '#fb923c',
+  'bg-orange-500': '#f97316',
+  'bg-orange-600': '#ea580c',
+
+  // Amber
+  'bg-amber-300': '#fcd34d',
+  'bg-amber-400': '#fbbf24',
+  'bg-amber-500': '#f59e0b',
+  'bg-amber-600': '#d97706',
+
+  // Yellow
+  'bg-yellow-300': '#fde047',
+  'bg-yellow-400': '#facc15',
+  'bg-yellow-500': '#eab308',
+  'bg-yellow-600': '#ca8a04',
+
+  // Lime
+  'bg-lime-300': '#bef264',
+  'bg-lime-400': '#a3e635',
+  'bg-lime-500': '#84cc16',
+  'bg-lime-600': '#65a30d',
+
+  // Green
+  'bg-green-300': '#86efac',
+  'bg-green-400': '#4ade80',
+  'bg-green-500': '#22c55e',
+  'bg-green-600': '#16a34a',
+
+  // Emerald
+  'bg-emerald-300': '#6ee7b7',
+  'bg-emerald-400': '#34d399',
+  'bg-emerald-500': '#10b981',
+  'bg-emerald-600': '#059669',
+
+  // Teal
+  'bg-teal-300': '#5eead4',
+  'bg-teal-400': '#2dd4bf',
+  'bg-teal-500': '#14b8a6',
+  'bg-teal-600': '#0d9488',
+
+  // Cyan
+  'bg-cyan-300': '#67e8f9',
+  'bg-cyan-400': '#22d3ee',
+  'bg-cyan-500': '#06b6d4',
+  'bg-cyan-600': '#0891b2',
+
+  // Sky
+  'bg-sky-300': '#7dd3fc',
+  'bg-sky-400': '#38bdf8',
+  'bg-sky-500': '#0ea5e9',
+  'bg-sky-600': '#0284c7',
+
+  // Blue
+  'bg-blue-300': '#93c5fd',
+  'bg-blue-400': '#60a5fa',
+  'bg-blue-500': '#3b82f6',
+  'bg-blue-600': '#2563eb',
+
+  // Indigo
+  'bg-indigo-300': '#a5b4fc',
+  'bg-indigo-400': '#818cf8',
+  'bg-indigo-500': '#6366f1',
+  'bg-indigo-600': '#4f46e5',
+
+  // Violet
+  'bg-violet-300': '#c4b5fd',
+  'bg-violet-400': '#a78bfa',
+  'bg-violet-500': '#8b5cf6',
+  'bg-violet-600': '#7c3aed',
+
+  // Purple
+  'bg-purple-300': '#d8b4fe',
+  'bg-purple-400': '#c084fc',
+  'bg-purple-500': '#a855f7',
+  'bg-purple-600': '#9333ea',
+
+  // Fuchsia
+  'bg-fuchsia-300': '#f0abfc',
+  'bg-fuchsia-400': '#e879f9',
+  'bg-fuchsia-500': '#d946ef',
+  'bg-fuchsia-600': '#c026d3',
+
+  // Pink
+  'bg-pink-300': '#f9a8d4',
+  'bg-pink-400': '#f472b6',
+  'bg-pink-500': '#ec4899',
+  'bg-pink-600': '#db2777',
+
+  // Rose
+  'bg-rose-300': '#fda4af',
+  'bg-rose-400': '#fb7185',
+  'bg-rose-500': '#f43f5e',
+  'bg-rose-600': '#e11d48',
+};

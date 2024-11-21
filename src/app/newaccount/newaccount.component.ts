@@ -141,7 +141,11 @@ export class NewaccountComponent implements OnInit {
     private dbService: DatabaseService
   ) {
     const today = new Date();
-    const min = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
+    const min = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 2
+    );
     this.minDate = min.toISOString().split('T')[0];
     this.profileForm = this.formBuilder.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
@@ -197,111 +201,6 @@ export class NewaccountComponent implements OnInit {
     this.defaultExpenses = this.defaultTags.data.filter(
       (tag: any) => tag.tagtype === 'expense'
     );
-  }
-
-  async submitProfile(): Promise<void> {
-    // let profile = {
-    //   username: this.profileForm.value['username'] as string,
-    //   firstname: this.profileForm.value['firstname'] as string,
-    //   lastname: this.profileForm.value['lastname'] as string,
-    //   id: this.user.id,
-    // };
-
-    // try {
-    //   const { data, error } = await this.dbService.updateProfile(profile);
-    //   if (error) {
-    //     console.log(error);
-    //   } else {
-    //     console.log('Data', data[0]);
-    //   }
-    // } catch (error) {
-    //   console.error(error);
-    // }
-
-    // let account = {
-    //   userid: this.user.id,
-    //   accountname: this.accountForm.value['accountname'],
-    //   accounttype: this.accountForm.value['accounttype'],
-    //   currentbalance: this.accountForm.value['currentbalance'],
-    //   color1: this.accountForm.value['color1'],
-    //   color2: this.accountForm.value['color2'],
-    // };
-
-    // console.log(account);
-    // const accountcreated = await this.dbService.createAccount(account);
-    // console.log(accountcreated.data?.at(0));
-
-    // let budget: any[] = [];
-    // for (let i = 0; i < this.incomebudgets.length; i++) {
-    //   budget.push({
-    //     budgetname: this.incomebudgets.at(i).value['budgetname'],
-    //     tagid: this.incomebudgets.at(i).value['tagid'],
-    //     description: this.incomebudgets.at(i).value['description'],
-    //     currentamount: this.incomebudgets.at(i).value['currentamount'],
-    //     targetamount: this.incomebudgets.at(i).value['targetamount'],
-    //     userid: this.user.id,
-    //     budgettype: 'income',
-    //   });
-    // }
-
-    // for (let i = 0; i < this.expensebudgets.length; i++) {
-    //   budget.push({
-    //     budgetname: this.expensebudgets.at(i).value['budgetname'],
-    //     tagid: this.expensebudgets.at(i).value['tagid'],
-    //     description: this.expensebudgets.at(i).value['description'],
-    //     currentamount: this.expensebudgets.at(i).value['currentamount'],
-    //     targetamount: this.expensebudgets.at(i).value['targetamount'],
-    //     userid: this.user.id,
-    //     budgettype: 'expense',
-    //   });
-    // }
-
-    // const newbudgets = await this.dbService.createMultipleBudget(budget);
-
-    // for (let i = 0; i < budget.length; i++) {
-    //   console.log(budget[i]);
-    //   const newbudgets = await this.dbService.createBudget(budget);
-    //   console.log(newbudgets.data);
-    // }
-
-    // let budget = {
-    //   budgetname: 'ngeh',
-    //   tagid: null,
-    //   description: '',
-    //   currentamount: 500,
-    //   targetamount: 1000,
-    //   accountid: null,
-    //   userid: this.user.id,
-    //   budgettype: 'expense',
-    // };
-
-    // console.log(budget);
-    // const newbudget = await this.dbService.createBudget(budget);
-    // console.log(newbudget.data);
-
-    // let goal = {
-    //   goalname: 'ngehhhh',
-    //   tagid: '',
-    //   description: '',
-    //   currentamount: 200,
-    //   targetamount: 500,
-    //   duedate: new Date(),
-    //   userid: this.user.id,
-    // };
-
-    // console.log(goal);
-    // const newGoal = await this.dbService.createGoal(goal);
-    // console.log(newGoal.data);
-
-    let tag = {
-      userid: null,
-      tagname: 'ngeh',
-      tagtype: 'goal',
-      color: 'purple',
-      icon: 'faBurger',
-    };
-
-    const newTag = await this.dbService.createTag(tag);
   }
 
   async onSubmit(): Promise<void> {
@@ -362,7 +261,7 @@ export class NewaccountComponent implements OnInit {
 
         for (let i = 0; i < this.goals.length; i++) {
           if (i === 0) {
-            await this.dbService.updateGoal({
+            await this.dbService.createGoal({
               goalname: this.goals.at(i).value['goalname'],
               tagid: null,
               description: this.goals.at(i).value['description'],
@@ -371,6 +270,7 @@ export class NewaccountComponent implements OnInit {
               duedate: this.goals.at(i).value['duedate'],
               userid: this.user.id,
               accountid: newaccount.data?.at(0).id,
+              status: 'incomplete',
             });
           } else {
             const newTag = await this.dbService.createTag({
@@ -389,7 +289,7 @@ export class NewaccountComponent implements OnInit {
               duedate: this.goals.at(i).value['duedate'],
               userid: this.user.id,
               accountid: null,
-              status: 'incomplete'
+              status: 'incomplete',
             });
           }
         }
@@ -511,7 +411,14 @@ export class NewaccountComponent implements OnInit {
       goalname: ['', [Validators.required, Validators.minLength(3)]],
       targetamount: ['', [Validators.required]],
       duedate: ['', [Validators.required]],
-      tagname: ['preview...', [Validators.required]],
+      tagname: [
+        'preview',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(10),
+        ],
+      ],
       color: ['blue', [Validators.required]],
       icon: ['faBurger', [Validators.required]],
     });

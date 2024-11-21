@@ -17,8 +17,14 @@ export class DatabaseService {
   private transactions = new BehaviorSubject<any[]>([]);
   public transactions$ = this.transactions.asObservable();
 
-  private transactionsBudgetTag = new BehaviorSubject<any[]>([]);
-  public transactionsBudgetTag$ = this.transactionsBudgetTag.asObservable();
+  private budgetTag = new BehaviorSubject<any[]>([]);
+  public budgetTag$ = this.budgetTag.asObservable();
+
+  private transactionsBudgetGoalTag = new BehaviorSubject<any[]>([]);
+  public transactionsBudgetGoalTag$ = this.transactionsBudgetGoalTag.asObservable();
+
+  private goalTag = new BehaviorSubject<any[]>([]);
+  public goalTag$ = this.goalTag.asObservable();
 
   userData: User | any;
 
@@ -33,12 +39,14 @@ export class DatabaseService {
         this.userData = user;
         this.allaccount();
         this.transactionByUserId();
+        this.goalTagByUserId();
+        this.budgetTagByUserId();
       }
     });
   }
 
   private accountChanges = supabase
-    .channel('schema-db-changes')
+    .channel('account-changes')
     .on(
       'postgres_changes',
       {
@@ -47,14 +55,13 @@ export class DatabaseService {
         table: 'account',
       },
       (payload) => {
-        console.log(payload);
         this.allaccount();
       }
     )
     .subscribe();
 
   private transactionChanges = supabase
-    .channel('schema-db-changes')
+    .channel('transaction-changes')
     .on(
       'postgres_changes',
       {
@@ -63,8 +70,22 @@ export class DatabaseService {
         table: 'transaction',
       },
       (payload) => {
-        console.log(payload);
-        this.transactionByUserId();
+        this.transactionBudgetGoalTagByUserId();
+      }
+    )
+    .subscribe();
+
+  private goalChanges = supabase
+    .channel('goal-changes')
+    .on(
+      'postgres_changes',
+      {
+        schema: 'public', // Subscribes to the "public" schema in Postgres
+        event: '*', // Listen to all changes
+        table: 'goal',
+      },
+      (payload) => {
+        this.goalTagByUserId();
       }
     )
     .subscribe();
@@ -166,6 +187,23 @@ export class DatabaseService {
       .eq('budgettype', type);
   }
 
+  async budgetTagByUserId() {
+    const { data, error } = await supabase
+      .from('budget')
+      .select(
+        `
+      *,
+      tag (*)
+    `
+      )
+      .eq('userid', this.userData.id);
+    if (data && !error) {
+      this.budgetTag.next(data);
+    } else {
+      console.error('Error fetching budget with related data:', error);
+    }
+  }
+
   // budgetByAccountId(accId: string) {
   //   return supabase.from('budget').select(`*`).eq('accountid', accId);
   // }
@@ -200,6 +238,25 @@ export class DatabaseService {
 
   goal(user: User) {
     return supabase.from('goal').select(`*`).eq('userid', user.id);
+  }
+
+  async goalTagByUserId() {
+    const { data, error } = await supabase
+      .from('goal')
+      .select(
+        `
+      *,
+      tag (*),
+      account (*)
+    `
+      )
+      .eq('userid', this.userData.id);
+
+    if (data && !error) {
+      this.goalTag.next(data);
+    } else {
+      console.error('Error fetching goal with related data:', error);
+    }
   }
 
   createGoal(goal: any) {
@@ -245,7 +302,7 @@ export class DatabaseService {
     // return supabase.from('transaction').select(`*`).eq('userid', user.id);
   }
 
-  async transactionBudgetTagByUserId() {
+  async transactionBudgetGoalTagByUserId() {
     const { data, error } = await supabase
       .from('transaction')
       .select(
@@ -254,13 +311,17 @@ export class DatabaseService {
       budget (
         *,
         tag (*)
+      ),
+      goal (
+        *,
+        tag (*)
       )
     `
       )
       .eq('userid', this.userData.id);
 
     if (data && !error) {
-      this.transactionsBudgetTag.next(data);
+      this.transactionsBudgetGoalTag.next(data);
     } else {
       console.error('Error fetching transactions with related data:', error);
     }

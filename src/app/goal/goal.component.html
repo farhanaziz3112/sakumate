@@ -94,39 +94,41 @@
     >Accounts Goals</span
   >
   <div class="grid grid-cols-2 gap-2">
-    <ng-container *ngFor="let item of accGoals">
+    <ng-container *ngFor="let item of accgoals">
       <div
         class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
       >
         <div class="flex flex-row justify-between">
           <span
             class="text-center text-sm md:text-xs lg:text-sm font-semibold"
-            >{{ item.goalName }}</span
+            >{{ item.goalname }}</span
           >
           <!-- <span class="px-6 text-white bg-indigo-500 rounded-3xl"><fa-icon [icon]="getIcon('faChevronRight')"></fa-icon></span> -->
           <button
             class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-            (click)="goToGoal(item.goalName)"
+            (click)="goToGoal(item.id)"
           >
             <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
           </button>
         </div>
         <div class="flex flex-row h-full w-full items-center justify-evenly">
           <app-donut
-            [percentage]="getPercentage(item.currentAmount, item.targetAmount)"
+            [percentage]="
+              getPercentage(item.account.currentbalance, item.targetamount)
+            "
             color="text-violet-400"
           ></app-donut>
           <div class="flex flex-col gap-2">
             <div class="flex flex-col items-start">
               <span class="text-xs"> Current Value</span>
               <span class="text-2xl font-semibold">
-                {{ item.currentAmount | number : "1.2-2" }}
+                {{ item.account.currentbalance | number : "1.2-2" }}
               </span>
             </div>
             <div class="flex flex-col items-start">
               <span class="text-xs"> Target Value</span>
               <span class="text-2xl font-semibold">
-                {{ item.targetAmount | number : "1.2-2" }}
+                {{ item.targetamount | number : "1.2-2" }}
               </span>
             </div>
           </div>
@@ -138,39 +140,36 @@
     >Other Goals</span
   >
   <div class="grid grid-cols-2 gap-2">
-    <ng-container *ngFor="let item of otherGoals">
+    <ng-container *ngFor="let item of othergoals">
       <div
         class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
       >
         <div class="flex flex-row justify-between">
-          <span
-            class="text-center text-sm md:text-xs lg:text-sm font-semibold"
-            >{{ item.goalName }}</span
-          >
+          <app-tag [tag]="item.tag"></app-tag>
           <!-- <span class="px-6 text-white bg-indigo-500 rounded-3xl"><fa-icon [icon]="getIcon('faChevronRight')"></fa-icon></span> -->
           <button
             class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-            (click)="goToGoal(item.goalName)"
+            (click)="goToGoal(item.id)"
           >
             <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
           </button>
         </div>
         <div class="flex flex-row h-full w-full items-center justify-evenly">
           <app-donut
-            [percentage]="getPercentage(item.currentAmount, item.targetAmount)"
+            [percentage]="getPercentage(item.currentamount, item.targetamount)"
             color="text-violet-400"
           ></app-donut>
           <div class="flex flex-col gap-2">
             <div class="flex flex-col items-start">
               <span class="text-xs"> Current Value</span>
               <span class="text-2xl font-semibold">
-                {{ item.currentAmount | number : "1.2-2" }}
+                {{ item.currentamount | number : "1.2-2" }}
               </span>
             </div>
             <div class="flex flex-col items-start">
               <span class="text-xs"> Target Value</span>
               <span class="text-2xl font-semibold">
-                {{ item.targetAmount | number : "1.2-2" }}
+                {{ item.targetamount | number : "1.2-2" }}
               </span>
             </div>
           </div>
@@ -181,42 +180,4 @@
   <span class="text-sm lg-m:text-base font-semibold text-left mt-4"
     >Completed Goals</span
   >
-  <div class="grid grid-cols-2 gap-2">
-    <ng-container *ngFor="let item of accGoals">
-      <div
-        class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
-      >
-        <div class="flex flex-row justify-between">
-          <span
-            class="text-center text-sm md:text-xs lg:text-sm font-semibold"
-            >{{ item.goalName }}</span
-          >
-          <!-- <span class="px-6 text-white bg-indigo-500 rounded-3xl"><fa-icon [icon]="getIcon('faChevronRight')"></fa-icon></span> -->
-          <button
-            class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-            (click)="goToGoal(item.goalName)"
-          >
-            <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
-          </button>
-        </div>
-        <div class="flex flex-row h-full w-full items-center justify-evenly">
-          <app-donut [percentage]="100" color="text-green-600"></app-donut>
-          <div class="flex flex-col gap-2">
-            <div class="flex flex-col items-start">
-              <span class="text-xs"> Current Value</span>
-              <span class="text-2xl font-semibold">
-                {{ item.currentAmount | number : "1.2-2" }}
-              </span>
-            </div>
-            <div class="flex flex-col items-start">
-              <span class="text-xs"> Target Value</span>
-              <span class="text-2xl font-semibold">
-                {{ item.targetAmount | number : "1.2-2" }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </ng-container>
-  </div>
 </div>

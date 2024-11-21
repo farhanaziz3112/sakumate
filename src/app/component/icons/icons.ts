@@ -73,7 +73,9 @@ import {
   faPhone,
   faFilter,
   faSlash,
-  faTrash
+  faTrash,
+  faGamepad,
+  faMobilePhone,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const icons: { [key: string]: IconDefinition } = {
@@ -123,12 +125,12 @@ export const icons: { [key: string]: IconDefinition } = {
   faSignIn,
   faSignOut,
   faCircleExclamation,
-  faLeaf,            // Eco / Sustainability Expenses
-  faGraduationCap,   // Personal Development
-  faSnowflake,       // Seasonal / Holiday Spending
-  faSpa,             // Self-Care / Wellness
-  faTools,           // Maintenance / Repairs
-  faClipboardList,   // Plans / Goals Tracking
+  faLeaf, // Eco / Sustainability Expenses
+  faGraduationCap, // Personal Development
+  faSnowflake, // Seasonal / Holiday Spending
+  faSpa, // Self-Care / Wellness
+  faTools, // Maintenance / Repairs
+  faClipboardList, // Plans / Goals Tracking
   faCheck,
   faCogs,
   faTags,
@@ -149,54 +151,56 @@ export const icons: { [key: string]: IconDefinition } = {
   faPhone,
   faFilter,
   faSlash,
-  faTrash
+  faTrash,
+  faGamepad,
+  faMobilePhone,
 };
 
 export const tagIconsString = [
-  "faHamburger",       // Food
-  "faShoppingCart",    // Shopping
-  "faDollarSign",      // Salary
-  "faBus",             // Transport
-  "faFilm",            // Entertainment
-  "faLightbulb",       // Utilities
-  "faHeartbeat",       // Healthcare
-  "faChartLine",       // Investments
-  "faGift",            // Gifts
-  "faBook",            // Education
-  "faShieldAlt",       // Insurance
-  "faHome",            // Rent
-  "faUtensils",        // Dining Out
-  "faMedal",           // Bonuses
-  "faBriefcase",       // Freelance
-  "faPiggyBank",       // Savings
-  "faCarrot",          // Groceries
-  "faTshirt",          // Clothing
-  "faPlane",           // Travel
-  "faUniversity",      // Loan Payment
-  "faHandsHelping",    // Charity
-  "faPercentage",      // Interest
-  "faChartPie",        // Commission
-  "faBaby",            // Childcare
-  "faLaptop",          // Electronics
-  "faPaw",             // Pet Care
-  "faTv",              // Subscriptions
-  "faCouch",           // Household
-  "faCoins",           // Tips
-  "faChartBar",        // Investment Returns
-  "faMoneyCheckAlt",   // Other Income
-  "faQuestionCircle",  // Miscellaneous
-  "faAppleAlt",
-  "faShirt",
-  "faChild",
-  "faGasPump",
-  "faBurger",
-  "faLeaf",            // Eco / Sustainability Expenses
-  "faGraduationCap",   // Personal Development
-  "faSnowflake",       // Seasonal / Holiday Spending
-  "faSpa",             // Self-Care / Wellness
-  "faTools",           // Maintenance / Repairs
-  "faClipboardList",   // Plans / Goals Tracking
-  "faCar",
-  "faPhone"
+  'faHamburger', // Food
+  'faShoppingCart', // Shopping
+  'faDollarSign', // Salary
+  'faBus', // Transport
+  'faFilm', // Entertainment
+  'faLightbulb', // Utilities
+  'faHeartbeat', // Healthcare
+  'faChartLine', // Investments
+  'faGift', // Gifts
+  'faBook', // Education
+  'faShieldAlt', // Insurance
+  'faHome', // Rent
+  'faUtensils', // Dining Out
+  'faMedal', // Bonuses
+  'faBriefcase', // Freelance
+  'faPiggyBank', // Savings
+  'faCarrot', // Groceries
+  'faTshirt', // Clothing
+  'faPlane', // Travel
+  'faUniversity', // Loan Payment
+  'faHandsHelping', // Charity
+  'faPercentage', // Interest
+  'faChartPie', // Commission
+  'faBaby', // Childcare
+  'faLaptop', // Electronics
+  'faPaw', // Pet Care
+  'faTv', // Subscriptions
+  'faCouch', // Household
+  'faCoins', // Tips
+  'faChartBar', // Investment Returns
+  'faMoneyCheckAlt', // Other Income
+  'faQuestionCircle', // Miscellaneous
+  'faAppleAlt',
+  'faChild',
+  'faGasPump',
+  'faBurger',
+  'faLeaf', // Eco / Sustainability Expenses
+  'faGraduationCap', // Personal Development
+  'faSnowflake', // Seasonal / Holiday Spending
+  'faSpa', // Self-Care / Wellness
+  'faTools', // Maintenance / Repairs
+  'faClipboardList', // Plans / Goals Tracking
+  'faCar',
+  'faPhone',
+  'faGamepad',
+  'faMobilePhone',
 ];
-
