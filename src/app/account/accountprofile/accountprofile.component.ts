@@ -112,11 +112,17 @@ export class AccountprofileComponent implements OnInit {
       );
       this.unfilteredTransactions = [...this.transactions];
       this.extractUniqueMonths();
+      this.getUniqueGoals();
+      this.getUniqueBudgets();
       this.selectMonth(this.selectedMonth);
+      this.getMonthlyGoal();
+      this.getBudgets();
       this.updateNetIncomeLineChart();
       this.updateIncomeExpenseBarChart();
       this.updateGoalBarChart();
       this.updateGoalDonutChart();
+      this.updateIncomeDonutChart();
+      this.updateExpenseDonutChart();
       // this.cdr.detectChanges();
       this.updatePaginatedData();
     });
@@ -135,7 +141,7 @@ export class AccountprofileComponent implements OnInit {
   ngOnInit() {
     this.themeService.theme$.subscribe((theme) => {
       this.currentTheme = theme;
-      this.updateLineChartOptions();
+      this.updateChartOptions();
       // this.updateLineChartColors();
       //this.updateLineChartColors2();
       // this.updateBarChartColors();
@@ -216,7 +222,8 @@ export class AccountprofileComponent implements OnInit {
     );
     this.currentPage = 1;
     this.filteredTransactions = [...this.unfilteredTransactions];
-    this.updateIncomeExpenseLineChart();
+    this.updateDailyIncomeExpenseLineChart();
+    this.updateMonthlyIncomeExpenseLineChart();
     this.updatePaginatedData();
   }
 
@@ -593,15 +600,27 @@ export class AccountprofileComponent implements OnInit {
 
   public lineChartType: ChartType = 'line';
 
-  @ViewChild(BaseChartDirective) incomeLineChart?: BaseChartDirective;
+  @ViewChild(BaseChartDirective) dailyIncomeLineChart?: BaseChartDirective;
 
-  public incomeLineChartData: ChartConfiguration['data'] = {
+  public dailyIncomeLineChartData: ChartConfiguration['data'] = {
     datasets: [],
   };
 
-  @ViewChild(BaseChartDirective) expenseLineChart?: BaseChartDirective;
+  @ViewChild(BaseChartDirective) dailyExpenseLineChart?: BaseChartDirective;
 
-  public expenseLineChartData: ChartConfiguration['data'] = {
+  public dailyExpenseLineChartData: ChartConfiguration['data'] = {
+    datasets: [],
+  };
+
+  @ViewChild(BaseChartDirective) monthlyIncomeLineChart?: BaseChartDirective;
+
+  public monthlyIncomeLineChartData: ChartConfiguration['data'] = {
+    datasets: [],
+  };
+
+  @ViewChild(BaseChartDirective) monthlyExpenseLineChart?: BaseChartDirective;
+
+  public monthlyExpenseLineChartData: ChartConfiguration['data'] = {
     datasets: [],
   };
 
@@ -706,9 +725,141 @@ export class AccountprofileComponent implements OnInit {
     return data;
   }
 
-  getMonthlyGoalData() {
-    let goals: any[] = [];
+  uniqueGoals: any;
+  monthlyGoalsTotal: any;
+  totalGoals: any;
 
+  uniqueIncome: any;
+  uniqueExpense: any;
+  incomeTotal: any;
+  expenseTotal: any;
+  allIncomeTotal: any;
+  allExpenseTotal: any;
+
+  getUniqueBudgets() {
+    let income: any[] = [];
+    let expense: any[] = [];
+    this.transactions.forEach((transaction: any) => {
+      if (transaction.type === 'income' && transaction.budget) {
+        let exists = income.find((budget: any) => budget.id === transaction.budget.id);
+        if (!exists) {
+          income.push(transaction.budget);
+        }
+      }
+      if (transaction.type === 'expense' && transaction.budget) {
+        let exists = expense.find((budget: any) => budget.id === transaction.budget.id);
+        if (!exists) {
+          expense.push(transaction.budget);
+        }
+      }
+    });
+    this.uniqueIncome = income;
+    this.uniqueExpense = expense;
+  }
+
+  getBudgets() {
+    let incomeData: any[] = [];
+    let expenseData: any[] = [];
+    let incomeTotal = 0;
+    let expenseTotal = 0;
+    for (let i = 0; i < this.uniqueIncome.length; i++) {
+      let total = 0;
+      this.incomeTransactions.forEach((transaction: any) => {
+        if (transaction.budget.id === this.uniqueIncome[i].id) {
+          total += transaction.amount
+        }
+      });
+      incomeData.push({
+        budget: this.uniqueIncome[i],
+        total: total
+      })
+      incomeTotal += total;
+    }
+    for (let i = 0; i < this.uniqueExpense.length; i++) {
+      let total = 0;
+      this.expenseTransactions.forEach((transaction: any) => {
+        if (transaction.budget.id === this.uniqueExpense[i].id) {
+          total += -transaction.amount
+        }
+      });
+      expenseData.push({
+        budget: this.uniqueExpense[i],
+        total: total
+      })
+      expenseTotal += total;
+    }
+    this.allIncomeTotal = incomeTotal;
+    this.allExpenseTotal = expenseTotal;
+    this.incomeTotal = incomeData;
+    this.expenseTotal = expenseData;
+  }
+
+  getBudgetTotal(isIncome: boolean) {
+    let data: any[] = [];
+    if (isIncome) {
+      for (let i = 0; i < this.uniqueIncome.length; i++) {
+        let total = 0;
+        this.incomeTransactions.forEach((transaction: any) => {
+          if (
+            transaction.budget.id === this.uniqueIncome[i].id
+          ) {
+            total += -transaction.amount;
+          }
+        });
+        data.push(total);
+      }
+    } else {
+      for (let i = 0; i < this.uniqueExpense.length; i++) {
+        let total = 0;
+        this.expenseTransactions.forEach((transaction: any) => {
+          if (
+            transaction.budget.id === this.uniqueExpense[i].id
+          ) {
+            total += -transaction.amount;
+          }
+        });
+        data.push(total);
+      }
+    }
+    return data;
+  }
+
+  getBudgetColors(isIncome: boolean) {
+    let colors: any[] = [];
+    if (isIncome) {
+      this.uniqueIncome.forEach((budget: any) => {
+        let colorToConvert = ('bg-' +
+          budget.tag.color +
+          '-600') as keyof typeof colorToHex;
+        colors.push(colorToHex[colorToConvert]);
+      });
+    } else {
+      this.uniqueExpense.forEach((budget: any) => {
+        let colorToConvert = ('bg-' +
+          budget.tag.color +
+          '-600') as keyof typeof colorToHex;
+        colors.push(colorToHex[colorToConvert]);
+      });
+    }
+    return colors;
+  }
+
+  getBudgetLabel(isIncome: boolean) {
+    let labels: any[] = [];
+    if (isIncome) {
+      this.uniqueIncome.forEach((budget: any) => {
+        labels.push(budget.budgetname)
+      });
+    } else {
+      this.uniqueExpense.forEach((budget: any) => {
+        labels.push(budget.budgetname)
+      });
+    }
+    return labels;
+  }
+
+  getUniqueGoals() {
+    let goals: any[] = [];
     this.transactions.forEach((transaction: any) => {
       if (transaction.type === 'goal' && transaction.goal) {
         let exists = goals.find((goal: any) => goal.id === transaction.goal.id);
@@ -717,10 +868,33 @@ export class AccountprofileComponent implements OnInit {
         }
       }
     });
+    this.uniqueGoals = goals;
+  }
 
+  getMonthlyGoal() {
+    let data: any[] = [];
+    let goalTotal = 0
+    for (let i = 0; i < this.uniqueGoals.length; i++) {
+      let total = 0;
+      this.goalTransactions.forEach((transaction: any) => {
+        if (transaction.goal.id === this.uniqueGoals[i].id) {
+          total += -transaction.amount
+        }
+      });
+      data.push({
+        goal: this.uniqueGoals[i],
+        total: total
+      })
+      goalTotal += total;
+    }
+    this.totalGoals = goalTotal;
+    this.monthlyGoalsTotal = data;
+  }
+
+  getMonthlyGoalData() {
     let data: any[] = [];
 
-    for (let i = 0; i < goals.length; i++) {
+    for (let i = 0; i < this.uniqueGoals.length; i++) {
       let monthlyTotal: any[] = [];
       for (let j = 0; j < this.months.length; j++) {
         if (this.months[j] === 'All') {
@@ -733,7 +907,7 @@ export class AccountprofileComponent implements OnInit {
           let transactiondate = new Date(transaction.created_at);
           if (
             transaction.type === 'goal' &&
-            transaction.goal.id === goals[i].id &&
+            transaction.goal.id === this.uniqueGoals[i].id &&
             date.getMonth() === transactiondate.getMonth()
           ) {
             total += -transaction.amount;
@@ -742,11 +916,11 @@ export class AccountprofileComponent implements OnInit {
         monthlyTotal.push(total);
       }
       let colorToConvert = ('bg-' +
-        goals[i].tag.color +
-        '-400') as keyof typeof colorToHex;
+        this.uniqueGoals[i].tag.color +
+        '-600') as keyof typeof colorToHex;
       data.push({
         data: monthlyTotal,
-        label: goals[i].goalname,
+        label: this.uniqueGoals[i].goalname,
         backgroundColor: colorToHex[colorToConvert],
         stack: 'a',
         barThickness: 50,
@@ -755,73 +929,51 @@ export class AccountprofileComponent implements OnInit {
     return data;
   }
 
-  getMonthlyGoalTotal() {
-    let goals: any[] = [];
-
-    this.transactions.forEach((transaction: any) => {
-      if (transaction.type === 'goal' && transaction.goal) {
-        let exists = goals.find((goal: any) => goal.id === transaction.goal.id);
-        if (!exists) {
-          goals.push(transaction.goal);
-        }
-      }
-    });
-
+  getGoalTotal() {
     let data: any[] = [];
-
-    for (let i = 0; i < goals.length; i++) {
+    for (let i = 0; i < this.uniqueGoals.length; i++) {
       let total = 0;
-      for (let j = 0; j < this.months.length; j++) {
-        if (this.months[j] === 'All') {
-          continue;
+      this.goalTransactions.forEach((transaction: any) => {
+        if (
+          transaction.goal.id === this.uniqueGoals[i].id
+        ) {
+          total += -transaction.amount;
         }
-        const [monthStr, yearStr] = this.months[j].split(' ');
-        const date = new Date(`${monthStr} 1, ${yearStr}`);
-        this.unfilteredTransactions.forEach((transaction) => {
-          let transactiondate = new Date(transaction.created_at);
-          if (
-            transaction.type === 'goal' &&
-            transaction.goal.id === goals[i].id &&
-            date.getMonth() === transactiondate.getMonth()
-          ) {
-            total += -transaction.amount;
-          }
-        });
-      }
+      });
       data.push(total);
     }
     return data;
   }
 
   getMonthlyGoalColors() {
-    let goals: any[] = [];
     let colors: any[] = [];
 
-    this.transactions.forEach((transaction: any) => {
-      if (transaction.type === 'goal' && transaction.goal) {
-        let exists = goals.find((goal: any) => goal.id === transaction.goal.id);
-        if (!exists) {
-          let colorToConvert = ('bg-' +
-            transaction.goal.tag.color +
-            '-400') as keyof typeof colorToHex;
-          goals.push(transaction.goal);
-          colors.push(colorToHex[colorToConvert]);
-        }
-      }
+    this.uniqueGoals.forEach((goal: any) => {
+      let colorToConvert = ('bg-' +
+        goal.tag.color +
+        '-600') as keyof typeof colorToHex;
+      colors.push(colorToHex[colorToConvert]);
     });
 
     return colors;
   }
 
-  updateIncomeExpenseLineChart() {
-    this.incomeLineChartData = {
-      ...this.incomeLineChartData,
+  getMonthlyGoalLabel() {
+    let labels: any[] = [];
+
+    this.uniqueGoals.forEach((goal: any) => {
+      labels.push(goal.tag.tagname)
+    });
+
+    return labels;
+  }
+
+  updateDailyIncomeExpenseLineChart() {
+    this.dailyIncomeLineChartData = {
+      ...this.dailyIncomeLineChartData,
       datasets: [
         {
-          data:
-            this.selectedMonth === 'All'
-              ? this.getMonthlyIncomesData()
-              : this.getDailyIncomesData(),
+          data: this.getDailyIncomesData(),
           label: 'Incomes',
           pointBackgroundColor: 'rgba(148,159,177,1)',
           pointBorderColor: '#fff',
@@ -830,19 +982,13 @@ export class AccountprofileComponent implements OnInit {
           borderColor: 'rgba(74, 222, 128, 1)',
         },
       ],
-      labels:
-        this.selectedMonth === 'All'
-          ? this.getMonthLabel()
-          : this.getDailyLabel(),
+      labels: this.getDailyLabel(),
     };
-    this.expenseLineChartData = {
-      ...this.expenseLineChartData,
+    this.dailyExpenseLineChartData = {
+      ...this.dailyExpenseLineChartData,
       datasets: [
         {
-          data:
-            this.selectedMonth === 'All'
-              ? this.getMonthlyExpensesData()
-              : this.getDailyExpensesData(),
+          data: this.getDailyExpensesData(),
           label: 'Expenses',
           pointBackgroundColor: 'rgba(148,159,177,1)',
           pointBorderColor: '#fff',
@@ -851,10 +997,40 @@ export class AccountprofileComponent implements OnInit {
           borderColor: 'rgba(248, 113, 113, 1)',
         },
       ],
-      labels:
-        this.selectedMonth === 'All'
-          ? this.getMonthLabel()
-          : this.getDailyLabel(),
+      labels: this.getDailyLabel(),
+    };
+  }
+
+  updateMonthlyIncomeExpenseLineChart() {
+    this.monthlyIncomeLineChartData = {
+      ...this.monthlyIncomeLineChartData,
+      datasets: [
+        {
+          data: this.getMonthlyIncomesData(),
+          label: 'Incomes',
+          pointBackgroundColor: 'rgba(148,159,177,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(148,159,177,0.8)',
+          borderColor: 'rgba(74, 222, 128, 1)',
+        },
+      ],
+      labels: this.getMonthLabel(),
+    };
+    this.monthlyExpenseLineChartData = {
+      ...this.monthlyExpenseLineChartData,
+      datasets: [
+        {
+          data: this.getMonthlyExpensesData(),
+          label: 'Expenses',
+          pointBackgroundColor: 'rgba(148,159,177,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(148,159,177,0.8)',
+          borderColor: 'rgba(248, 113, 113, 1)',
+        },
+      ],
+      labels: this.getMonthLabel(),
     };
   }
 
@@ -936,7 +1112,7 @@ export class AccountprofileComponent implements OnInit {
 
   //------------------------------------Update Chart Option------------------------------------
 
-  updateLineChartOptions() {
+  updateChartOptions() {
     if (this.currentTheme === 'dark') {
       this.lineChartOptions = {
         ...this.lineChartOptions,
@@ -1002,6 +1178,26 @@ export class AccountprofileComponent implements OnInit {
             enabled: true,
           },
         },
+      };
+      this.doughnutChartOptions = {
+        ...this.doughnutChartOptions,
+        plugins: {
+          legend: {
+            display: true,
+          },
+        },
+      };
+      this.goalDonutChartData = {
+        ...this.goalDonutChartData,
+        labels: this.getMonthlyGoalLabel(),
+        datasets: [
+          {
+            data: this.getGoalTotal(),
+            backgroundColor: this.getMonthlyGoalColors(),
+            borderWidth: 1,
+            borderColor: '#0f172a'
+          },
+        ],
       };
     } else {
       this.lineChartOptions = {
@@ -1069,9 +1265,32 @@ export class AccountprofileComponent implements OnInit {
           },
         },
       };
+      this.doughnutChartOptions = {
+        ...this.doughnutChartOptions,
+        plugins: {
+          legend: {
+            display: false,
+          },
+        },
+      };
+      this.goalDonutChartData = {
+        ...this.goalDonutChartData,
+        labels: this.getMonthlyGoalLabel(),
+        datasets: [
+          {
+            data: this.getGoalTotal(),
+            backgroundColor: this.getMonthlyGoalColors(),
+            borderWidth: 1,
+            borderColor: 'white'
+          },
+        ],
+      };
     }
-    this.incomeLineChart?.update();
-    this.expenseLineChart?.update();
+    this.goalDonutChart?.update();
+    this.dailyIncomeLineChart?.update();
+    this.dailyExpenseLineChart?.update();
+    this.monthlyExpenseLineChart?.update();
+    this.monthlyIncomeLineChart?.update();
     this.netIncomeLineChart?.update();
   }
 
@@ -1194,7 +1413,11 @@ export class AccountprofileComponent implements OnInit {
     | BaseChartDirective<'doughnut'>
     | undefined;
 
-  @ViewChild(BaseChartDirective) donutChart2:
+  @ViewChild(BaseChartDirective) incomeDonutChart:
+    | BaseChartDirective<'doughnut'>
+    | undefined;
+
+  @ViewChild(BaseChartDirective) expenseDonutChart:
     | BaseChartDirective<'doughnut'>
     | undefined;
 
@@ -1202,125 +1425,146 @@ export class AccountprofileComponent implements OnInit {
     datasets: [],
   };
 
-  public doughnutChartData2: ChartData<'doughnut'> = {
-    labels: ['Salary', 'Investments', 'Freelance'],
-    datasets: [
-      {
-        data: [3200, 450, 1000],
-        backgroundColor: [
-          'rgba(34, 197, 94, 1)',
-          'rgba(99, 102, 241, 1)',
-          'rgba(37, 99, 235, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
+  public incomeDonutChartData: ChartData<'doughnut'> = {
+    datasets: [],
   };
 
+  public expenseDonutChartData: ChartData<'doughnut'> = {
+    datasets: [],
+  };
   updateGoalDonutChart() {
     this.goalDonutChartData = {
       ...this.goalDonutChartData,
+      labels: this.getMonthlyGoalLabel(),
       datasets: [
         {
-          data: this.getMonthlyGoalTotal(),
+          data: this.getGoalTotal(),
           backgroundColor: this.getMonthlyGoalColors(),
           borderWidth: 1,
-          borderColor: 'white',
         },
       ],
     };
-    // this.doughnutChartOptions = {
-    //   ...this.doughnutChartOptions,
-    //   plugins: {
-    //     legend: {
-    //       display: true,
-    //       position: 'top',
-    //       labels: {
-    //         color: 'white',
-    //       },
-    //     },
-    //   },
-    // };
-    // this.doughnutChartData2 = {
-    //   ...this.doughnutChartData2,
-    //   datasets: [
-    //     {
-    //       data: [3200, 450, 1000],
-    //       backgroundColor: [
-    //         'rgba(34, 197, 94, 1)',
-    //         'rgba(99, 102, 241, 1)',
-    //         'rgba(37, 99, 235, 1)',
-    //       ],
-    //       borderWidth: 1,
-    //       borderColor: 'rgba(15, 23, 42, 1)',
-    //     },
-    //   ],
-    // };
-    // this.doughnutChartOptions2 = {
-    //   ...this.doughnutChartOptions2,
-    //   plugins: {
-    //     legend: {
-    //       display: true,
-    //       position: 'top',
-    //       labels: {
-    //         color: 'white',
-    //       },
-    //     },
-    //   },
-    // };
-    // } else {
-    //   this.doughnutChartData = {
-    //     ...this.doughnutChartData,
-    //     datasets: [
-    //       {
-    //         data: [350, 450, 100],
-    //         backgroundColor: ['#FF6384', '#36A2EB', 'rgba(251, 146, 60, 1)'],
-    //         borderWidth: 1,
-    //         borderColor: 'white',
-    //       },
-    //     ],
-    //   };
-    //   this.doughnutChartOptions = {
-    //     ...this.doughnutChartOptions,
-    //     plugins: {
-    //       legend: {
-    //         display: true,
-    //         position: 'top',
-    //         labels: {
-    //           color: 'black',
-    //         },
-    //       },
-    //     },
-    //   };
-    //   this.doughnutChartData2 = {
-    //     ...this.doughnutChartData2,
-    //     datasets: [
-    //       {
-    //         data: [3200, 450, 1000],
-    //         backgroundColor: [
-    //           'rgba(34, 197, 94, 1)',
-    //           'rgba(99, 102, 241, 1)',
-    //           'rgba(37, 99, 235, 1)',
-    //         ],
-    //         borderWidth: 1,
-    //         borderColor: 'white',
-    //       },
-    //     ],
-    //   };
-    //   this.doughnutChartOptions2 = {
-    //     ...this.doughnutChartOptions2,
-    //     plugins: {
-    //       legend: {
-    //         display: true,
-    //         position: 'top',
-    //         labels: {
-    //           color: 'black',
-    //         },
-    //       },
-    //     },
-    //   };
-    // }
-    // this.donutChart?.update();
-    // this.donutChart2?.update();
   }
+
+  updateIncomeDonutChart() {
+    this.incomeDonutChartData = {
+      ...this.incomeDonutChartData,
+      labels: this.getBudgetLabel(true),
+      datasets: [
+        {
+          data: this.getBudgetTotal(true),
+          backgroundColor: this.getBudgetColors(true),
+          borderWidth: 1,
+        },
+      ],
+    };
+  }
+
+  updateExpenseDonutChart() {
+    this.expenseDonutChartData = {
+      ...this.expenseDonutChartData,
+      labels: this.getBudgetLabel(false),
+      datasets: [
+        {
+          data: this.getBudgetTotal(false),
+          backgroundColor: this.getBudgetColors(false),
+          borderWidth: 1,
+        },
+      ],
+    };
+  }
+  // this.doughnutChartOptions = {
+  //   ...this.doughnutChartOptions,
+  //   plugins: {
+  //     legend: {
+  //       display: true,
+  //       position: 'top',
+  //       labels: {
+  //         color: 'white',
+  //       },
+  //     },
+  //   },
+  // };
+  // this.doughnutChartData2 = {
+  //   ...this.doughnutChartData2,
+  //   datasets: [
+  //     {
+  //       data: [3200, 450, 1000],
+  //       backgroundColor: [
+  //         'rgba(34, 197, 94, 1)',
+  //         'rgba(99, 102, 241, 1)',
+  //         'rgba(37, 99, 235, 1)',
+  //       ],
+  //       borderWidth: 1,
+  //       borderColor: 'rgba(15, 23, 42, 1)',
+  //     },
+  //   ],
+  // };
+  // this.doughnutChartOptions2 = {
+  //   ...this.doughnutChartOptions2,
+  //   plugins: {
+  //     legend: {
+  //       display: true,
+  //       position: 'top',
+  //       labels: {
+  //         color: 'white',
+  //       },
+  //     },
+  //   },
+  // };
+  // } else {
+  //   this.doughnutChartData = {
+  //     ...this.doughnutChartData,
+  //     datasets: [
+  //       {
+  //         data: [350, 450, 100],
+  //         backgroundColor: ['#FF6384', '#36A2EB', 'rgba(251, 146, 60, 1)'],
+  //         borderWidth: 1,
+  //         borderColor: 'white',
+  //       },
+  //     ],
+  //   };
+  //   this.doughnutChartOptions = {
+  //     ...this.doughnutChartOptions,
+  //     plugins: {
+  //       legend: {
+  //         display: true,
+  //         position: 'top',
+  //         labels: {
+  //           color: 'black',
+  //         },
+  //       },
+  //     },
+  //   };
+  //   this.doughnutChartData2 = {
+  //     ...this.doughnutChartData2,
+  //     datasets: [
+  //       {
+  //         data: [3200, 450, 1000],
+  //         backgroundColor: [
+  //           'rgba(34, 197, 94, 1)',
+  //           'rgba(99, 102, 241, 1)',
+  //           'rgba(37, 99, 235, 1)',
+  //         ],
+  //         borderWidth: 1,
+  //         borderColor: 'white',
+  //       },
+  //     ],
+  //   };
+  //   this.doughnutChartOptions2 = {
+  //     ...this.doughnutChartOptions2,
+  //     plugins: {
+  //       legend: {
+  //         display: true,
+  //         position: 'top',
+  //         labels: {
+  //           color: 'black',
+  //         },
+  //       },
+  //     },
+  //   };
+  // }
+  // this.donutChart?.update();
+  // this.donutChart2?.update();
+
 }
