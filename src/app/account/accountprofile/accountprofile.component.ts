@@ -33,6 +33,10 @@ import { Sidebar } from 'primeng/sidebar';
 import { SidebarModule } from 'primeng/sidebar';
 import { ChangeDetectorRef } from '@angular/core';
 import { ColorService, colorToHex } from '../../service/color.service';
+import { DoughnutComponent } from '../../component/chart/doughnut/doughnut.component';
+import { LineComponent } from '../../component/chart/line/line.component';
+import { BarComponent } from '../../component/chart/bar/bar.component';
+import { ChartdataService } from '../../service/chartdata.service';
 
 @Component({
   selector: 'app-accountprofile',
@@ -47,6 +51,10 @@ import { ColorService, colorToHex } from '../../service/color.service';
     FormsModule,
     ReactiveFormsModule,
     SidebarModule,
+    DoughnutComponent,
+    LineComponent,
+    BarComponent,
+    PaginatorComponent
   ],
   templateUrl: './accountprofile.component.html',
   styleUrl: './accountprofile.component.css',
@@ -76,7 +84,8 @@ export class AccountprofileComponent implements OnInit {
     private fb: FormBuilder,
     private toastService: ToastService,
     private cdr: ChangeDetectorRef,
-    private colorService: ColorService
+    private colorService: ColorService,
+    private chartDataService: ChartdataService
   ) {
     this.id = this.route.snapshot.paramMap.get('id');
     this.route.paramMap.subscribe((params) => {
@@ -113,18 +122,16 @@ export class AccountprofileComponent implements OnInit {
       this.unfilteredTransactions = [...this.transactions];
       this.extractUniqueMonths();
       this.getUniqueGoals();
-      this.getUniqueBudgets();
+      this.getUniqueIncomes();
+      this.getUniqueExpenses();
       this.selectMonth(this.selectedMonth);
-      this.getMonthlyGoal();
-      this.getBudgets();
+      this.getTransactions();
       this.updateNetIncomeLineChart();
       this.updateIncomeExpenseBarChart();
       this.updateGoalBarChart();
       this.updateGoalDonutChart();
       this.updateIncomeDonutChart();
       this.updateExpenseDonutChart();
-      // this.cdr.detectChanges();
-      this.updatePaginatedData();
     });
     this.addMoneyForm = this.fb.group({
       amount: ['', [Validators.required]],
@@ -141,11 +148,6 @@ export class AccountprofileComponent implements OnInit {
   ngOnInit() {
     this.themeService.theme$.subscribe((theme) => {
       this.currentTheme = theme;
-      this.updateChartOptions();
-      // this.updateLineChartColors();
-      //this.updateLineChartColors2();
-      // this.updateBarChartColors();
-      // this.updateDonutChartColors();
     });
   }
 
@@ -220,11 +222,9 @@ export class AccountprofileComponent implements OnInit {
       (transaction) =>
         transaction.type === 'goal' && transaction.accountid === this.id
     );
-    this.currentPage = 1;
     this.filteredTransactions = [...this.unfilteredTransactions];
     this.updateDailyIncomeExpenseLineChart();
     this.updateMonthlyIncomeExpenseLineChart();
-    this.updatePaginatedData();
   }
 
   selectedMonth: any;
@@ -234,26 +234,7 @@ export class AccountprofileComponent implements OnInit {
   monthSet = new Set<any[]>();
 
   extractUniqueMonths() {
-    const monthSet = new Set<string>();
-
-    this.transactions.forEach((transaction: any) => {
-      const date = new Date(transaction.created_at);
-      const monthYear = date.toLocaleString('default', {
-        month: 'short',
-        year: 'numeric',
-      });
-      monthSet.add(monthYear);
-    });
-
-    this.months = Array.from(monthSet).sort((a, b) => {
-      const [monthA, yearA] = a.split(' ');
-      const [monthB, yearB] = b.split(' ');
-      const dateA = new Date(`${monthA} 1, ${yearA}`);
-      const dateB = new Date(`${monthB} 1, ${yearB}`);
-      return dateA.getTime() - dateB.getTime();
-    });
-
-    this.months.push('All');
+    this.months = this.chartDataService.extractUniqueMonths(this.transactions);
     this.selectedMonth = this.months[this.months.length - 1];
   }
 
@@ -370,8 +351,6 @@ export class AccountprofileComponent implements OnInit {
         });
       }
     }
-    this.currentPage = 1;
-    this.updatePaginatedData();
     this.viewFilterDialog = false;
     this.filterOn = true;
   }
@@ -380,67 +359,9 @@ export class AccountprofileComponent implements OnInit {
     this.filteredTransactions = [...this.unfilteredTransactions];
     this.transactionSort = null;
     this.transactionType = null;
-    this.currentPage = 1;
-    this.updatePaginatedData();
     this.viewFilterDialog = false;
     this.filterOn = false;
   }
-
-  //-----------------------------------Paginators--------------------------------
-
-  viewTransactionDialog: boolean = false;
-  clickedTransaction: any;
-
-  toggleTransactionDialog(transaction: any) {
-    this.viewTransactionDialog = !this.viewTransactionDialog;
-    this.clickedTransaction = transaction;
-  }
-
-  itemsPerPage: number = 7;
-  currentPage: number = 1;
-  totalPage: number = 0;
-  paginatedData: any[] = [];
-  displayedPages: number[] = [];
-
-  updatePaginatedData() {
-    this.totalPage = Math.ceil(
-      this.filteredTransactions.length / this.itemsPerPage
-    );
-    this.getDisplayedPages();
-    let startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    let endIndex = startIndex + this.itemsPerPage;
-    this.paginatedData = this.filteredTransactions.slice(startIndex, endIndex);
-  }
-
-  goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPage) {
-      this.currentPage = page;
-      this.updatePaginatedData();
-    }
-  }
-
-  getDisplayedPages() {
-    let pages: number[] = [];
-    let total = this.totalPage;
-    let range = 2;
-
-    let start = Math.max(1, this.currentPage - range);
-    let end = Math.min(total, this.currentPage + range);
-
-    if (this.currentPage <= range + 1) {
-      end = Math.min(total, range * 2 + 1);
-    }
-    if (this.currentPage >= total - range) {
-      start = Math.max(1, total - range * 2);
-    }
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-
-    this.displayedPages = pages;
-  }
-
   //-----------------------------------Add / Minus Money --------------------------------
 
   budgets: any;
@@ -576,396 +497,248 @@ export class AccountprofileComponent implements OnInit {
     return isInvalid;
   }
 
-  //------------------------------------Incomes and Expenses Line Chart------------------------------------
+  //------------------------------------Charts Function------------------------------------
 
-  monthsLabel = [
-    'Jan',
-    'Feb',
-    'Mac',
-    'Apr',
-    'May',
-    'June',
-    'July',
-    'Aug',
-    'Sept',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
+  getMonthLabel() {
+    return this.chartDataService.getMonthLabel(this.months);
+  }
 
-  dayslabel = [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-    22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-  ];
+  getDailyLabel() {
+    return this.chartDataService.getDailyLabel(this.selectedMonth);
+  }
 
-  public lineChartType: ChartType = 'line';
+  uniqueGoals: any;
+  uniqueIncome: any;
+  uniqueExpense: any;
 
-  @ViewChild(BaseChartDirective) dailyIncomeLineChart?: BaseChartDirective;
+  //with budget or goal
+  incomeTotalWithBudget: any;
+  expenseTotalWithBudget: any;
+  goalTotalWithGoal: any;
+
+  allIncomeTotal: any;
+  allExpenseTotal: any;
+  allGoalsTotal: any;
+
+  getUniqueIncomes() {
+    this.uniqueIncome = this.chartDataService.getUniqueIncomes(
+      this.transactions
+    );
+  }
+
+  getUniqueExpenses() {
+    this.uniqueExpense = this.chartDataService.getUniqueExpenses(
+      this.transactions
+    );
+  }
+
+  getUniqueGoals() {
+    this.uniqueGoals = this.chartDataService.getUniqueGoals(this.transactions);
+  }
+
+  getTransactions() {
+    this.allIncomeTotal = this.chartDataService.getTransactionOverallTotal(
+      this.incomeTransactions,
+      'income'
+    );
+    this.allExpenseTotal = this.chartDataService.getTransactionOverallTotal(
+      this.expenseTransactions,
+      'expense'
+    );
+    this.allGoalsTotal = this.chartDataService.getTransactionOverallTotal(
+      this.goalTransactions,
+      'goal'
+    );
+    this.incomeTotalWithBudget = this.chartDataService.getTransactionTotal(
+      this.uniqueIncome,
+      this.incomeTransactions,
+      'income'
+    );
+    this.expenseTotalWithBudget = this.chartDataService.getTransactionTotal(
+      this.uniqueExpense,
+      this.expenseTransactions,
+      'expense'
+    );
+    this.goalTotalWithGoal = this.chartDataService.getTransactionTotal(
+      this.uniqueGoals,
+      this.goalTransactions,
+      'goal'
+    );
+  }
+
+  getTransactionsTotal(type: string) {
+    if (type === 'income') {
+      return this.incomeTotalWithBudget.map((item: any) => item.total);
+    } else if (type === 'expense') {
+      return this.expenseTotalWithBudget.map((item: any) => item.total);
+    } else {
+      return this.goalTotalWithGoal.map((item: any) => item.total);
+    }
+  }
+
+  getTransactionsColors(type: string) {
+    if (type === 'income') {
+      return this.uniqueIncome.map((item: any) => {
+        let colorToConvert = ('bg-' +
+          item.tag.color +
+          '-600') as keyof typeof colorToHex;
+        return colorToHex[colorToConvert];
+      });
+    } else if (type === 'expense') {
+      return this.uniqueExpense.map((item: any) => {
+        let colorToConvert = ('bg-' +
+          item.tag.color +
+          '-600') as keyof typeof colorToHex;
+        return colorToHex[colorToConvert];
+      });
+    } else {
+      return this.uniqueGoals.map((item: any) => {
+        let colorToConvert = ('bg-' +
+          item.tag.color +
+          '-600') as keyof typeof colorToHex;
+        return colorToHex[colorToConvert];
+      });
+    }
+  }
+
+  getTransactionsLabel(type: string) {
+    if (type === 'income') {
+      return this.uniqueIncome.map((item: any) => item.budgetname);
+    } else if (type === 'expense') {
+      return this.uniqueExpense.map((item: any) => item.budgetname);
+    } else {
+      return this.uniqueGoals.map((item: any) => item.goalname);
+    }
+  }
+
+  //-----------------------------------Chart Data and Update------------------------------------
 
   public dailyIncomeLineChartData: ChartConfiguration['data'] = {
     datasets: [],
   };
 
-  @ViewChild(BaseChartDirective) dailyExpenseLineChart?: BaseChartDirective;
-
   public dailyExpenseLineChartData: ChartConfiguration['data'] = {
     datasets: [],
   };
-
-  @ViewChild(BaseChartDirective) monthlyIncomeLineChart?: BaseChartDirective;
 
   public monthlyIncomeLineChartData: ChartConfiguration['data'] = {
     datasets: [],
   };
 
-  @ViewChild(BaseChartDirective) monthlyExpenseLineChart?: BaseChartDirective;
-
   public monthlyExpenseLineChartData: ChartConfiguration['data'] = {
     datasets: [],
   };
-
-  @ViewChild(BaseChartDirective) goalLineChart?: BaseChartDirective;
 
   public goalLineChartData: ChartConfiguration['data'] = {
     datasets: [],
   };
 
-  getMonthLabel() {
-    const currentDate = new Date();
-    let monthsWithoutAll = [...this.months];
-    monthsWithoutAll = monthsWithoutAll.filter((month) => month !== 'All');
-    return monthsWithoutAll;
+  public incomeExpenseBarChartData: ChartData<'bar'> = {
+    datasets: [],
+  };
+
+  public goalBarChartData: ChartData<'bar'> = {
+    datasets: [],
+  };
+
+  public netIncomeLineChartData: ChartConfiguration['data'] = {
+    datasets: [],
+  };
+
+  public goalDonutChartData: ChartData<'doughnut'> = {
+    datasets: [],
+  };
+
+  public incomeDonutChartData: ChartData<'doughnut'> = {
+    datasets: [],
+  };
+
+  public expenseDonutChartData: ChartData<'doughnut'> = {
+    datasets: [],
+  };
+
+  updateIncomeExpenseBarChart() {
+    this.incomeExpenseBarChartData = {
+      ...this.incomeExpenseBarChartData,
+      datasets: [
+        {
+          data: this.chartDataService.getMonthlyTransactionsData(
+            this.months,
+            this.transactions,
+            'income'
+          ),
+          label: 'Incomes',
+          backgroundColor: 'rgba(74, 222, 128, 1)',
+          barThickness: 40,
+        },
+        {
+          data: this.chartDataService.getMonthlyTransactionsData(
+            this.months,
+            this.transactions,
+            'expense'
+          ),
+          label: 'Expenses',
+          backgroundColor: 'rgba(248, 113, 113, 1)',
+          barThickness: 40,
+        },
+      ],
+      labels: this.chartDataService.getMonthLabel(this.months),
+    };
   }
 
-  getDailyLabel() {
-    const currentDate = new Date();
-    const [monthStr, yearStr] = this.selectedMonth.split(' ');
-    const date = new Date(`${monthStr} 1, ${yearStr}`);
-    const newDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-    if (date.getMonth() === currentDate.getMonth()) {
-      return this.dayslabel.slice(0, currentDate.getDate());
-    } else {
-      return this.dayslabel.slice(0, newDate.getDate());
-    }
+  updateGoalBarChart() {
+    this.goalBarChartData = {
+      ...this.goalBarChartData,
+      datasets: this.chartDataService.getTransactionsStackedData(
+        this.uniqueGoals,
+        this.goalTransactions,
+        this.months,
+        'goal'
+      ),
+      labels: this.getMonthLabel(),
+    };
   }
 
-  getDailyIncomesData() {
-    let data: any[] = [];
-    for (let i = 1; i < 32; i++) {
-      let total = 0;
-      this.unfilteredTransactions.forEach((transaction) => {
-        let date = new Date(transaction.created_at);
-        if (transaction.type === 'income' && date.getDate() === i) {
-          total += transaction.amount;
-        }
-      });
-      data.push(total);
-    }
-    return data;
+  updateGoalDonutChart() {
+    this.goalDonutChartData = {
+      ...this.goalDonutChartData,
+      labels: this.getTransactionsLabel('goal'),
+      datasets: [
+        {
+          data: this.getTransactionsTotal('goal'),
+          backgroundColor: this.getTransactionsColors('goal'),
+          borderWidth: 3,
+        },
+      ],
+    };
   }
 
-  getDailyExpensesData() {
-    let data: any[] = [];
-    for (let i = 1; i < 32; i++) {
-      let total = 0;
-      this.unfilteredTransactions.forEach((transaction) => {
-        let date = new Date(transaction.created_at);
-        if (transaction.type === 'expense' && date.getDate() === i) {
-          total += -transaction.amount;
-        }
-      });
-      data.push(total);
-    }
-    return data;
+  updateIncomeDonutChart() {
+    this.incomeDonutChartData = {
+      ...this.incomeDonutChartData,
+      labels: this.getTransactionsLabel('income'),
+      datasets: [
+        {
+          data: this.getTransactionsTotal('income'),
+          backgroundColor: this.getTransactionsColors('income'),
+          borderWidth: 3,
+        },
+      ],
+    };
   }
 
-  getMonthlyIncomesData() {
-    let data: any[] = [];
-    for (let i = 0; i < this.months.length; i++) {
-      if (this.months[i] === 'All') {
-        continue;
-      }
-      let total = 0;
-      const [monthStr, yearStr] = this.months[i].split(' ');
-      const date = new Date(`${monthStr} 1, ${yearStr}`);
-      this.unfilteredTransactions.forEach((transaction) => {
-        let transactiondate = new Date(transaction.created_at);
-        if (
-          transaction.type === 'income' &&
-          date.getMonth() === transactiondate.getMonth()
-        ) {
-          total += transaction.amount;
-        }
-      });
-      data.push(total);
-    }
-    return data;
-  }
-
-  getMonthlyExpensesData() {
-    let data: any[] = [];
-    for (let i = 0; i < this.months.length; i++) {
-      if (this.months[i] === 'All') {
-        continue;
-      }
-      let total = 0;
-      const [monthStr, yearStr] = this.months[i].split(' ');
-      const date = new Date(`${monthStr} 1, ${yearStr}`);
-      this.unfilteredTransactions.forEach((transaction) => {
-        let transactiondate = new Date(transaction.created_at);
-        if (
-          transaction.type === 'expense' &&
-          date.getMonth() === transactiondate.getMonth()
-        ) {
-          total += -transaction.amount;
-        }
-      });
-      data.push(total);
-    }
-    return data;
-  }
-
-  uniqueGoals: any;
-  monthlyGoalsTotal: any;
-  totalGoals: any;
-
-  uniqueIncome: any;
-  uniqueExpense: any;
-  incomeTotal: any;
-  expenseTotal: any;
-  allIncomeTotal: any;
-  allExpenseTotal: any;
-
-  getUniqueBudgets() {
-    let income: any[] = [];
-    let expense: any[] = [];
-    this.transactions.forEach((transaction: any) => {
-      if (transaction.type === 'income' && transaction.budget) {
-        let exists = income.find((budget: any) => budget.id === transaction.budget.id);
-        if (!exists) {
-          income.push(transaction.budget);
-        }
-      }
-      if (transaction.type === 'expense' && transaction.budget) {
-        let exists = expense.find((budget: any) => budget.id === transaction.budget.id);
-        if (!exists) {
-          expense.push(transaction.budget);
-        }
-      }
-    });
-    this.uniqueIncome = income;
-    this.uniqueExpense = expense;
-  }
-
-  getBudgets() {
-    let incomeData: any[] = [];
-    let expenseData: any[] = [];
-    let incomeTotal = 0;
-    let expenseTotal = 0;
-    for (let i = 0; i < this.uniqueIncome.length; i++) {
-      let total = 0;
-      this.incomeTransactions.forEach((transaction: any) => {
-        if (transaction.budget.id === this.uniqueIncome[i].id) {
-          total += transaction.amount
-        }
-      });
-      incomeData.push({
-        budget: this.uniqueIncome[i],
-        total: total
-      })
-      incomeTotal += total;
-    }
-    for (let i = 0; i < this.uniqueExpense.length; i++) {
-      let total = 0;
-      this.expenseTransactions.forEach((transaction: any) => {
-        if (transaction.budget.id === this.uniqueExpense[i].id) {
-          total += -transaction.amount
-        }
-      });
-      expenseData.push({
-        budget: this.uniqueExpense[i],
-        total: total
-      })
-      expenseTotal += total;
-    }
-    this.allIncomeTotal = incomeTotal;
-    this.allExpenseTotal = expenseTotal;
-    this.incomeTotal = incomeData;
-    this.expenseTotal = expenseData;
-  }
-
-  getBudgetTotal(isIncome: boolean) {
-    let data: any[] = [];
-    if (isIncome) {
-      for (let i = 0; i < this.uniqueIncome.length; i++) {
-        let total = 0;
-        this.incomeTransactions.forEach((transaction: any) => {
-          if (
-            transaction.budget.id === this.uniqueIncome[i].id
-          ) {
-            total += -transaction.amount;
-          }
-        });
-        data.push(total);
-      }
-    } else {
-      for (let i = 0; i < this.uniqueExpense.length; i++) {
-        let total = 0;
-        this.expenseTransactions.forEach((transaction: any) => {
-          if (
-            transaction.budget.id === this.uniqueExpense[i].id
-          ) {
-            total += -transaction.amount;
-          }
-        });
-        data.push(total);
-      }
-    }
-    return data;
-  }
-
-  getBudgetColors(isIncome: boolean) {
-    let colors: any[] = [];
-    if (isIncome) {
-      this.uniqueIncome.forEach((budget: any) => {
-        let colorToConvert = ('bg-' +
-          budget.tag.color +
-          '-600') as keyof typeof colorToHex;
-        colors.push(colorToHex[colorToConvert]);
-      });
-    } else {
-      this.uniqueExpense.forEach((budget: any) => {
-        let colorToConvert = ('bg-' +
-          budget.tag.color +
-          '-600') as keyof typeof colorToHex;
-        colors.push(colorToHex[colorToConvert]);
-      });
-    }
-    return colors;
-  }
-
-  getBudgetLabel(isIncome: boolean) {
-    let labels: any[] = [];
-    if (isIncome) {
-      this.uniqueIncome.forEach((budget: any) => {
-        labels.push(budget.budgetname)
-      });
-    } else {
-      this.uniqueExpense.forEach((budget: any) => {
-        labels.push(budget.budgetname)
-      });
-    }
-    return labels;
-  }
-
-  getUniqueGoals() {
-    let goals: any[] = [];
-    this.transactions.forEach((transaction: any) => {
-      if (transaction.type === 'goal' && transaction.goal) {
-        let exists = goals.find((goal: any) => goal.id === transaction.goal.id);
-        if (!exists) {
-          goals.push(transaction.goal);
-        }
-      }
-    });
-    this.uniqueGoals = goals;
-  }
-
-  getMonthlyGoal() {
-    let data: any[] = [];
-    let goalTotal = 0
-    for (let i = 0; i < this.uniqueGoals.length; i++) {
-      let total = 0;
-      this.goalTransactions.forEach((transaction: any) => {
-        if (transaction.goal.id === this.uniqueGoals[i].id) {
-          total += -transaction.amount
-        }
-      });
-      data.push({
-        goal: this.uniqueGoals[i],
-        total: total
-      })
-      goalTotal += total;
-    }
-    this.totalGoals = goalTotal;
-    this.monthlyGoalsTotal = data;
-  }
-
-  getMonthlyGoalData() {
-    let data: any[] = [];
-
-    for (let i = 0; i < this.uniqueGoals.length; i++) {
-      let monthlyTotal: any[] = [];
-      for (let j = 0; j < this.months.length; j++) {
-        if (this.months[j] === 'All') {
-          continue;
-        }
-        let total = 0;
-        const [monthStr, yearStr] = this.months[j].split(' ');
-        const date = new Date(`${monthStr} 1, ${yearStr}`);
-        this.unfilteredTransactions.forEach((transaction) => {
-          let transactiondate = new Date(transaction.created_at);
-          if (
-            transaction.type === 'goal' &&
-            transaction.goal.id === this.uniqueGoals[i].id &&
-            date.getMonth() === transactiondate.getMonth()
-          ) {
-            total += -transaction.amount;
-          }
-        });
-        monthlyTotal.push(total);
-      }
-      let colorToConvert = ('bg-' +
-        this.uniqueGoals[i].tag.color +
-        '-600') as keyof typeof colorToHex;
-      data.push({
-        data: monthlyTotal,
-        label: this.uniqueGoals[i].goalname,
-        backgroundColor: colorToHex[colorToConvert],
-        stack: 'a',
-        barThickness: 50,
-      });
-    }
-    return data;
-  }
-
-  getGoalTotal() {
-    let data: any[] = [];
-    for (let i = 0; i < this.uniqueGoals.length; i++) {
-      let total = 0;
-      this.goalTransactions.forEach((transaction: any) => {
-        if (
-          transaction.goal.id === this.uniqueGoals[i].id
-        ) {
-          total += -transaction.amount;
-        }
-      });
-      data.push(total);
-    }
-    return data;
-  }
-
-  getMonthlyGoalColors() {
-    let colors: any[] = [];
-
-    this.uniqueGoals.forEach((goal: any) => {
-      let colorToConvert = ('bg-' +
-        goal.tag.color +
-        '-600') as keyof typeof colorToHex;
-      colors.push(colorToHex[colorToConvert]);
-    });
-
-    return colors;
-  }
-
-  getMonthlyGoalLabel() {
-    let labels: any[] = [];
-
-    this.uniqueGoals.forEach((goal: any) => {
-      labels.push(goal.tag.tagname)
-    });
-
-    return labels;
+  updateExpenseDonutChart() {
+    this.expenseDonutChartData = {
+      ...this.expenseDonutChartData,
+      labels: this.getTransactionsLabel('expense'),
+      datasets: [
+        {
+          data: this.getTransactionsTotal('expense'),
+          backgroundColor: this.getTransactionsColors('expense'),
+          borderWidth: 3,
+        },
+      ],
+    };
   }
 
   updateDailyIncomeExpenseLineChart() {
@@ -973,7 +746,10 @@ export class AccountprofileComponent implements OnInit {
       ...this.dailyIncomeLineChartData,
       datasets: [
         {
-          data: this.getDailyIncomesData(),
+          data: this.chartDataService.getDailyTransactionsData(
+            this.unfilteredTransactions,
+            'income'
+          ),
           label: 'Incomes',
           pointBackgroundColor: 'rgba(148,159,177,1)',
           pointBorderColor: '#fff',
@@ -988,7 +764,10 @@ export class AccountprofileComponent implements OnInit {
       ...this.dailyExpenseLineChartData,
       datasets: [
         {
-          data: this.getDailyExpensesData(),
+          data: this.chartDataService.getDailyTransactionsData(
+            this.unfilteredTransactions,
+            'expense'
+          ),
           label: 'Expenses',
           pointBackgroundColor: 'rgba(148,159,177,1)',
           pointBorderColor: '#fff',
@@ -1006,7 +785,11 @@ export class AccountprofileComponent implements OnInit {
       ...this.monthlyIncomeLineChartData,
       datasets: [
         {
-          data: this.getMonthlyIncomesData(),
+          data: this.chartDataService.getMonthlyTransactionsData(
+            this.months,
+            this.transactions,
+            'income'
+          ),
           label: 'Incomes',
           pointBackgroundColor: 'rgba(148,159,177,1)',
           pointBorderColor: '#fff',
@@ -1021,7 +804,11 @@ export class AccountprofileComponent implements OnInit {
       ...this.monthlyExpenseLineChartData,
       datasets: [
         {
-          data: this.getMonthlyExpensesData(),
+          data: this.chartDataService.getMonthlyTransactionsData(
+            this.months,
+            this.transactions,
+            'expense'
+          ),
           label: 'Expenses',
           pointBackgroundColor: 'rgba(148,159,177,1)',
           pointBorderColor: '#fff',
@@ -1034,69 +821,15 @@ export class AccountprofileComponent implements OnInit {
     };
   }
 
-  public lineChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    elements: {
-      line: {
-        tension: 0.5,
-      },
-    },
-  };
-
-  //------------------------------------Net Income Line Chart------------------------------------
-
-  @ViewChild(BaseChartDirective) netIncomeLineChart?: BaseChartDirective;
-
-  public netIncomeLineChartData: ChartConfiguration['data'] = {
-    datasets: [],
-  };
-
-  @ViewChild(BaseChartDirective) lineChart?: BaseChartDirective;
-
-  getMonthlyNetIncome() {
-    let data: any[] = [];
-    for (let i = 0; i < this.months.length; i++) {
-      if (this.months[i] === 'All') {
-        continue;
-      }
-      let incomeTotal = 0;
-      let expenseTotal = 0;
-      let goalTotal = 0;
-      const [monthStr, yearStr] = this.months[i].split(' ');
-      const date = new Date(`${monthStr} 1, ${yearStr}`);
-      this.unfilteredTransactions.forEach((transaction) => {
-        let transactiondate = new Date(transaction.created_at);
-        if (
-          transaction.type === 'income' &&
-          date.getMonth() === transactiondate.getMonth()
-        ) {
-          incomeTotal += transaction.amount;
-        }
-        if (
-          transaction.type === 'expense' &&
-          date.getMonth() === transactiondate.getMonth()
-        ) {
-          expenseTotal += -transaction.amount;
-        }
-        if (
-          transaction.type === 'goal' &&
-          date.getMonth() === transactiondate.getMonth()
-        ) {
-          goalTotal += -transaction.amount;
-        }
-      });
-      data.push(incomeTotal - (expenseTotal + goalTotal));
-    }
-    return data;
-  }
-
   updateNetIncomeLineChart() {
     this.netIncomeLineChartData = {
       ...this.netIncomeLineChartData,
       datasets: [
         {
-          data: this.getMonthlyNetIncome(),
+          data: this.chartDataService.getMonthlyNetIncome(
+            this.months,
+            this.transactions
+          ),
           label: 'Net Income',
           pointBackgroundColor: 'rgba(148,159,177,1)',
           pointBorderColor: '#fff',
@@ -1107,191 +840,6 @@ export class AccountprofileComponent implements OnInit {
       ],
       labels: this.getMonthLabel(),
     };
-    this.netIncomeLineChart?.update();
-  }
-
-  //------------------------------------Update Chart Option------------------------------------
-
-  updateChartOptions() {
-    if (this.currentTheme === 'dark') {
-      this.lineChartOptions = {
-        ...this.lineChartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'white',
-            },
-          },
-        },
-      };
-      this.barChartOptions = {
-        ...this.barChartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'white',
-            },
-          },
-          tooltip: {
-            enabled: true,
-          },
-        },
-      };
-      this.doughnutChartOptions = {
-        ...this.doughnutChartOptions,
-        plugins: {
-          legend: {
-            display: true,
-          },
-        },
-      };
-      this.goalDonutChartData = {
-        ...this.goalDonutChartData,
-        labels: this.getMonthlyGoalLabel(),
-        datasets: [
-          {
-            data: this.getGoalTotal(),
-            backgroundColor: this.getMonthlyGoalColors(),
-            borderWidth: 1,
-            borderColor: '#0f172a'
-          },
-        ],
-      };
-    } else {
-      this.lineChartOptions = {
-        ...this.lineChartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'black',
-            },
-          },
-        },
-      };
-      this.barChartOptions = {
-        ...this.barChartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'black',
-            },
-          },
-          tooltip: {
-            enabled: true,
-          },
-        },
-      };
-      this.doughnutChartOptions = {
-        ...this.doughnutChartOptions,
-        plugins: {
-          legend: {
-            display: false,
-          },
-        },
-      };
-      this.goalDonutChartData = {
-        ...this.goalDonutChartData,
-        labels: this.getMonthlyGoalLabel(),
-        datasets: [
-          {
-            data: this.getGoalTotal(),
-            backgroundColor: this.getMonthlyGoalColors(),
-            borderWidth: 1,
-            borderColor: 'white'
-          },
-        ],
-      };
-    }
-    this.goalDonutChart?.update();
-    this.dailyIncomeLineChart?.update();
-    this.dailyExpenseLineChart?.update();
-    this.monthlyExpenseLineChart?.update();
-    this.monthlyIncomeLineChart?.update();
-    this.netIncomeLineChart?.update();
   }
 
   public lineChartData: ChartConfiguration['data'] = {
@@ -1324,247 +872,4 @@ export class AccountprofileComponent implements OnInit {
       'August',
     ],
   };
-
-  //------------------------------------Bar chart------------------------------------
-
-  public barChartOptions: ChartConfiguration<'bar'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-  };
-
-  public barChartType = 'bar' as const;
-
-  @ViewChild(BaseChartDirective) incomeExpenseBarChart:
-    | BaseChartDirective<'bar'>
-    | undefined;
-
-  public incomeExpenseBarChartData: ChartData<'bar'> = {
-    datasets: [],
-  };
-
-  @ViewChild(BaseChartDirective) goalBarChart:
-    | BaseChartDirective<'bar'>
-    | undefined;
-
-  public goalBarChartData: ChartData<'bar'> = {
-    datasets: [],
-  };
-
-  updateIncomeExpenseBarChart() {
-    this.incomeExpenseBarChartData = {
-      ...this.incomeExpenseBarChartData,
-      datasets: [
-        {
-          data: this.getMonthlyIncomesData(),
-          label: 'Incomes',
-          backgroundColor: 'rgba(74, 222, 128, 1)',
-        },
-        {
-          data: this.getMonthlyExpensesData(),
-          label: 'Expenses',
-          backgroundColor: 'rgba(248, 113, 113, 1)',
-        },
-      ],
-      labels: this.getMonthLabel(),
-    };
-    this.incomeExpenseBarChart?.update();
-  }
-
-  updateGoalBarChart() {
-    this.goalBarChartData = {
-      ...this.goalBarChartData,
-      datasets: this.getMonthlyGoalData(),
-      labels: this.getMonthLabel(),
-    };
-    this.incomeExpenseBarChart?.update();
-  }
-
-  @ViewChild(BaseChartDirective) barChart2:
-    | BaseChartDirective<'bar'>
-    | undefined;
-
-  public barChartOptions2: ChartConfiguration<'bar'>['options'] = {
-    scales: {
-      x: {},
-      y: {
-        min: 10,
-      },
-    },
-    plugins: {
-      legend: {
-        display: true,
-      },
-      tooltip: {
-        enabled: true,
-      },
-    },
-  };
-
-  //------------------------------------Donut chart------------------------------------
-
-  public doughnutChartType = 'doughnut' as const;
-
-  public doughnutChartOptions: ChartConfiguration<'doughnut'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-  };
-
-  @ViewChild(BaseChartDirective) goalDonutChart:
-    | BaseChartDirective<'doughnut'>
-    | undefined;
-
-  @ViewChild(BaseChartDirective) incomeDonutChart:
-    | BaseChartDirective<'doughnut'>
-    | undefined;
-
-  @ViewChild(BaseChartDirective) expenseDonutChart:
-    | BaseChartDirective<'doughnut'>
-    | undefined;
-
-  public goalDonutChartData: ChartData<'doughnut'> = {
-    datasets: [],
-  };
-
-  public incomeDonutChartData: ChartData<'doughnut'> = {
-    datasets: [],
-  };
-
-  public expenseDonutChartData: ChartData<'doughnut'> = {
-    datasets: [],
-  };
-  updateGoalDonutChart() {
-    this.goalDonutChartData = {
-      ...this.goalDonutChartData,
-      labels: this.getMonthlyGoalLabel(),
-      datasets: [
-        {
-          data: this.getGoalTotal(),
-          backgroundColor: this.getMonthlyGoalColors(),
-          borderWidth: 1,
-        },
-      ],
-    };
-  }
-
-  updateIncomeDonutChart() {
-    this.incomeDonutChartData = {
-      ...this.incomeDonutChartData,
-      labels: this.getBudgetLabel(true),
-      datasets: [
-        {
-          data: this.getBudgetTotal(true),
-          backgroundColor: this.getBudgetColors(true),
-          borderWidth: 1,
-        },
-      ],
-    };
-  }
-
-  updateExpenseDonutChart() {
-    this.expenseDonutChartData = {
-      ...this.expenseDonutChartData,
-      labels: this.getBudgetLabel(false),
-      datasets: [
-        {
-          data: this.getBudgetTotal(false),
-          backgroundColor: this.getBudgetColors(false),
-          borderWidth: 1,
-        },
-      ],
-    };
-  }
-  // this.doughnutChartOptions = {
-  //   ...this.doughnutChartOptions,
-  //   plugins: {
-  //     legend: {
-  //       display: true,
-  //       position: 'top',
-  //       labels: {
-  //         color: 'white',
-  //       },
-  //     },
-  //   },
-  // };
-  // this.doughnutChartData2 = {
-  //   ...this.doughnutChartData2,
-  //   datasets: [
-  //     {
-  //       data: [3200, 450, 1000],
-  //       backgroundColor: [
-  //         'rgba(34, 197, 94, 1)',
-  //         'rgba(99, 102, 241, 1)',
-  //         'rgba(37, 99, 235, 1)',
-  //       ],
-  //       borderWidth: 1,
-  //       borderColor: 'rgba(15, 23, 42, 1)',
-  //     },
-  //   ],
-  // };
-  // this.doughnutChartOptions2 = {
-  //   ...this.doughnutChartOptions2,
-  //   plugins: {
-  //     legend: {
-  //       display: true,
-  //       position: 'top',
-  //       labels: {
-  //         color: 'white',
-  //       },
-  //     },
-  //   },
-  // };
-  // } else {
-  //   this.doughnutChartData = {
-  //     ...this.doughnutChartData,
-  //     datasets: [
-  //       {
-  //         data: [350, 450, 100],
-  //         backgroundColor: ['#FF6384', '#36A2EB', 'rgba(251, 146, 60, 1)'],
-  //         borderWidth: 1,
-  //         borderColor: 'white',
-  //       },
-  //     ],
-  //   };
-  //   this.doughnutChartOptions = {
-  //     ...this.doughnutChartOptions,
-  //     plugins: {
-  //       legend: {
-  //         display: true,
-  //         position: 'top',
-  //         labels: {
-  //           color: 'black',
-  //         },
-  //       },
-  //     },
-  //   };
-  //   this.doughnutChartData2 = {
-  //     ...this.doughnutChartData2,
-  //     datasets: [
-  //       {
-  //         data: [3200, 450, 1000],
-  //         backgroundColor: [
-  //           'rgba(34, 197, 94, 1)',
-  //           'rgba(99, 102, 241, 1)',
-  //           'rgba(37, 99, 235, 1)',
-  //         ],
-  //         borderWidth: 1,
-  //         borderColor: 'white',
-  //       },
-  //     ],
-  //   };
-  //   this.doughnutChartOptions2 = {
-  //     ...this.doughnutChartOptions2,
-  //     plugins: {
-  //       legend: {
-  //         display: true,
-  //         position: 'top',
-  //         labels: {
-  //           color: 'black',
-  //         },
-  //       },
-  //     },
-  //   };
-  // }
-  // this.donutChart?.update();
-  // this.donutChart2?.update();
-
 }

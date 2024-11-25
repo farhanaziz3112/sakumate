@@ -5,38 +5,50 @@
     <tr
       class="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-200 text-sm"
     >
-      <th class="w-1/5 py-3 px-6 text-left">Type</th>
-      <th class="w-2/5 py-3 px-6 text-left">Title</th>
-      <th class="w-1/5 py-3 px-6 text-left">Amount</th>
-      <th class="w-1/5 py-3 px-6 text-left">Date</th>
+      <th class="w-1/6 py-3 px-6 text-left">Type</th>
+      <th class="w-2/6 py-3 px-6 text-left">Title</th>
+      <th class="w-1/6 py-3 px-6 text-left">For</th>
+      <th class="w-1/6 py-3 px-6 text-left">Amount</th>
+      <th class="w-1/6 py-3 px-6 text-left">Date</th>
     </tr>
   </thead>
-
   <tbody class="text-black dark:text-white text-sm font-light">
     <tr
       *ngFor="let transaction of paginatedData"
       class="border-b border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-      (click)="toggleDialog(transaction)"
+      (click)="toggleTransactionDialog(transaction)"
     >
       <td
-        class="w-1/5 py-3 px-6 text-left font-semibold"
+        class="w-1/6 py-3 px-6 text-left font-semibold"
         [ngClass]="
-          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+          transaction.type === 'income'
+            ? 'text-green-600'
+            : transaction.type === 'expense'
+            ? 'text-red-600'
+            : 'text-yellow-600'
         "
       >
         {{ transaction.type | uppercase }}
       </td>
-      <td class="w-1/5 py-3 px-6 text-left">
+      <td class="w-2/6 py-3 px-6 text-left">
         {{ transaction.title }}
       </td>
-      <td class="w-1/5 py-3 px-6 text-left">
+      <td class="w-1/6 py-3 px-6 text-left">
+        <app-tag
+          [tag]="
+            transaction.budget ? transaction.budget.tag : transaction.goal.tag
+          "
+        ></app-tag>
+      </td>
+      <td class="w-1/6 py-3 px-6 text-left font-semibold">
         {{ transaction.amount | number : "1.2-2" }}
       </td>
-      <td class="w-1/5 py-3 px-6 text-left">{{ transaction.created_at }}</td>
+      <td class="w-1/6 py-3 px-6 text-left">
+        {{ transaction.created_at | date : "yyyy-MM-dd" : "Asia/Kuala_Lumpur" }}
+      </td>
     </tr>
   </tbody>
 </table>
-
 <div class="flex justify-center items-center mt-4 gap-4">
   <button
     class="px-2 py-1 text-sm rounded-3xl hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -46,7 +58,6 @@
   >
     First
   </button>
-
   <button
     class="px-2 py-1 text-sm rounded-3xl hover:bg-gray-200 dark:hover:bg-gray-700"
     [ngClass]="currentPage === 1 ? 'bg-gray-200 dark:bg-gray-700' : ''"
@@ -55,7 +66,6 @@
   >
     <fa-icon [icon]="getIcon('faChevronLeft')"></fa-icon>
   </button>
-
   <ng-container *ngFor="let page of displayedPages">
     <button
       class="px-3 py-1 rounded-full hover:bg-indigo-500 hover:text-white"
@@ -66,7 +76,6 @@
       {{ page }}
     </button>
   </ng-container>
-
   <button
     class="px-2 py-1 text-sm rounded-3xl hover:bg-gray-200 dark:hover:bg-gray-700"
     [ngClass]="currentPage === totalPage ? 'bg-gray-200 dark:bg-gray-700' : ''"
@@ -87,7 +96,7 @@
 
 <p-dialog
   header="header"
-  [(visible)]="viewDialog"
+  [(visible)]="viewTransactionDialog"
   [modal]="true"
   [dismissableMask]="true"
 >
@@ -97,21 +106,21 @@
     >
       <div class="flex flex-col gap-2 w-full h-full justify-start">
         <div class="flex flex-col">
-          <span class="text-xs"> Name </span>
+          <span class="text-xs"> Title </span>
           <span class="text-base font-semibold">
-            {{ clickedData.transactionName }}
+            {{ clickedTransaction.transactionName }}
           </span>
         </div>
-        <div class="flex flex-col">
+        <!-- <div class="flex flex-col">
           <span class="text-xs"> Tag </span>
           <span class="text-base font-semibold">
             {{ clickedData.tagsID }}
           </span>
-        </div>
+        </div> -->
         <div class="flex flex-col">
           <span class="text-xs"> Amount </span>
           <span class="text-base font-semibold">
-            {{ clickedData.amount | number : "1.2-2" }}
+            {{ clickedTransaction.amount | number : "1.2-2" }}
           </span>
         </div>
         <div class="flex flex-col">
@@ -119,22 +128,29 @@
           <span
             class="text-base font-semibold"
             [ngClass]="
-              clickedData.type === 'income' ? 'text-green-600' : 'text-red-600'
+              clickedTransaction.type === 'income'
+                ? 'text-green-600'
+                : clickedTransaction.type === 'expense'
+                ? 'text-red-600'
+                : 'text-yellow-600'
             "
           >
-            {{ clickedData.type | uppercase }}
+            {{ clickedTransaction.type | uppercase }}
           </span>
         </div>
         <div class="flex flex-col">
           <span class="text-xs"> Description </span>
           <span class="text-base font-semibold">
-            {{ clickedData.description }}
+            {{ clickedTransaction.description }}
           </span>
         </div>
         <div class="flex flex-col">
           <span class="text-xs"> Date </span>
           <span class="text-base font-semibold">
-            {{ clickedData.createdDate }}
+            {{
+              clickedTransaction.created_at
+                | date : "yyyy-MM-dd HH:mm:ss" : "Asia/Kuala_Lumpur"
+            }}
           </span>
         </div>
       </div>

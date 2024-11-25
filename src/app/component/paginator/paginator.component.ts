@@ -1,61 +1,62 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { icons } from '../../component/icons/icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { DialogModule } from 'primeng/dialog';
 import { DatabaseService } from '../../service/database.service';
+import { TagComponent } from '../tag/tag.component';
 
 @Component({
   selector: 'app-paginator',
   standalone: true,
-  imports: [CommonModule, FontAwesomeModule, DialogModule],
+  imports: [CommonModule, FontAwesomeModule, DialogModule, TagComponent],
   templateUrl: './paginator.component.html',
   styleUrl: './paginator.component.css',
 })
-export class PaginatorComponent implements OnInit {
-  @Input() itemsPerPage: number = 2;
-  @Input() accountid: string = '';
+export class PaginatorComponent implements OnInit, OnChanges {
+  @Input() transactions: any[] = [];
 
-  transactions: any;
+  viewTransactionDialog: boolean = false;
+  clickedTransaction: any;
 
-  currentPage: number = 1;
-  totalPage: number = 0;
-
-  data: any[] = [];
-  paginatedData: any[] = [];
-  displayedPages: number[] = [];
-
-  viewDialog: boolean = false;
-  clickedData: any;
-
-  toggleDialog(data: any) {
-    this.viewDialog = !this.viewDialog;
-    this.clickedData = data;
+  toggleTransactionDialog(transaction: any) {
+    this.viewTransactionDialog = !this.viewTransactionDialog;
+    this.clickedTransaction = transaction;
   }
 
-  constructor(private dbService: DatabaseService) {
-    this.dbService.transactions$.subscribe((trans) => {
-      this.transactions = trans.filter(
-        (transaction) => transaction.accountid === this.accountid
-      );
-      this.updatedPaginatedData();
-      console.log(this.transactions);
-    });
-  }
+  constructor() {}
 
   ngOnInit() {}
 
-  updatedPaginatedData() {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['transactions'] && this.transactions.length > 0) {
+      this.currentPage = 1;
+      this.updatePaginatedData();
+    }
+  }
+
+  getIcon(icon: string) {
+    return icons[icon] || null;
+  }
+
+  itemsPerPage: number = 7;
+  currentPage: number = 1;
+  totalPage: number = 0;
+  paginatedData: any[] = [];
+  displayedPages: number[] = [];
+
+  updatePaginatedData() {
+    this.totalPage = Math.ceil(this.transactions.length / this.itemsPerPage);
     this.getDisplayedPages();
     let startIndex = (this.currentPage - 1) * this.itemsPerPage;
     let endIndex = startIndex + this.itemsPerPage;
-    this.paginatedData = this.data.slice(startIndex, endIndex);
+    this.paginatedData = this.transactions.slice(startIndex, endIndex);
   }
 
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPage) {
       this.currentPage = page;
-      this.updatedPaginatedData();
+      this.updatePaginatedData();
     }
   }
 
@@ -74,18 +75,10 @@ export class PaginatorComponent implements OnInit {
       start = Math.max(1, total - range * 2);
     }
 
-    console.log(start, end);
-    
-
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
     this.displayedPages = pages;
-    console.log(pages);
-  }
-
-  getIcon(icon: string) {
-    return icons[icon] || null;
   }
 }
