@@ -291,7 +291,7 @@ export class ChartdataService {
             : uniqueType[i].goalname,
         backgroundColor: colorToHex[colorToConvert],
         stack: 'a',
-        barThickness: 50,
+        barThickness: 30,
       });
     }
     return data;

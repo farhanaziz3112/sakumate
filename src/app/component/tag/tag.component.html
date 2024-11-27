@@ -2,5 +2,5 @@
   class="flex flex-row gap-1 cursor-pointer text-xxs lg:text-xs text-white rounded-2xl p-1 justify-start inline-flex"
   [ngClass]="getColors(tag.color)"
   (click)="click()"
-  ><fa-icon [icon]="getIcon(tag.icon)"></fa-icon><span>{{ tag.tagname | uppercase }}</span></span
+  ><fa-icon [icon]="getIcon(tag.icon)"></fa-icon><span class="inline-flex whitespace-nowrap">{{ tag.tagname | uppercase }}</span></span
 >

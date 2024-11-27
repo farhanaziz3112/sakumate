@@ -31,6 +31,7 @@ export class LineComponent {
   chartOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
+    // aspectRatio: 3,
     elements: {
       line: {
         tension: 0.5,

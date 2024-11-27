@@ -15,7 +15,6 @@ import { ThemeService } from '../../service/theme.service';
 import { DonutComponent } from '../../component/donut/donut.component';
 
 import { ChartConfiguration, ChartData, ChartEvent, ChartType } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
 import { PaginatorComponent } from '../../component/paginator/paginator.component';
 import { DatabaseService } from '../../service/database.service';
 import { User } from '@supabase/supabase-js';
@@ -37,6 +36,7 @@ import { DoughnutComponent } from '../../component/chart/doughnut/doughnut.compo
 import { LineComponent } from '../../component/chart/line/line.component';
 import { BarComponent } from '../../component/chart/bar/bar.component';
 import { ChartdataService } from '../../service/chartdata.service';
+import { SkeletonModule } from 'primeng/skeleton';
 
 @Component({
   selector: 'app-accountprofile',
@@ -47,14 +47,14 @@ import { ChartdataService } from '../../service/chartdata.service';
     DialogModule,
     TagComponent,
     DonutComponent,
-    BaseChartDirective,
     FormsModule,
     ReactiveFormsModule,
     SidebarModule,
     DoughnutComponent,
     LineComponent,
     BarComponent,
-    PaginatorComponent
+    PaginatorComponent,
+    SkeletonModule
   ],
   templateUrl: './accountprofile.component.html',
   styleUrl: './accountprofile.component.css',
@@ -75,6 +75,8 @@ export class AccountprofileComponent implements OnInit {
   addMoneyForm: FormGroup | any;
   minusMoneyForm: FormGroup | any;
 
+  loading: boolean = true;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -87,51 +89,76 @@ export class AccountprofileComponent implements OnInit {
     private colorService: ColorService,
     private chartDataService: ChartdataService
   ) {
+
+    let loadingTasks: boolean[] = [false, false, false, false, false];
+    const taskCompleted = () => {
+      if (loadingTasks.every((task) => task)) {
+        this.loading = false;
+      }
+    };
+
     this.id = this.route.snapshot.paramMap.get('id');
     this.route.paramMap.subscribe((params) => {
       this.id = params.get('id');
     });
     this.authService.user$.subscribe((user) => {
-      if (user) {
+      if (user != null) {
         this.user = user;
         this.dbService.transactionBudgetGoalTagByUserId();
         this.dbService.budgetTagByUserId();
+        loadingTasks[0] = true;
+        taskCompleted();
       }
     });
     this.dbService.accounts$.subscribe((acc) => {
-      this.account = acc.filter((account) => account.id === this.id).at(0);
+      if (acc.length > 0) {
+        this.account = acc.filter((account) => account.id === this.id).at(0);
+        loadingTasks[1] = true;
+        taskCompleted();
+      }
     });
     this.dbService.budgetTag$.subscribe((budget) => {
-      this.budgets = budget;
-      this.incomebudgets = budget.filter(
-        (budget) => budget.budgettype === 'income'
-      );
-      this.expensebudgets = budget.filter(
-        (budget) => budget.budgettype === 'expense'
-      );
+      if (budget.length > 0) {
+        this.budgets = budget;
+        this.incomebudgets = budget.filter(
+          (budget) => budget.budgettype === 'income'
+        );
+        this.expensebudgets = budget.filter(
+          (budget) => budget.budgettype === 'expense'
+        );
+        loadingTasks[2] = true;
+        taskCompleted();
+      }
     });
     this.dbService.goalTag$.subscribe((goal) => {
-      this.goals = goal;
-      this.accGoals = goal.filter((goal) => goal.tagid === null);
-      this.otherGoals = goal.filter((goal) => goal.tagid != null);
+      if (goal.length > 0) {
+        this.goals = goal;
+        this.accGoals = goal.filter((goal) => goal.tagid === null);
+        this.otherGoals = goal.filter((goal) => goal.tagid != null);
+        loadingTasks[3] = true;
+        taskCompleted();
+      }
     });
     this.dbService.transactionsBudgetGoalTag$.subscribe((trans) => {
-      this.transactions = trans.filter(
-        (transaction) => transaction.accountid === this.id
-      );
-      this.unfilteredTransactions = [...this.transactions];
-      this.extractUniqueMonths();
-      this.getUniqueGoals();
-      this.getUniqueIncomes();
-      this.getUniqueExpenses();
-      this.selectMonth(this.selectedMonth);
-      this.getTransactions();
-      this.updateNetIncomeLineChart();
-      this.updateIncomeExpenseBarChart();
-      this.updateGoalBarChart();
-      this.updateGoalDonutChart();
-      this.updateIncomeDonutChart();
-      this.updateExpenseDonutChart();
+      if (trans.length > 0) {
+        this.transactions = trans.filter(
+          (transaction) => transaction.accountid === this.id
+        );
+        this.unfilteredTransactions = [...this.transactions];
+        this.extractUniqueMonths();
+        this.getUniqueGoals();
+        this.getUniqueIncomes();
+        this.getUniqueExpenses();
+        this.selectMonth(this.selectedMonth);
+        this.updateNetIncomeLineChart();
+        this.updateIncomeExpenseBarChart();
+        this.updateGoalBarChart();
+        this.updateGoalDonutChart();
+        this.updateIncomeDonutChart();
+        this.updateExpenseDonutChart();
+        loadingTasks[4] = true;
+        taskCompleted();
+      }
     });
     this.addMoneyForm = this.fb.group({
       amount: ['', [Validators.required]],
@@ -187,6 +214,33 @@ export class AccountprofileComponent implements OnInit {
     }
   }
 
+  resizeBarThickness: boolean = false;
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    if (window.innerWidth < 500 && !this.resizeBarThickness) {
+      this.incomeExpenseBarChartData = {
+        ...this.incomeExpenseBarChartData,
+        datasets: this.incomeExpenseBarChartData.datasets.map((dataset: any) => ({
+          ...dataset,
+          barThickness: 20
+        }))
+      };
+      this.resizeBarThickness = true;
+    }
+    if (window.innerWidth >= 500 && this.resizeBarThickness) {
+      this.incomeExpenseBarChartData = {
+        ...this.incomeExpenseBarChartData,
+        datasets: this.incomeExpenseBarChartData.datasets.map((dataset: any) => ({
+          ...dataset,
+          barThickness: 30
+        }))
+      };
+      this.resizeBarThickness = false;
+    }
+
+  }
+
   toggleMonthDropdown() {
     this.monthDropdown = !this.monthDropdown;
   }
@@ -223,6 +277,7 @@ export class AccountprofileComponent implements OnInit {
         transaction.type === 'goal' && transaction.accountid === this.id
     );
     this.filteredTransactions = [...this.unfilteredTransactions];
+    this.getTransactions();
     this.updateDailyIncomeExpenseLineChart();
     this.updateMonthlyIncomeExpenseLineChart();
   }
@@ -669,7 +724,7 @@ export class AccountprofileComponent implements OnInit {
           ),
           label: 'Incomes',
           backgroundColor: 'rgba(74, 222, 128, 1)',
-          barThickness: 40,
+          barThickness: 30,
         },
         {
           data: this.chartDataService.getMonthlyTransactionsData(
@@ -679,7 +734,7 @@ export class AccountprofileComponent implements OnInit {
           ),
           label: 'Expenses',
           backgroundColor: 'rgba(248, 113, 113, 1)',
-          barThickness: 40,
+          barThickness: 30,
         },
       ],
       labels: this.chartDataService.getMonthLabel(this.months),
@@ -747,7 +802,7 @@ export class AccountprofileComponent implements OnInit {
       datasets: [
         {
           data: this.chartDataService.getDailyTransactionsData(
-            this.unfilteredTransactions,
+            this.incomeTransactions,
             'income'
           ),
           label: 'Incomes',
@@ -765,7 +820,7 @@ export class AccountprofileComponent implements OnInit {
       datasets: [
         {
           data: this.chartDataService.getDailyTransactionsData(
-            this.unfilteredTransactions,
+            this.expenseTransactions,
             'expense'
           ),
           label: 'Expenses',

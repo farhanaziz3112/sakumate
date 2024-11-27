@@ -76,6 +76,8 @@ import {
   faTrash,
   faGamepad,
   faMobilePhone,
+  faAngleDoubleLeft,
+  faAngleDoubleRight,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const icons: { [key: string]: IconDefinition } = {
@@ -122,6 +124,8 @@ export const icons: { [key: string]: IconDefinition } = {
   faChevronDown,
   faChevronLeft,
   faChevronRight,
+  faAngleDoubleLeft,
+  faAngleDoubleRight,
   faSignIn,
   faSignOut,
   faCircleExclamation,
