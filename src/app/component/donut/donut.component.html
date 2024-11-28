@@ -1,7 +1,7 @@
 <svg class="w-32 h-32 lg-m:w-40 lg-m:h-40 sm:w-40 sm:h-40" viewBox="0 0 36 36">
   <!-- Background circle -->
   <circle
-    class="text-gray-300"
+    [ngClass]="currentTheme === 'light' ? 'text-gray-300' : 'text-gray-600'"
     stroke-width="3.8"
     stroke="currentColor"
     fill="none"
@@ -12,7 +12,18 @@
 
   <!-- Progress circle -->
   <circle
-    [attr.class]="'transition-all duration-300 ease-out ' + color"
+    [attr.class]="
+      'transition-all duration-300 ease-out ' +
+      (percentage < 30
+        ? 'text-yellow-400'
+        : percentage >= 30 && percentage < 50
+        ? 'text-yellow-500'
+        : percentage >= 50 && percentage < 70
+        ? 'text-green-400'
+        : percentage >= 70 && percentage < 90
+        ? 'text-green-500'
+        : 'text-green-600')
+    "
     [attr.stroke-dasharray]="percentage + ', 100'"
     stroke-width="3.8"
     stroke="currentColor"

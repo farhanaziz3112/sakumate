@@ -58,6 +58,14 @@ export class ChartdataService {
     return monthsWithoutAll;
   }
 
+  getGoalLabel(goals: any[]) {
+    let goalsLabel: any[] = [];
+    goals.forEach((goal: any) => {
+      goalsLabel.push(goal.goalname);
+    });
+    return goalsLabel;
+  }
+
   getDailyLabel(selectedMonth: any) {
     const currentDate = new Date();
     const [monthStr, yearStr] = selectedMonth.split(' ');
@@ -136,6 +144,22 @@ export class ChartdataService {
       });
       data.push(total);
     }
+    return data;
+  }
+
+  getGoalsProgressPercentage(goals: any[]) {
+    let data: any[] = [];
+    goals.forEach((goal: any) => {
+      if (goal.account) {
+        data.push(
+          parseFloat(((goal.account.currentbalance / goal.targetamount) * 100).toFixed(2))
+        );
+      } else {
+        data.push(
+          parseFloat(((goal.currentamount / goal.targetamount) * 100).toFixed(2))
+        );
+      }
+    });
     return data;
   }
 
@@ -333,6 +357,4 @@ export class ChartdataService {
     }
     return data;
   }
-
-
 }

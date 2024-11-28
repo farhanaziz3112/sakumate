@@ -1,4 +1,21 @@
-<div class="flex flex-col w-full h-full gap-8">
+<div *ngIf="loading" class="flex flex-col w-full h-full gap-4">
+  <div
+    class="h-6 bg-gray-200 dark:bg-gray-800 rounded w-1/4 animate-pulse"
+  ></div>
+  <div
+    class="h-6 bg-gray-200 dark:bg-gray-800 rounded w-1/2 animate-pulse"
+  ></div>
+  <div
+    class="h-64 bg-gray-200 dark:bg-gray-800 rounded w-full animate-pulse"
+  ></div>
+  <div
+    class="h-24 bg-gray-200 dark:bg-gray-800 rounded w-full animate-pulse"
+  ></div>
+  <div
+    class="h-24 bg-gray-200 dark:bg-gray-800 rounded w-full animate-pulse"
+  ></div>
+</div>
+<div *ngIf="!loading" class="flex flex-col w-full h-full gap-8">
   <div class="flex flex-row justify-between">
     <span
       class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
@@ -9,12 +26,14 @@
       >MYR</span
     >
   </div>
-  <div class="flex flex-row w-full justify-between items-center">
+  <div
+    class="flex flex-col md:flex-row w-full justify-between items-center gap-4 md:gap-0"
+  >
     <div
-      class="flex flex-row items-center gap-2 w-2/3 px-2 py-3 rounded-md border border-gray-200 text-gray-600 dark:text-gray-200"
+      class="flex flex-row items-center gap-2 w-full md:w-2/3 px-2 py-3 rounded-md border border-gray-200 text-gray-600 dark:text-gray-200"
     >
       <fa-icon [icon]="getIcon('faCircleExclamation')"></fa-icon>
-      <span class="text-sm"
+      <span class="text-xs lg-m:text-sm"
         >Set achievable goals and track your progress over time. This feature
         helps you stay organized and motivated on your journey toward
         success!</span
@@ -29,64 +48,81 @@
   </div>
   <div class="grid grid-cols-2 gap-2">
     <div
-      class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
+      class="col-span-2 xl:col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
     >
       <span class="text-center text-sm md:text-xs lg:text-sm font-semibold"
         >Goal Completion Status</span
       >
       <div class="flex flex-row w-full justify-evenly items-center">
+        <div class="hidden md:flex flex-col items-center">
+          <span class="text-xs"> Incomplete </span>
+          <span class="text-2xl font-semibold">
+            {{ totalIncompleteGoals }}
+          </span>
+        </div>
+        <div class="h-48 w-48 lg-m:h-56 lg-m:w-56">
+          <app-pie [chartData]="goalCompletionPieChartData"></app-pie>
+        </div>
+        <div class="hidden md:flex flex-col items-center">
+          <span class="text-xs"> Completed </span>
+          <span class="text-2xl font-semibold">
+            {{ totalCompletedGoals }}
+          </span>
+        </div>
+      </div>
+      <div class="flex md:hidden flex-row w-full justify-evenly">
         <div class="flex flex-col items-center">
           <span class="text-xs"> Incomplete </span>
-          <span class="text-2xl font-semibold"> 5 </span>
-        </div>
-        <div class="h-52">
-          <canvas
-            baseChart
-            [data]="pieChartData"
-            [type]="pieChartType"
-            [options]="pieChartOptions"
-          >
-          </canvas>
+          <span class="text-2xl font-semibold">
+            {{ totalIncompleteGoals }}
+          </span>
         </div>
         <div class="flex flex-col items-center">
-          <span class="text-xs"> Complete </span>
-          <span class="text-2xl font-semibold"> 3 </span>
+          <span class="text-xs"> Completed </span>
+          <span class="text-2xl font-semibold">
+            {{ totalCompletedGoals }}
+          </span>
         </div>
       </div>
-      <!-- <div class="grid grid-cols-2">
-      <div class="col-span-1 h-64">
-        <canvas
-          baseChart
-          [data]="barChartData"
-          [options]="barChartOptions"
-          [type]="barChartType"
-        >
-        </canvas>
-      </div>
-    </div> -->
     </div>
     <div
-      class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
+      class="col-span-2 xl:col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
     >
       <span class="text-center text-sm md:text-xs lg:text-sm font-semibold"
         >Total All Goals</span
       >
-      <div class="flex flex-row h-full w-full items-center justify-evenly">
-        <app-donut [percentage]="86.73" color="text-violet-400"></app-donut>
-        <div class="flex flex-col gap-2">
-          <div class="flex flex-col items-start">
+      <div
+        class="flex flex-col md:flex-row h-full w-full items-center justify-evenly gap-8"
+      >
+        <app-donut
+          [percentage]="getPercentage(totalAllGoalsValue, totalAllGoalsTarget)"
+        ></app-donut>
+        <div
+          class="flex flex-row md:flex-col gap-2 justify-evenly w-full md:w-auto"
+        >
+          <div class="flex flex-col items-center md:items-start">
             <span class="text-xs"> Current Value</span>
-            <span class="text-2xl font-semibold">
-              {{ 17347.34 | number : "1.2-2" }}
+            <span class="text-xl lg-m:text-2xl font-semibold">
+              {{ totalAllGoalsValue | number : "1.2-2" }}
             </span>
           </div>
-          <div class="flex flex-col items-start">
+          <div class="flex flex-col items-center md:items-start">
             <span class="text-xs"> Target Value</span>
-            <span class="text-2xl font-semibold">
-              {{ 20000 | number : "1.2-2" }}
+            <span class="text-xl lg-m:text-2xl font-semibold">
+              {{ totalAllGoalsTarget | number : "1.2-2" }}
             </span>
           </div>
         </div>
+      </div>
+    </div>
+    <div
+      class="col-span-2 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
+    >
+      <span class="text-center text-sm md:text-xs lg:text-sm font-semibold"
+        >All Goals Progress</span
+      >
+      <div class="w-full h-64">
+        <app-bar [chartData]="goalProgressBarChartData"></app-bar>
       </div>
     </div>
   </div>
@@ -96,14 +132,13 @@
   <div class="grid grid-cols-2 gap-2">
     <ng-container *ngFor="let item of accgoals">
       <div
-        class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
+        class="col-span-2 lg:col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-4 bg-white dark:bg-slate-900"
       >
         <div class="flex flex-row justify-between">
           <span
             class="text-center text-sm md:text-xs lg:text-sm font-semibold"
             >{{ item.goalname }}</span
           >
-          <!-- <span class="px-6 text-white bg-indigo-500 rounded-3xl"><fa-icon [icon]="getIcon('faChevronRight')"></fa-icon></span> -->
           <button
             class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
             (click)="goToGoal(item.id)"
@@ -111,25 +146,58 @@
             <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
           </button>
         </div>
-        <div class="flex flex-row h-full w-full items-center justify-evenly">
+        <div
+          class="flex flex-col md:flex-row h-full w-full items-center justify-evenly gap-4"
+        >
           <app-donut
             [percentage]="
               getPercentage(item.account.currentbalance, item.targetamount)
             "
-            color="text-violet-400"
           ></app-donut>
-          <div class="flex flex-col gap-2">
+          <div
+            class="flex flex-row md:flex-col gap-2 w-full md:w-auto justify-evenly"
+          >
             <div class="flex flex-col items-start">
               <span class="text-xs"> Current Value</span>
-              <span class="text-2xl font-semibold">
+              <span class="text-lg sm:text-2xl font-semibold">
                 {{ item.account.currentbalance | number : "1.2-2" }}
               </span>
             </div>
             <div class="flex flex-col items-start">
               <span class="text-xs"> Target Value</span>
-              <span class="text-2xl font-semibold">
+              <span class="text-lg sm:text-2xl font-semibold">
                 {{ item.targetamount | number : "1.2-2" }}
               </span>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-row justify-end">
+          <div class="relative group inline-block cursor-default">
+            <span
+              class="flex flex-row gap-1 text-sm font-semibold rounded-md px-2 py-1 justify-start inline-flex"
+              [ngClass]="
+                item.monthsleft === 0 && item.daysleft < 15
+                  ? 'text-red-800 dark:text-red-300 bg-red-300 dark:bg-red-800'
+                  : item.monthsleft === 0 && item.daysleft > 15
+                  ? 'text-yellow-800 dark:text-yellow-100 bg-yellow-200 dark:bg-amber-600'
+                  : 'text-green-800 dark:text-green-300 bg-green-300 dark:bg-green-800'
+              "
+              ><span class="text-xs sm:text-sm inline-flex whitespace-nowrap"
+                >Due Date: {{ item.duedate | date : "mediumDate" }}</span
+              ></span
+            >
+            <div
+              class="whitespace-nowrap absolute left-1/2 transform -translate-x-1/2 mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded-md px-2 py-1 shadow-lg z-10"
+            >
+              {{
+                item.monthsleft === 0 && item.daysleft === 0
+                  ? "Expired"
+                  : item.monthsleft === 0 && item.daysleft != 0
+                  ? item.daysleft + " days left"
+                  : item.daysleft === 0 && item.monthleft != 0
+                  ? item.monthsleft + " months left"
+                  : item.monthsleft + " months " + item.daysleft + " days left"
+              }}
             </div>
           </div>
         </div>
@@ -142,11 +210,10 @@
   <div class="grid grid-cols-2 gap-2">
     <ng-container *ngFor="let item of othergoals">
       <div
-        class="col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-2 bg-white dark:bg-slate-900"
+        class="col-span-2 lg:col-span-1 flex flex-col w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 gap-4 bg-white dark:bg-slate-900"
       >
         <div class="flex flex-row justify-between">
           <app-tag [tag]="item.tag"></app-tag>
-          <!-- <span class="px-6 text-white bg-indigo-500 rounded-3xl"><fa-icon [icon]="getIcon('faChevronRight')"></fa-icon></span> -->
           <button
             class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
             (click)="goToGoal(item.id)"
@@ -154,23 +221,56 @@
             <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
           </button>
         </div>
-        <div class="flex flex-row h-full w-full items-center justify-evenly">
+        <div
+          class="flex flex-col md:flex-row h-full w-full items-center justify-evenly gap-4"
+        >
           <app-donut
             [percentage]="getPercentage(item.currentamount, item.targetamount)"
-            color="text-violet-400"
           ></app-donut>
-          <div class="flex flex-col gap-2">
+          <div
+            class="flex flex-row md:flex-col gap-2 w-full md:w-auto justify-evenly"
+          >
             <div class="flex flex-col items-start">
               <span class="text-xs"> Current Value</span>
-              <span class="text-2xl font-semibold">
+              <span class="text-lg sm:text-2xl font-semibold">
                 {{ item.currentamount | number : "1.2-2" }}
               </span>
             </div>
             <div class="flex flex-col items-start">
               <span class="text-xs"> Target Value</span>
-              <span class="text-2xl font-semibold">
+              <span class="text-lg sm:text-2xl font-semibold">
                 {{ item.targetamount | number : "1.2-2" }}
               </span>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-row justify-end">
+          <div class="relative group inline-block cursor-default">
+            <span
+              class="flex flex-row gap-1 text-sm font-semibold rounded-md px-2 py-1 justify-start inline-flex"
+              [ngClass]="
+                item.monthsleft === 0 && item.daysleft < 15
+                  ? 'text-red-800 dark:text-red-300 bg-red-300 dark:bg-red-800'
+                  : item.monthsleft === 0 && item.daysleft > 15
+                  ? 'text-yellow-800 dark:text-yellow-100 bg-yellow-200 dark:bg-amber-600'
+                  : 'text-green-800 dark:text-green-300 bg-green-300 dark:bg-green-800'
+              "
+              ><span class="text-xs sm:text-sm inline-flex whitespace-nowrap"
+                >Due Date: {{ item.duedate | date : "mediumDate" }}</span
+              ></span
+            >
+            <div
+              class="whitespace-nowrap absolute left-1/2 transform -translate-x-1/2 mt-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded-md px-2 py-1 shadow-lg z-10"
+            >
+              {{
+                item.monthsleft === 0 && item.daysleft === 0
+                  ? "Expired"
+                  : item.monthsleft === 0 && item.daysleft != 0
+                  ? item.daysleft + " days left"
+                  : item.daysleft === 0 && item.monthleft != 0
+                  ? item.monthsleft + " months left"
+                  : item.monthsleft + " months " + item.daysleft + " days left"
+              }}
             </div>
           </div>
         </div>

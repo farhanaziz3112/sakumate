@@ -238,7 +238,6 @@ export class AccountprofileComponent implements OnInit {
       };
       this.resizeBarThickness = false;
     }
-
   }
 
   toggleMonthDropdown() {
@@ -517,7 +516,7 @@ export class AccountprofileComponent implements OnInit {
     } catch (error) {
       this.toastService.showErrorToast(
         'Error',
-        'There was an error during with your new account registration. Try again later.'
+        'There was an error with your new account registration. Try again later.'
       );
     } finally {
       this.selectedIncomeBudget = null;

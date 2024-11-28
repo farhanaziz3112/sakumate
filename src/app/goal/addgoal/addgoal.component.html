@@ -71,14 +71,26 @@
           </div>
           <div class="flex flex-col gap-2 w-full">
             <span class="text-sm">Due Date</span>
-            <!-- <p-calendar styleClass="custom-calendar" /> -->
             <input
               type="date"
               [min]="minDate"
               formControlName="duedate"
               placeholder="Enter your due date"
-              class="col-span-4 outline-none border-b-2 w-full border-slate-300 focus:border-slate-500"
+              class="bg-transparent col-span-4 outline-none border-b-2 w-full border-slate-300 dark:border-slate-700 focus:border-slate-500 dark:[color-scheme:dark]"
             />
+            <div
+              *ngIf="isGoalFormInvalid('duedate')"
+              class="text-red-600 text-sm"
+            >
+              <small
+                *ngIf="goalForm.get('duedate')?.errors?.['required']"
+                >Due date is required</small
+              >
+              <small
+                *ngIf="f.duedate.errors?.notFutureDate && !f.duedate.errors?.required"
+                >Due date must be in future</small
+              >
+            </div>
           </div>
           <div class="flex flex-col gap-2 w-full">
             <span class="text-sm">Tag Name</span>

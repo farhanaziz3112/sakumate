@@ -7,10 +7,13 @@ import {
   ViewChild,
 } from '@angular/core';
 import {
+  AbstractControl,
   FormBuilder,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -25,6 +28,7 @@ import { ToastService } from '../../service/toast.service';
 import { DatabaseService } from '../../service/database.service';
 import { User } from '@supabase/supabase-js';
 import { AuthService } from '../../service/auth.service';
+import { async } from 'rxjs';
 
 @Component({
   selector: 'app-addgoal',
@@ -90,7 +94,7 @@ export class AddgoalComponent implements OnInit {
       description: [''],
       goalname: ['', [Validators.required, Validators.minLength(3)]],
       targetamount: ['', [Validators.required]],
-      duedate: ['', [Validators.required]],
+      duedate: ['', [Validators.required, this.futureDateValidator]],
       tagname: [
         'preview',
         [
@@ -116,6 +120,19 @@ export class AddgoalComponent implements OnInit {
       this.currentTheme = theme;
       console.log(theme);
     });
+  }
+
+  futureDateValidator(control: AbstractControl): ValidationErrors | null {
+    const currentDate = new Date();
+    const selectedDate = new Date(control.value);
+
+    return selectedDate > currentDate
+      ? null // Valid
+      : { notFutureDate: true }; // Invalid
+  }
+
+  get f() {
+    return this.goalForm.controls;
   }
 
   isGoalFormInvalid(controlName: string): boolean {

@@ -1,9 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { icons } from '../component/icons/icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { ChartConfiguration, ChartData, ChartEvent, ChartType } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import { ChartData } from 'chart.js';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ThemeService } from '../service/theme.service';
 import { DonutComponent } from '../component/donut/donut.component';
@@ -12,7 +11,11 @@ import { AuthService } from '../service/auth.service';
 import { DatabaseService } from '../service/database.service';
 import { ToastService } from '../service/toast.service';
 import { User } from '@supabase/supabase-js';
-import { TagComponent } from "../component/tag/tag.component";
+import { TagComponent } from '../component/tag/tag.component';
+import { PieComponent } from '../component/chart/pie/pie.component';
+import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
+import { ChartdataService } from '../service/chartdata.service';
+import { BarComponent } from '../component/chart/bar/bar.component';
 
 @Component({
   selector: 'app-goal',
@@ -20,21 +23,23 @@ import { TagComponent } from "../component/tag/tag.component";
   imports: [
     CommonModule,
     FontAwesomeModule,
-    BaseChartDirective,
     DonutComponent,
-    TagComponent
-],
+    TagComponent,
+    PieComponent,
+    BarComponent
+  ],
   templateUrl: './goal.component.html',
   styleUrl: './goal.component.css',
 })
-export class GoalComponent implements OnInit {  
-
+export class GoalComponent implements OnInit {
   currentTheme = '';
 
   user: User | any;
   goals: any;
   accgoals: any;
   othergoals: any;
+
+  loading: boolean = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -44,24 +49,111 @@ export class GoalComponent implements OnInit {
     private authService: AuthService,
     private fb: FormBuilder,
     private toastService: ToastService,
+    private chartDataService: ChartdataService
   ) {
+    let loadingTasks: boolean[] = [false, false];
+    const taskCompleted = () => {
+      if (loadingTasks.every((task) => task)) {
+        this.loading = false;
+      }
+    };
+
     this.authService.user$.subscribe((user) => {
-      if (user) {
+      if (user != null) {
         this.user = user;
         this.dbService.goalTagByUserId();
+        loadingTasks[0] = true;
+        taskCompleted();
       }
     });
     this.dbService.goalTag$.subscribe((goal) => {
-      this.goals = goal;
-      this.accgoals = goal.filter((g) => g.tagid === null);
-      this.othergoals = goal.filter((g) => g.tagid != null);
+      if (goal.length > 0) {
+        this.goals = goal;
+        this.getTimeLeft();
+        this.accgoals = goal.filter((g) => g.tagid === null);
+        this.othergoals = goal.filter((g) => g.tagid != null);
+        this.getCompletedGoals();
+        this.getTotalAllGoals();
+        this.updateGoalCompletionPieChartData();
+        this.updateGoalProgressBarChart();
+        loadingTasks[1] = true;
+        taskCompleted();
+      }
     });
+  }
+
+  totalCompletedGoals: number = 0;
+  totalIncompleteGoals: number = 0;
+
+  totalAllGoalsValue: number = 0;
+  totalAllGoalsTarget: number = 0;
+
+  getCompletedGoals() {
+    this.totalCompletedGoals = this.goals.filter(
+      (goal: any) => goal.status === 'completed'
+    ).length;
+    this.totalIncompleteGoals = this.goals.filter(
+      (goal: any) => goal.status === 'incomplete'
+    ).length;
+  }
+
+  getTotalAllGoals() {
+    let totalValue = 0;
+    let totalTarget = 0;
+    this.goals.forEach((goal: any) => {
+      if (goal.account) {
+        totalValue += goal.account.currentbalance;
+        totalTarget += goal.targetamount;
+      } else {
+        totalValue += goal.currentamount;
+        totalTarget += goal.targetamount;
+      }
+    });
+    this.totalAllGoalsValue = totalValue;
+    this.totalAllGoalsTarget = totalTarget;
+  }
+
+  getTimeLeft() {
+    this.goals.forEach((goal: any) => {
+      const { months, days } = this.calculateTimeLeft(goal.duedate);
+      goal.monthsleft = months;
+      goal.daysleft = days;
+    });
+  }
+
+  calculateTimeLeft(dueDate: string): { months: number; days: number } {
+    const currentDate = new Date();
+    const targetDate = new Date(dueDate);
+
+    if (targetDate < currentDate) {
+      return { months: 0, days: 0 }; // Past due date
+    }
+
+    let yearsLeft = targetDate.getFullYear() - currentDate.getFullYear();
+    let monthsLeft =
+      yearsLeft * 12 + (targetDate.getMonth() - currentDate.getMonth());
+    const daysInCurrentMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0
+    ).getDate();
+    let daysLeft: number;
+    if (targetDate.getDate() >= currentDate.getDate()) {
+      daysLeft = targetDate.getDate() - currentDate.getDate();
+    } else {
+      daysLeft =
+        daysInCurrentMonth - currentDate.getDate() + targetDate.getDate();
+      monthsLeft -= 1;
+    }
+    return {
+      months: Math.max(monthsLeft, 0),
+      days: daysLeft,
+    };
   }
 
   ngOnInit() {
     this.themeService.theme$.subscribe((theme) => {
       this.currentTheme = theme;
-      this.updatePieChartColors();
     });
   }
 
@@ -74,223 +166,76 @@ export class GoalComponent implements OnInit {
   }
 
   addGoal() {
-    this.router.navigate(['/goal/addgoal'])
+    this.router.navigate(['/goal/addgoal']);
   }
 
   goToGoal(id: string) {
     this.router.navigate(['/goal', id]);
   }
 
-  //----------------------------------bar chart------------------------------
+  resizeBarThickness: boolean = false;
 
-  @ViewChild(BaseChartDirective) barChart:
-    | BaseChartDirective<'bar'>
-    | undefined;
-
-  public barChartOptions: ChartConfiguration<'bar'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    // We use these empty structures as placeholders for dynamic theming.
-    scales: {
-      x: {},
-      y: {
-        min: 10,
-      },
-    },
-    plugins: {
-      legend: {
-        display: true,
-      },
-      tooltip: {
-        enabled: true,
-      },
-    },
-  };
-
-  public barChartType = 'bar' as const;
-
-  public barChartData: ChartData<'bar'> = {
-    labels: [
-      'Account 1',
-      'Account 2',
-      'Japan 2025',
-      'Bromo 2025',
-      'PS5',
-      'Civic',
-      'Umrah 2024',
-    ],
-    datasets: [
-      {
-        data: [4000, 4300, 4300, 4300, 4500, 4500, 4500],
-        label: 'Goal',
-        backgroundColor: 'rgba(99, 102, 241, 1)',
-        stack: 'a',
-      },
-      {
-        data: [2300, 2800, 2500, 2600, 3000, 2700, 2400],
-        label: 'Progress',
-        backgroundColor: 'rgba(165, 180, 252, 1)',
-        stack: 'a',
-      },
-    ],
-  };
-
-  updateBarChartColors() {
-    if (this.currentTheme === 'dark') {
-      this.barChartOptions = {
-        ...this.barChartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'white',
-            },
-          },
-        },
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    if (window.innerWidth < 500 && !this.resizeBarThickness) {
+      this.goalProgressBarChartData = {
+        ...this.goalProgressBarChartData,
+        datasets: this.goalProgressBarChartData.datasets.map((dataset: any) => ({
+          ...dataset,
+          barThickness: 20
+        }))
       };
-    } else {
-      this.barChartOptions = {
-        ...this.barChartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'black',
-            },
-          },
-        },
-      };
+      this.resizeBarThickness = true;
     }
-    this.barChart?.update();
+    if (window.innerWidth >= 500 && this.resizeBarThickness) {
+      this.goalProgressBarChartData = {
+        ...this.goalProgressBarChartData,
+        datasets: this.goalProgressBarChartData.datasets.map((dataset: any) => ({
+          ...dataset,
+          barThickness: 50
+        }))
+      };
+      this.resizeBarThickness = false;
+    }
+
   }
 
-  //----------------------------------pie chart------------------------------
-
-  @ViewChild(BaseChartDirective) pieChart:
-    | BaseChartDirective<'bar'>
-    | undefined;
-
-  public pieChartType: ChartType = 'pie';
-
-  public pieChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        position: 'top',
-      },
-      tooltip: {
-        enabled: true,
-      },
-    },
+  public goalCompletionPieChartData: ChartData<
+    'pie',
+    number[],
+    string | string[]
+  > = {
+    datasets: [],
   };
 
-  public pieChartData: ChartData<'pie', number[], string | string[]> = {
-    labels: ['Complete', 'Incomplete'],
-    datasets: [
-      {
-        data: [3, 5],
-        backgroundColor: ['rgba(74, 222, 128, 1)', 'rgba(248, 113, 113, 1)'],
-      },
-    ],
+  public goalProgressBarChartData: ChartData<'bar'> = {
+    datasets: [],
   };
 
-  updatePieChartColors() {
-    if (this.currentTheme === 'dark') {
-      this.pieChartData = {
-        ...this.pieChartData,
-        datasets: [
-          {
-            data: [3, 5],
-            backgroundColor: [
-              'rgba(74, 222, 128, 1)',
-              'rgba(248, 113, 113, 1)',
-            ],
-            borderColor: 'rgba(15, 23, 42, 1)',
-          },
-        ],
-      };
-      this.pieChartOptions = {
-        ...this.pieChartOptions,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              color: 'white',
-            },
-          },
+  updateGoalCompletionPieChartData() {
+    this.goalCompletionPieChartData = {
+      labels: ['Complete', 'Incomplete'],
+      datasets: [
+        {
+          data: [this.totalCompletedGoals, this.totalIncompleteGoals],
+          backgroundColor: ['rgba(74, 222, 128, 1)', 'rgba(248, 113, 113, 1)'],
         },
-      };
-    } else {
-      this.pieChartData = {
-        ...this.pieChartData,
-        datasets: [
-          {
-            data: [3, 5],
-            backgroundColor: [
-              'rgba(74, 222, 128, 1)',
-              'rgba(248, 113, 113, 1)',
-            ],
-            borderColor: 'white',
-          },
-        ],
-      };
-      this.pieChartOptions = {
-        ...this.pieChartOptions,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              color: 'black',
-            },
-          },
-        },
-      };
-    }
+      ],
+    };
+  }
 
-    this.pieChart?.update();
+  updateGoalProgressBarChart() {
+    this.goalProgressBarChartData = {
+      ...this.goalProgressBarChartData,
+      datasets: [
+        {
+          data: this.chartDataService.getGoalsProgressPercentage(this.goals),
+          label: 'Goal Progress (%)',
+          backgroundColor: '#a78bfa',
+          barThickness: 50,
+        },
+      ],
+      labels: this.chartDataService.getGoalLabel(this.goals),
+    };
   }
 }
