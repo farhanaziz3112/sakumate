@@ -78,6 +78,8 @@ import {
   faMobilePhone,
   faAngleDoubleLeft,
   faAngleDoubleRight,
+  faBullseye,
+  faCalendar,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const icons: { [key: string]: IconDefinition } = {
@@ -158,6 +160,8 @@ export const icons: { [key: string]: IconDefinition } = {
   faTrash,
   faGamepad,
   faMobilePhone,
+  faBullseye,
+  faCalendar
 };
 
 export const tagIconsString = [

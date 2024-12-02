@@ -152,11 +152,15 @@ export class ChartdataService {
     goals.forEach((goal: any) => {
       if (goal.account) {
         data.push(
-          parseFloat(((goal.account.currentbalance / goal.targetamount) * 100).toFixed(2))
+          parseFloat(
+            ((goal.account.currentbalance / goal.targetamount) * 100).toFixed(2)
+          )
         );
       } else {
         data.push(
-          parseFloat(((goal.currentamount / goal.targetamount) * 100).toFixed(2))
+          parseFloat(
+            ((goal.currentamount / goal.targetamount) * 100).toFixed(2)
+          )
         );
       }
     });
@@ -355,6 +359,53 @@ export class ChartdataService {
       });
       data.push(incomeTotal - (expenseTotal + goalTotal));
     }
+    return data;
+  }
+
+  getAccountMonthlyBalance(
+    months: any[],
+    transactions: any[],
+    initialbalance: number,
+    forAccountGoal: boolean
+  ) {
+    let data: any[] = [];
+    let monthlybalance: { year: number; month: number; balance: number }[] = [];
+    let currentBalance = initialbalance;
+
+    transactions?.sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    transactions?.forEach((transaction) => {
+      const transactionDate = new Date(transaction.created_at);
+      const year = transactionDate.getFullYear();
+      const month = transactionDate.getMonth() + 1;
+
+      let monthBalance = monthlybalance.find(
+        (item) => item.year === year && item.month === month
+      );
+
+      if (!monthBalance) {
+        monthBalance = { year, month, balance: currentBalance };
+        monthlybalance.push(monthBalance);
+      }
+
+      if (forAccountGoal) {
+        monthBalance.balance += transaction.amount;
+      } else {
+        transaction.type === 'goal'
+          ? (monthBalance.balance += -transaction.amount)
+          : (monthBalance.balance += transaction.amount);
+      }
+
+      currentBalance = monthBalance.balance;
+    });
+
+    monthlybalance.forEach((balance) => {
+      data.push(balance.balance);
+    });
     return data;
   }
 }

@@ -35,14 +35,14 @@
         {{ goal.duedate | date : "mediumDate" }}
       </span>
       <span class="text-left text-sm md:text-xs lg:text-xs font-semibold" [ngClass]="
-          goal.monthsleft === 0 && goal.daysleft < 15
+          goal.monthsleft < 0 || (goal.monthsleft === 0 && goal.daysleft < 15)
             ? 'text-red-600'
             : goal.monthsleft === 0 && goal.daysleft > 15
             ? 'text-yellow-600'
             : 'text-green-600'
         ">
         {{
-        goal.monthsleft === 0 && goal.daysleft === 0
+        goal.monthsleft < 0 || (goal.monthsleft === 0 && goal.daysleft === 0)
         ? "Expired"
         : goal.monthsleft === 0 && goal.daysleft != 0
         ? goal.daysleft + " days left"
@@ -65,7 +65,7 @@
             )
           " color="text-violet-400"></app-donut>
         <div class="w-2/3 h-64">
-          <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="lineChartType"></canvas>
+          <app-line [chartData]="goalProgressLineChart"></app-line>
         </div>
         <div class="flex flex-col gap-3">
           <div class="flex flex-col h-full">

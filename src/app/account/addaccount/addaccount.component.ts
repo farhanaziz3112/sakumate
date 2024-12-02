@@ -242,6 +242,7 @@ export class AddaccountComponent implements OnInit {
           accountname: this.accountForm.value['accountname'] as string,
           accounttype: this.accountForm.value['accounttype'] as string,
           currentbalance: this.accountForm.value['currentbalance'],
+          initialbalance: this.accountForm.value['currentbalance'],
           color1: this.accountForm.value['color1'] as string,
           color2: this.accountForm.value['color2'] as string,
         };

@@ -37,6 +37,7 @@ import { LineComponent } from '../../component/chart/line/line.component';
 import { BarComponent } from '../../component/chart/bar/bar.component';
 import { ChartdataService } from '../../service/chartdata.service';
 import { SkeletonModule } from 'primeng/skeleton';
+import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdialog.component';
 
 @Component({
   selector: 'app-accountprofile',
@@ -54,7 +55,8 @@ import { SkeletonModule } from 'primeng/skeleton';
     LineComponent,
     BarComponent,
     PaginatorComponent,
-    SkeletonModule
+    SkeletonModule,
+    ConfirmdialogComponent
   ],
   templateUrl: './accountprofile.component.html',
   styleUrl: './accountprofile.component.css',
@@ -70,7 +72,10 @@ export class AccountprofileComponent implements OnInit {
   goalTransactions: any;
   goals: any;
   otherGoals: any;
-  accGoals: any;
+  accGoal: any;
+
+  monthlybalance: any;
+  accgoaltarget: number[] = [];
 
   addMoneyForm: FormGroup | any;
   minusMoneyForm: FormGroup | any;
@@ -89,7 +94,6 @@ export class AccountprofileComponent implements OnInit {
     private colorService: ColorService,
     private chartDataService: ChartdataService
   ) {
-
     let loadingTasks: boolean[] = [false, false, false, false, false];
     const taskCompleted = () => {
       if (loadingTasks.every((task) => task)) {
@@ -133,7 +137,9 @@ export class AccountprofileComponent implements OnInit {
     this.dbService.goalTag$.subscribe((goal) => {
       if (goal.length > 0) {
         this.goals = goal;
-        this.accGoals = goal.filter((goal) => goal.tagid === null);
+        this.accGoal = goal
+          .filter((goal) => goal.accountid === this.account.id)
+          .at(0);
         this.otherGoals = goal.filter((goal) => goal.tagid != null);
         loadingTasks[3] = true;
         taskCompleted();
@@ -144,12 +150,23 @@ export class AccountprofileComponent implements OnInit {
         this.transactions = trans.filter(
           (transaction) => transaction.accountid === this.id
         );
+        (this.monthlybalance = this.chartDataService.getAccountMonthlyBalance(
+          this.months,
+          this.transactions,
+          this.account.initialbalance,
+          true
+        )),
+          (this.accgoaltarget = []);
+        this.monthlybalance.forEach(() => {
+          this.accgoaltarget.push(this.accGoal?.targetamount);
+        });
         this.unfilteredTransactions = [...this.transactions];
         this.extractUniqueMonths();
         this.getUniqueGoals();
         this.getUniqueIncomes();
         this.getUniqueExpenses();
         this.selectMonth(this.selectedMonth);
+        this.updateGoalProgressLineChart()
         this.updateNetIncomeLineChart();
         this.updateIncomeExpenseBarChart();
         this.updateGoalBarChart();
@@ -180,6 +197,10 @@ export class AccountprofileComponent implements OnInit {
 
   goToAccount() {
     this.router.navigate(['/account']);
+  }
+
+  goToAccGoal(id: string) {
+    this.router.navigate(['/goal/accgoal', id]);
   }
 
   getIcon(icon: string) {
@@ -221,20 +242,24 @@ export class AccountprofileComponent implements OnInit {
     if (window.innerWidth < 500 && !this.resizeBarThickness) {
       this.incomeExpenseBarChartData = {
         ...this.incomeExpenseBarChartData,
-        datasets: this.incomeExpenseBarChartData.datasets.map((dataset: any) => ({
-          ...dataset,
-          barThickness: 20
-        }))
+        datasets: this.incomeExpenseBarChartData.datasets.map(
+          (dataset: any) => ({
+            ...dataset,
+            barThickness: 20,
+          })
+        ),
       };
       this.resizeBarThickness = true;
     }
     if (window.innerWidth >= 500 && this.resizeBarThickness) {
       this.incomeExpenseBarChartData = {
         ...this.incomeExpenseBarChartData,
-        datasets: this.incomeExpenseBarChartData.datasets.map((dataset: any) => ({
-          ...dataset,
-          barThickness: 30
-        }))
+        datasets: this.incomeExpenseBarChartData.datasets.map(
+          (dataset: any) => ({
+            ...dataset,
+            barThickness: 30,
+          })
+        ),
       };
       this.resizeBarThickness = false;
     }
@@ -299,6 +324,16 @@ export class AccountprofileComponent implements OnInit {
 
   transactionType: any;
   transactionSort: any;
+
+  confirmChangeTarget: boolean = false;
+
+  showConfirmChangeTarget() {
+    this.confirmChangeTarget = true;
+  }
+
+  onCancelChangeTarget() {
+    this.confirmChangeTarget = false;
+  }
 
   types = [
     {
@@ -711,6 +746,10 @@ export class AccountprofileComponent implements OnInit {
     datasets: [],
   };
 
+  public goalProgressLineChart: ChartConfiguration['data'] = {
+    datasets: [],
+  };
+
   updateIncomeExpenseBarChart() {
     this.incomeExpenseBarChartData = {
       ...this.incomeExpenseBarChartData,
@@ -896,34 +935,30 @@ export class AccountprofileComponent implements OnInit {
     };
   }
 
-  public lineChartData: ChartConfiguration['data'] = {
-    datasets: [
-      {
-        data: [14500, 15900, 16080, 15600, 16560, 17855, 18400],
-        label: 'Current Balance',
-        pointBackgroundColor: 'rgba(148,159,177,1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(148,159,177,0.8)',
-      },
-      {
-        data: [20000, 20000, 20000, 20000, 20000, 20000, 20000],
-        label: 'Account Goal',
-        pointBackgroundColor: 'rgba(77,83,96,1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(77,83,96,1)',
-      },
-    ],
-    labels: [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-    ],
-  };
+  updateGoalProgressLineChart() {
+    this.goalProgressLineChart = {
+      ...this.goalProgressLineChart,
+      datasets: [
+        {
+          data: this.monthlybalance,
+          label: 'Goal Progress',
+          pointBackgroundColor: 'rgba(148,159,177,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(148,159,177,0.8)',
+          borderColor: '#6366f1',
+        },
+        {
+          data: this.accgoaltarget,
+          label: 'Target Amount',
+          pointBackgroundColor: 'rgba(148,159,177,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(148,159,177,0.8)',
+          borderColor: 'rgba(74, 222, 128, 1)',
+        },
+      ],
+      labels: this.getMonthLabel(),
+    };
+  }
 }

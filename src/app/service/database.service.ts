@@ -21,7 +21,8 @@ export class DatabaseService {
   public budgetTag$ = this.budgetTag.asObservable();
 
   private transactionsBudgetGoalTag = new BehaviorSubject<any[]>([]);
-  public transactionsBudgetGoalTag$ = this.transactionsBudgetGoalTag.asObservable();
+  public transactionsBudgetGoalTag$ =
+    this.transactionsBudgetGoalTag.asObservable();
 
   private goalTag = new BehaviorSubject<any[]>([]);
   public goalTag$ = this.goalTag.asObservable();
@@ -70,6 +71,7 @@ export class DatabaseService {
         table: 'transaction',
       },
       (payload) => {
+        this.transactionByUserId();
         this.transactionBudgetGoalTagByUserId();
       }
     )
@@ -89,6 +91,12 @@ export class DatabaseService {
       }
     )
     .subscribe();
+
+  ngOnDestroy() {
+    supabase.removeChannel(this.accountChanges);
+    supabase.removeChannel(this.transactionChanges);
+    supabase.removeChannel(this.goalChanges);
+  }
 
   //-------------------------------Profile---------------------------------
 
@@ -299,7 +307,6 @@ export class DatabaseService {
     if (data && !error) {
       this.transactions.next(data);
     }
-    // return supabase.from('transaction').select(`*`).eq('userid', user.id);
   }
 
   async transactionBudgetGoalTagByUserId() {

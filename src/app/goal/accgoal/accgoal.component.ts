@@ -26,7 +26,7 @@ import { ChartdataService } from '../../service/chartdata.service';
 import { LineComponent } from '../../component/chart/line/line.component';
 
 @Component({
-  selector: 'app-goalprofile',
+  selector: 'app-accgoal',
   standalone: true,
   imports: [
     FontAwesomeModule,
@@ -39,18 +39,18 @@ import { LineComponent } from '../../component/chart/line/line.component';
     ReactiveFormsModule,
     LineComponent,
   ],
-  templateUrl: './goalprofile.component.html',
-  styleUrl: './goalprofile.component.css',
+  templateUrl: './accgoal.component.html',
+  styleUrl: './accgoal.component.css',
 })
-export class GoalprofileComponent implements OnInit {
+export class AccgoalComponent implements OnInit {
   id: any;
   currentTheme = 'light';
 
   goal: any;
-  alltransactions: any;
-  goaltransaction: any;
-  allmonths: any[] = [];
-  goalmonths: any[] = [];
+  transactions: any;
+  months: any[] = [];
+  monthlybalance: any;
+  target: number[] = [];
 
   loading: boolean = true;
 
@@ -106,18 +106,20 @@ export class GoalprofileComponent implements OnInit {
     });
     this.dbService.transactions$.subscribe((transactions) => {
       if (transactions.length > 0) {
-        this.alltransactions = transactions;
-        this.goaltransaction = transactions.filter(
-          (transaction) =>
-            transaction.type === 'goal' && transaction.goalid === this.id
+        this.transactions = transactions;
+        this.months = this.chartDataService.extractUniqueMonths(
+          this.transactions
         );
-        console.log(this.goaltransaction);
-        this.allmonths = this.chartDataService.extractUniqueMonths(
-          this.alltransactions
-        );
-        this.goalmonths = this.chartDataService.extractUniqueMonths(
-          this.goaltransaction
-        );
+        this.monthlybalance = this.chartDataService.getAccountMonthlyBalance(
+          this.months,
+          this.transactions,
+          this.goal?.account.initialbalance,
+          true
+        ),
+          this.target = [];
+        this.monthlybalance.forEach(() => {
+          this.target.push(this.goal?.targetamount);
+        });
         this.updateGoalProgressLineChart();
         loadingTasks[1] = true;
         taskCompleted();
@@ -125,6 +127,7 @@ export class GoalprofileComponent implements OnInit {
     });
     this.themeService.theme$.subscribe((theme) => {
       this.currentTheme = theme;
+      this.updateGoalProgressLineChart();
     });
   }
 
@@ -255,7 +258,7 @@ export class GoalprofileComponent implements OnInit {
   }
 
   getMonthLabel() {
-    return this.chartDataService.getMonthLabel(this.allmonths);
+    return this.chartDataService.getMonthLabel(this.months);
   }
 
   //----------------------------------------Line chart--------------------------------------
@@ -269,35 +272,23 @@ export class GoalprofileComponent implements OnInit {
       ...this.goalProgressLineChart,
       datasets: [
         {
-          data: this.goal.account
-            ? this.chartDataService.getAccountMonthlyBalance(
-                this.allmonths,
-                this.alltransactions,
-                this.goal.account.initialbalance,
-                true
-              )
-            : this.chartDataService.getAccountMonthlyBalance(
-                this.goalmonths,
-                this.goaltransaction,
-                0,
-                false
-              ),
+          data: this.monthlybalance,
           label: 'Goal Progress',
+          pointBackgroundColor: 'rgba(148,159,177,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(148,159,177,0.8)',
+          borderColor: '#6366f1',
+        },
+        {
+          data: this.target,
+          label: 'Target Amount',
           pointBackgroundColor: 'rgba(148,159,177,1)',
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
           pointHoverBorderColor: 'rgba(148,159,177,0.8)',
           borderColor: 'rgba(74, 222, 128, 1)',
         },
-        // {
-        //   data: [150],
-        //   label: 'Goal Progress',
-        //   pointBackgroundColor: 'rgba(148,159,177,1)',
-        //   pointBorderColor: '#fff',
-        //   pointHoverBackgroundColor: '#fff',
-        //   pointHoverBorderColor: 'rgba(148,159,177,0.8)',
-        //   borderColor: 'rgba(74, 222, 128, 1)',
-        // },
       ],
       labels: this.getMonthLabel(),
     };

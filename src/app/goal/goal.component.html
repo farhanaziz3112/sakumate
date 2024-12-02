@@ -122,7 +122,11 @@
         >All Goals Progress</span
       >
       <div class="w-full h-64">
-        <app-bar [chartData]="goalProgressBarChartData"></app-bar>
+        <app-bar
+          [minY]="0"
+          [maxY]="100"
+          [chartData]="goalProgressBarChartData"
+        ></app-bar>
       </div>
     </div>
   </div>
@@ -141,7 +145,7 @@
           >
           <button
             class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-            (click)="goToGoal(item.id)"
+            (click)="goToAccGoal(item.id)"
           >
             <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
           </button>
@@ -216,7 +220,7 @@
           <app-tag [tag]="item.tag"></app-tag>
           <button
             class="text-xs lg-m:text-sm md:text-base rounded-3xl bg-indigo-500 text-white px-4 py-2 transition duration-500 ease-in-out hover:bg-indigo-700"
-            (click)="goToGoal(item.id)"
+            (click)="goToOtherGoal(item.id)"
           >
             <fa-icon [icon]="getIcon('faChevronRight')"></fa-icon>
           </button>

@@ -17,6 +17,8 @@ import { BudgetprofileComponent } from './budget/budgetprofile/budgetprofile.com
 import { mainGuard } from './guard/main.guard';
 import { ForgotpasswordComponent } from './authPages/forgotpassword/forgotpassword.component';
 import { authGuard } from './guard/auth.guard';
+import { AccgoalComponent } from './goal/accgoal/accgoal.component';
+import { OthergoalComponent } from './goal/othergoal/othergoal.component';
 
 export const routes: Routes = [
   {
@@ -81,6 +83,16 @@ export const routes: Routes = [
       {
         path: 'goal/:id',
         component: GoalprofileComponent,
+        canActivate: [mainGuard]
+      },
+      {
+        path: 'goal/accgoal/:id',
+        component: AccgoalComponent,
+        canActivate: [mainGuard]
+      },
+      {
+        path: 'goal/othergoal/:id',
+        component: OthergoalComponent,
         canActivate: [mainGuard]
       },
       {

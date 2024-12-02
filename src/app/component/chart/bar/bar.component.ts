@@ -27,6 +27,8 @@ export class BarComponent {
   @Input() chartData: ChartData<'bar'> = {
     datasets: [],
   };
+  @Input() minY?: number;
+  @Input() maxY?: number;
 
   chartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true,
@@ -36,77 +38,65 @@ export class BarComponent {
   chartType = 'bar' as const;
 
   updateChartOptions() {
-    if (this.currentTheme === 'dark') {
-      this.chartOptions = {
-        ...this.chartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'white',
+    const isCustomYAxis = this.minY !== undefined && this.maxY !== undefined;
+
+    this.chartOptions = {
+      ...this.chartOptions,
+      scales: {
+        y: isCustomYAxis
+          ? {
+              min: this.minY,
+              max: this.maxY,
+              ticks: {
+                color: this.currentTheme === 'dark' ? 'white' : 'black',
+              },
+              grid: {
+                lineWidth: 1,
+                color:
+                  this.currentTheme === 'dark'
+                    ? 'rgba(107, 114, 128, 1)'
+                    : 'rgba(229, 231, 235, 1)',
+              },
+            }
+          : {
+              ticks: {
+                color: this.currentTheme === 'dark' ? 'white' : 'black',
+              },
+              grid: {
+                lineWidth: 1,
+                color:
+                  this.currentTheme === 'dark'
+                    ? 'rgba(107, 114, 128, 1)'
+                    : 'rgba(229, 231, 235, 1)',
+              },
             },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
+        x: {
+          ticks: {
+            color: this.currentTheme === 'dark' ? 'white' : 'black',
           },
-          x: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'white',
-            },
-          },
-          tooltip: {
-            enabled: true,
-          },
-        },
-      };
-    } else {
-      this.chartOptions = {
-        ...this.chartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
+          grid: {
+            lineWidth: 1,
+            color:
+              this.currentTheme === 'dark'
+                ? 'rgba(107, 114, 128, 1)'
+                : 'rgba(229, 231, 235, 1)',
           },
         },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'black',
-            },
-          },
-          tooltip: {
-            enabled: true,
+      },
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            color: this.currentTheme === 'dark' ? 'white' : 'black',
           },
         },
-      };
-    }
+        tooltip: {
+          enabled: true,
+        },
+      },
+    };
+
+    // Ensure the chart updates
     this.chart?.update();
   }
 }

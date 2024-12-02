@@ -169,8 +169,12 @@ export class GoalComponent implements OnInit {
     this.router.navigate(['/goal/addgoal']);
   }
 
-  goToGoal(id: string) {
-    this.router.navigate(['/goal', id]);
+  goToAccGoal(id: string) {
+    this.router.navigate(['/goal/accgoal', id]);
+  }
+
+  goToOtherGoal(id: string) {
+    this.router.navigate(['/goal/othergoal', id]);
   }
 
   resizeBarThickness: boolean = false;
