@@ -56,7 +56,7 @@ import { ConfirmdialogComponent } from '../../component/confirmdialog/confirmdia
     BarComponent,
     PaginatorComponent,
     SkeletonModule,
-    ConfirmdialogComponent
+    ConfirmdialogComponent,
   ],
   templateUrl: './accountprofile.component.html',
   styleUrl: './accountprofile.component.css',
@@ -94,7 +94,7 @@ export class AccountprofileComponent implements OnInit {
     private colorService: ColorService,
     private chartDataService: ChartdataService
   ) {
-    let loadingTasks: boolean[] = [false, false, false, false, false];
+    let loadingTasks: boolean[] = [false, false, false, false, false, false];
     const taskCompleted = () => {
       if (loadingTasks.every((task) => task)) {
         this.loading = false;
@@ -145,6 +145,12 @@ export class AccountprofileComponent implements OnInit {
         taskCompleted();
       }
     });
+    this.dbService.months$.subscribe((months) => {
+      this.months = months;
+      this.selectedMonth = this.months[this.months.length - 1];
+      loadingTasks[5] = true;
+      taskCompleted();
+    });
     this.dbService.transactionsBudgetGoalTag$.subscribe((trans) => {
       if (trans.length > 0) {
         this.transactions = trans.filter(
@@ -161,12 +167,11 @@ export class AccountprofileComponent implements OnInit {
           this.accgoaltarget.push(this.accGoal?.targetamount);
         });
         this.unfilteredTransactions = [...this.transactions];
-        this.extractUniqueMonths();
         this.getUniqueGoals();
         this.getUniqueIncomes();
         this.getUniqueExpenses();
         this.selectMonth(this.selectedMonth);
-        this.updateGoalProgressLineChart()
+        this.updateGoalProgressLineChart();
         this.updateNetIncomeLineChart();
         this.updateIncomeExpenseBarChart();
         this.updateGoalBarChart();
@@ -304,6 +309,9 @@ export class AccountprofileComponent implements OnInit {
     this.getTransactions();
     this.updateDailyIncomeExpenseLineChart();
     this.updateMonthlyIncomeExpenseLineChart();
+    this.updateIncomeDonutChart();
+    this.updateExpenseDonutChart();
+    this.updateGoalDonutChart();
   }
 
   selectedMonth: any;
@@ -311,11 +319,6 @@ export class AccountprofileComponent implements OnInit {
   filteredTransactions: any[] = [];
   months: any[] = [];
   monthSet = new Set<any[]>();
-
-  extractUniqueMonths() {
-    this.months = this.chartDataService.extractUniqueMonths(this.transactions);
-    this.selectedMonth = this.months[this.months.length - 1];
-  }
 
   //-----------------------------------Transaction Filters--------------------------------
 
@@ -534,9 +537,15 @@ export class AccountprofileComponent implements OnInit {
             this.account.currentbalance - this.minusMoneyForm.value['amount'],
         });
         if (!this.isExpense) {
+          console.log('Not expense');
           let updatedGoal: any = { ...this.selectedGoal };
           delete updatedGoal?.tag;
           delete updatedGoal?.account;
+          console.log({
+            ...updatedGoal,
+            currentamount:
+              updatedGoal.currentamount + this.minusMoneyForm.value['amount'],
+          });
           await this.dbService.updateGoal({
             ...updatedGoal,
             currentamount:
@@ -572,6 +581,7 @@ export class AccountprofileComponent implements OnInit {
     this.addMoneyDialog = false;
     this.minusMoneyDialog = false;
     this.budgetDropdown = false;
+    this.isExpense = true;
   }
 
   isAddMoneyFormInvalid(controlName: string): boolean {
@@ -593,7 +603,11 @@ export class AccountprofileComponent implements OnInit {
   }
 
   getDailyLabel() {
-    return this.chartDataService.getDailyLabel(this.selectedMonth);
+    if (this.selectedMonth != 'All') {
+      return this.chartDataService.getDailyLabel(this.selectedMonth);
+    } else {
+      return [];
+    }
   }
 
   uniqueGoals: any;

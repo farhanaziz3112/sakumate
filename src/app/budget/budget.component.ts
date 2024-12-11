@@ -10,6 +10,10 @@ import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { TagComponent } from '../component/tag/tag.component';
 import { ProgressBarModule } from 'primeng/progressbar';
 import { ProgressbarComponent } from '../component/progressbar/progressbar.component';
+import { DatabaseService } from '../service/database.service';
+import { ColorService, colorToHex } from '../service/color.service';
+import { DoughnutComponent } from '../component/chart/doughnut/doughnut.component';
+import { ChartdataService } from '../service/chartdata.service';
 
 @Component({
   selector: 'app-budget',
@@ -18,10 +22,9 @@ import { ProgressbarComponent } from '../component/progressbar/progressbar.compo
     CommonModule,
     FontAwesomeModule,
     BaseChartDirective,
-    DonutComponent,
-    TagComponent,
     ProgressBarModule,
     ProgressbarComponent,
+    DoughnutComponent,
   ],
   templateUrl: './budget.component.html',
   styleUrl: './budget.component.css',
@@ -29,20 +32,71 @@ import { ProgressbarComponent } from '../component/progressbar/progressbar.compo
 export class BudgetComponent {
   currentTheme = '';
 
+  accounts: any;
+
+  budgets: any;
+  incomebudgets: any;
+  expensebudgets: any;
+
+  transactions: any;
+  incometransactions: any;
+  expensetransactions: any;
+
+  months: any;
+  selectedMonth: any;
+
+  filteredTransactions: any[] = [];
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private dbService: DatabaseService,
+    private colorService: ColorService,
+    private chartDataService: ChartdataService
   ) {
     this.currentTheme = this.themeService.currentTheme;
+    this.dbService.budgetTag$.subscribe((budget) => {
+      this.budgets = budget;
+      this.incomebudgets = budget.filter(
+        (budget) => budget.budgettype === 'income'
+      );
+      this.expensebudgets = budget.filter(
+        (budget) => budget.budgettype === 'expense'
+      );
+    });
+    this.dbService.months$.subscribe((month) => {
+      this.months = month;
+      this.selectedMonth = this.months[this.months.length - 1];
+    });
+    this.dbService.accounts$.subscribe((acc) => {
+      this.accounts = acc;
+      this.accounts.push({
+        id: 0,
+        accountname: 'All Account',
+      });
+      this.selectedAcc = this.accounts[this.accounts.length - 1];
+    });
+    this.dbService.transactionsBudgetGoalTag$.subscribe((trans) => {
+      if (trans.length > 0) {
+        this.transactions = trans;
+        this.incometransactions = trans.filter(
+          (transaction) => transaction.type === 'income'
+        );
+        this.expensetransactions = trans.filter(
+          (transaction) => transaction.type === 'expense'
+        );
+        this.selectMonth(this.selectedMonth);
+        this.selectAcc(this.selectedAcc);
+        this.updateIncomeDonutChart();
+        this.updateExpenseDonutChart();
+      }
+    });
   }
 
   ngOnInit() {
     this.themeService.theme$.subscribe((theme) => {
       this.currentTheme = theme;
-      this.updateBarChartColors();
-      this.updateDonutChartColors();
-      this.updateLineChartColors();
     });
   }
 
@@ -50,12 +104,16 @@ export class BudgetComponent {
     return icons[icon] || null;
   }
 
+  getColors(colorName: string) {
+    return this.colorService.getColor(colorName, 'dark');
+  }
+
   addBudget() {
     this.router.navigate(['budget/addbudget']);
   }
 
   goToBudget(id: string) {
-    this.router.navigate(['/budget', id])
+    this.router.navigate(['/budget', id]);
   }
 
   expenses = [
@@ -184,53 +242,43 @@ export class BudgetComponent {
     },
   ];
 
-  months = [
-    'All',
-    'Jan 2022',
-    'Feb 2022',
-    'Mar 2022',
-    'Apr 2022',
-    'May 2022',
-    'Jun 2022',
-    'Jul 2022',
-    'Aug 2022',
-    'Sep 2022',
-    'Oct 2022',
-    'Nov 2022',
-    'Dec 2022',
-    'Jan 2023',
-    'Feb 2023',
-    'Mar 2023',
-    'Apr 2023',
-    'May 2023',
-    'Jun 2023',
-    'Jul 2023',
-    'Aug 2023',
-    'Sep 2023',
-    'Oct 2023',
-    'Nov 2023',
-    'Dec 2023',
-    'Jan 2024',
-    'Feb 2024',
-    'Mar 2024',
-    'Apr 2024',
-    'May 2024',
-    'Jun 2024',
-    'Jul 2024',
-    'Aug 2024',
-    'Sep 2024',
-    'Oct 2024',
-    'Nov 2024',
-  ];
+  incomeTotalWithBudget: any;
+  expenseTotalWithBudget: any;
 
-  accounts = ['Account 1', 'Account 2', 'All'];
+  allIncomeTotal: any;
+  allExpenseTotal: any;
+
+  getTransactions() {
+    this.allIncomeTotal = this.chartDataService.getTransactionOverallTotal(
+      this.incometransactions,
+      'income'
+    );
+    this.allExpenseTotal = this.chartDataService.getTransactionOverallTotal(
+      this.expensetransactions,
+      'expense'
+    );
+    this.incomeTotalWithBudget = this.chartDataService.getTransactionTotal(
+      this.incomebudgets,
+      this.incometransactions,
+      'income'
+    );
+    this.expenseTotalWithBudget = this.chartDataService.getTransactionTotal(
+      this.expensebudgets,
+      this.expensetransactions,
+      'expense'
+    );
+    console.log(this.incomeTotalWithBudget);
+    
+  }
+
+  getPercentage(number1: number, number2: number): number {
+    return parseFloat(((number1 / number2) * 100).toFixed(2));
+  }
 
   @ViewChild('monthDropdownButton', { static: false })
   monthDropdownButton!: ElementRef;
   @ViewChild('monthDropdownOverlay', { static: false })
   monthDropdownOverlay!: ElementRef;
-
-  selectedMonth: any = 'Oct 2024';
 
   monthDropdown: boolean = false;
 
@@ -238,9 +286,10 @@ export class BudgetComponent {
     this.monthDropdown = !this.monthDropdown;
   }
 
-  selectMonth(month: string) {
+  selectMonth(month: any) {
     this.selectedMonth = month;
     this.monthDropdown = false;
+    this.filterTransactions();
   }
 
   @ViewChild('accDropdownButton', { static: false })
@@ -259,6 +308,47 @@ export class BudgetComponent {
   selectAcc(acc: string) {
     this.selectedAcc = acc;
     this.accDropdown = false;
+    this.filterTransactions();
+  }
+
+  filterTransactions() {
+    if (this.selectedMonth === 'All') {
+      if (this.selectedAcc.id === 0) {
+        this.filteredTransactions = [...this.transactions];
+      } else {
+        this.filteredTransactions = this.transactions.filter(
+          (transaction: any) => transaction.accountid === this.selectedAcc.id
+        );
+      }
+    } else {
+      let tempTransactions: any[] = [];
+      this.transactions.forEach((transaction: any) => {
+        const date = new Date(transaction.created_at);
+        const monthYear = date.toLocaleString('default', {
+          month: 'short',
+          year: 'numeric',
+        });
+        if (monthYear === this.selectedMonth) {
+          tempTransactions.push(transaction);
+        }
+      });
+      if (this.selectedAcc.id === 0) {
+        this.filteredTransactions = [...tempTransactions];
+      } else {
+        this.filteredTransactions = tempTransactions.filter(
+          (transaction: any) => transaction.accountid === this.selectedAcc.id
+        );
+      }
+    }
+    this.incometransactions = this.filteredTransactions.filter(
+      (transaction) => transaction.type === 'income'
+    );
+    this.expensetransactions = this.filteredTransactions.filter(
+      (transaction) => transaction.type === 'expense'
+    );
+    this.getTransactions();
+    this.updateIncomeDonutChart();
+    this.updateExpenseDonutChart();
   }
 
   @HostListener('document:click', ['$event.target'])
@@ -482,134 +572,75 @@ export class BudgetComponent {
     this.barChart?.update();
   }
 
+  getTransactionsTotal(type: string) {
+    if (type === 'income') {
+      return this.incomeTotalWithBudget.map((item: any) => item.total);
+    } else {
+      return this.expenseTotalWithBudget.map((item: any) => item.total);
+    }
+  }
+
+  getTransactionsColors(type: string) {
+    if (type === 'income') {
+      return this.incomebudgets.map((item: any) => {
+        let colorToConvert = ('bg-' +
+          item.tag.color +
+          '-600') as keyof typeof colorToHex;
+        return colorToHex[colorToConvert];
+      });
+    } else {
+      return this.expensebudgets.map((item: any) => {
+        let colorToConvert = ('bg-' +
+          item.tag.color +
+          '-600') as keyof typeof colorToHex;
+        return colorToHex[colorToConvert];
+      });
+    }
+  }
+
+  getTransactionsLabel(type: string) {
+    if (type === 'income') {
+      return this.incomebudgets.map((item: any) => item.budgetname);
+    } else {
+      return this.expensebudgets.map((item: any) => item.budgetname);
+    }
+  }
+
   //------------------------------------Line chart------------------------------------
 
-  @ViewChild(BaseChartDirective) lineChart?: BaseChartDirective;
-
-  public lineChartType: ChartType = 'line';
-
-  public lineChartData: ChartConfiguration['data'] = {
-    datasets: [
-      {
-        data: [45, 160, 80],
-        label: 'Food',
-        pointBackgroundColor: 'rgba(148,159,177,1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(148,159,177,0.8)',
-      },
-      {
-        data: [200, 120, 310],
-        label: 'Petrol',
-        pointBackgroundColor: 'rgba(77,83,96,1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(77,83,96,1)',
-      },
-      {
-        data: [245, 359, 260],
-        label: 'Shopping',
-        pointBackgroundColor: 'rgba(148,159,177,1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(148,159,177,0.8)',
-      },
-      {
-        data: [40, 20, 100],
-        label: 'Others',
-        pointBackgroundColor: 'rgba(77,83,96,1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(77,83,96,1)',
-      },
-    ],
-    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+  public incomeDonutChartData: ChartData<'doughnut'> = {
+    datasets: [],
   };
 
-  public lineChartOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    elements: {
-      line: {
-        tension: 0.5,
-      },
-    },
+  public expenseDonutChartData: ChartData<'doughnut'> = {
+    datasets: [],
   };
 
-  updateLineChartColors() {
-    if (this.currentTheme === 'dark') {
-      this.lineChartOptions = {
-        ...this.lineChartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
+  updateIncomeDonutChart() {
+    this.incomeDonutChartData = {
+      ...this.incomeDonutChartData,
+      labels: this.getTransactionsLabel('income'),
+      datasets: [
+        {
+          data: this.getTransactionsTotal('income'),
+          backgroundColor: this.getTransactionsColors('income'),
+          borderWidth: 3,
         },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'white',
-            },
-          },
+      ],
+    };
+  }
+
+  updateExpenseDonutChart() {
+    this.expenseDonutChartData = {
+      ...this.expenseDonutChartData,
+      labels: this.getTransactionsLabel('expense'),
+      datasets: [
+        {
+          data: this.getTransactionsTotal('expense'),
+          backgroundColor: this.getTransactionsColors('expense'),
+          borderWidth: 3,
         },
-      };
-      this.lineChartData.datasets[0].borderColor = 'rgba(248, 113, 113, 1)';
-      this.lineChartData.datasets[1].borderColor = 'rgba(167, 139, 250, 1)';
-      this.lineChartData.datasets[2].borderColor = 'rgba(248, 113, 113, 1)';
-      this.lineChartData.datasets[3].borderColor = 'rgba(167, 139, 250, 1)';
-    } else {
-      this.lineChartOptions = {
-        ...this.lineChartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'black',
-            },
-          },
-        },
-      };
-      this.lineChartData.datasets[0].borderColor = 'rgba(248, 113, 113, 1)';
-      this.lineChartData.datasets[1].borderColor = 'rgba(167, 139, 250, 1)';
-      this.lineChartData.datasets[2].borderColor = 'rgba(248, 113, 113, 1)';
-      this.lineChartData.datasets[3].borderColor = 'rgba(167, 139, 250, 1)';
-    }
-    this.lineChart?.update();
+      ],
+    };
   }
 }

@@ -46,6 +46,7 @@ import { ToastService } from '../service/toast.service';
 import { loginFailure } from '../state/auth/auth.actions';
 import { DatabaseService } from '../service/database.service';
 import { ColorService } from '../service/color.service';
+import { icons } from '../component/icons/icons';
 
 @Component({
   selector: 'app-dashboard',
@@ -177,20 +178,16 @@ export class DashboardComponent implements OnInit {
   budgetDropdown: boolean = false;
 
   selectedIncomeBudget: any = null;
-  selectedIncomeTag: any = null;
-
   selectedExpenseBudget: any = null;
-  selectedExpenseTag: any = null;
+  selectedGoal: any = null;
 
-  selectIncomeBudget(budget: any, index: number) {
+  selectIncomeBudget(budget: any) {
     this.selectedIncomeBudget = budget;
-    this.selectedIncomeTag = this.incometags[index];
     this.budgetDropdown = false;
   }
 
-  selectExpenseBudget(budget: any, index: number) {
+  selectExpenseBudget(budget: any) {
     this.selectedExpenseBudget = budget;
-    this.selectedExpenseTag = this.expensetags[index];
     this.budgetDropdown = false;
   }
 
@@ -212,6 +209,10 @@ export class DashboardComponent implements OnInit {
   incomebudgets: any;
   expensebudgets: any;
   allAccTotal: number = 0;
+
+  goals: any;
+  otherGoals: any;
+  accGoal: any;
 
   addMoneyForm: FormGroup | any;
   minusMoneyForm: FormGroup | any;
@@ -237,6 +238,12 @@ export class DashboardComponent implements OnInit {
     this.dbService.accounts$.subscribe((acc) => {
       this.accounts = acc;
       this.getTotalBalanceAllAcc(acc);
+    });
+    this.dbService.goalTag$.subscribe((goal) => {
+      if (goal.length > 0) {
+        this.goals = goal;
+        this.otherGoals = goal.filter((goal) => goal.tagid != null);
+      }
     });
     this.addMoneyForm = this.fb.group({
       amount: ['', [Validators.required]],
@@ -298,6 +305,19 @@ export class DashboardComponent implements OnInit {
   incometags: any[] = [];
   expensetags: any[] = [];
 
+  isExpense: boolean = true;
+
+  toggleExpense() {
+    this.isExpense = !this.isExpense;
+    this.selectedExpenseBudget = null;
+    this.selectedGoal = null;
+  }
+
+  selectGoal(goal: any) {
+    this.selectedGoal = goal;
+    this.budgetDropdown = false;
+  }
+
   async getTag(tagId: string) {
     const { data } = await this.dbService.tagById(tagId);
     return data;
@@ -349,9 +369,7 @@ export class DashboardComponent implements OnInit {
       );
     } finally {
       this.selectedIncomeBudget = null;
-      this.selectedIncomeTag = null;
       this.selectedExpenseBudget = null;
-      this.selectedExpenseTag = null;
       this.selectedAccount = null;
       this.minusMoneyForm.reset();
       this.addMoneyForm.reset();
@@ -362,11 +380,13 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  getIcon(icon: string) {
+    return icons[icon] || null;
+  }
+
   closeDialog() {
     this.selectedIncomeBudget = null;
-    this.selectedIncomeTag = null;
     this.selectedExpenseBudget = null;
-    this.selectedExpenseTag = null;
     this.selectedAccount = null;
     this.minusMoneyForm.reset();
     this.addMoneyForm.reset();

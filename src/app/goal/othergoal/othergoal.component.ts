@@ -2,8 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ThemeService } from '../../service/theme.service';
 import { icons } from '../../component/icons/icons';
-import { ChartType, ChartConfiguration } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import { ChartType, ChartConfiguration, ChartData } from 'chart.js';
 import { DonutComponent } from '../../component/donut/donut.component';
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -24,6 +23,8 @@ import {
 import { ToastService } from '../../service/toast.service';
 import { ChartdataService } from '../../service/chartdata.service';
 import { LineComponent } from '../../component/chart/line/line.component';
+import { ColorService, colorToHex } from '../../service/color.service';
+import { DoughnutComponent } from '../../component/chart/doughnut/doughnut.component';
 
 @Component({
   selector: 'app-othergoal',
@@ -34,7 +35,7 @@ import { LineComponent } from '../../component/chart/line/line.component';
     DialogModule,
     TagComponent,
     DonutComponent,
-    BaseChartDirective,
+    DoughnutComponent,
     FormsModule,
     ReactiveFormsModule,
     LineComponent,
@@ -51,6 +52,7 @@ export class OthergoalComponent implements OnInit {
   months: any[] = [];
   monthlyamount: any;
   target: number[] = [];
+  acccontributions: any[] = [];
 
   loading: boolean = true;
 
@@ -65,7 +67,8 @@ export class OthergoalComponent implements OnInit {
     private dbService: DatabaseService,
     private fb: FormBuilder,
     private toastService: ToastService,
-    private chartDataService: ChartdataService
+    private chartDataService: ChartdataService,
+    private colorService: ColorService
   ) {
     const today = new Date();
     const min = new Date(
@@ -142,7 +145,14 @@ export class OthergoalComponent implements OnInit {
     return `${year}-${month}-${day}`; // Format as YYYY-MM-DD
   }
 
-  ngOnInit() {}
+  async ngOnInit() {
+    try {
+      this.acccontributions = await this.dbService.getGoalContribution(this.id);
+      this.updateGoalContributionDonutChart();
+    } catch (error) {
+      console.error('Error fetching contributions:', error);
+    }
+  }
 
   goToGoal() {
     this.router.navigate(['/goal']);
@@ -263,9 +273,34 @@ export class OthergoalComponent implements OnInit {
     return this.chartDataService.getMonthLabel(this.months);
   }
 
+  getGoalContributionLabel() {
+    return this.acccontributions.map((item: any) => item.account.accountname);
+  }
+
+  getGoalContributionTotal() {
+    return this.acccontributions.map((item: any) => item.goalcontribution);
+  }
+
+  getGoalContributionColor() {
+    return this.acccontributions.map((item: any) => {
+      let colorToConvert = ('bg-' +
+        item.account.color2 +
+        '-600') as keyof typeof colorToHex;
+      return colorToHex[colorToConvert];
+    });
+  }
+
+  getColors(colorName: string) {
+    return this.colorService.getColor(colorName, 'dark');
+  }
+
   //----------------------------------------Line chart--------------------------------------
 
   public goalProgressLineChart: ChartConfiguration['data'] = {
+    datasets: [],
+  };
+
+  public goalContributionDonutChart: ChartData<'doughnut'> = {
     datasets: [],
   };
 
@@ -293,6 +328,20 @@ export class OthergoalComponent implements OnInit {
         },
       ],
       labels: this.getMonthLabel(),
+    };
+  }
+
+  updateGoalContributionDonutChart() {
+    this.goalContributionDonutChart = {
+      ...this.goalContributionDonutChart,
+      labels: this.getGoalContributionLabel(),
+      datasets: [
+        {
+          data: this.getGoalContributionTotal(),
+          backgroundColor: this.getGoalContributionColor(),
+          borderWidth: 3,
+        },
+      ],
     };
   }
 }

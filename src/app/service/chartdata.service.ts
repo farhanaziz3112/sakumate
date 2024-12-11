@@ -67,14 +67,18 @@ export class ChartdataService {
   }
 
   getDailyLabel(selectedMonth: any) {
-    const currentDate = new Date();
-    const [monthStr, yearStr] = selectedMonth.split(' ');
-    const date = new Date(`${monthStr} 1, ${yearStr}`);
-    const newDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-    if (date.getMonth() === currentDate.getMonth()) {
-      return this.dayslabel.slice(0, currentDate.getDate());
+    if (selectedMonth != undefined) {
+      const currentDate = new Date();
+      const [monthStr, yearStr] = selectedMonth.split(' ');
+      const date = new Date(`${monthStr} 1, ${yearStr}`);
+      const newDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+      if (date.getMonth() === currentDate.getMonth()) {
+        return this.dayslabel.slice(0, currentDate.getDate());
+      } else {
+        return this.dayslabel.slice(0, newDate.getDate());
+      }
     } else {
-      return this.dayslabel.slice(0, newDate.getDate());
+      return [];
     }
   }
 

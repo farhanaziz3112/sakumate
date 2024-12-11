@@ -516,7 +516,7 @@
                 #triggerButton
               >
                 <ng-container *ngIf="selectedIncomeBudget; else noBudget">
-                  <app-tag [tag]="selectedIncomeTag"></app-tag>
+                  <app-tag [tag]="selectedIncomeBudget.tag"></app-tag>
                 </ng-container>
                 <ng-template #noBudget> Select a budget </ng-template>
                 <fa-icon [icon]="faChevronDown"></fa-icon>
@@ -529,7 +529,7 @@
                 <ul>
                   <li
                     *ngFor="let budget of incomebudgets; let i = index"
-                    (click)="selectIncomeBudget(budget, i)"
+                    (click)="selectIncomeBudget(budget)"
                     class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center gap-2"
                   >
                     <app-tag
@@ -649,7 +649,87 @@
               </div>
             </div>
           </div>
-          <div class="flex flex-col gap-2 w-full">
+          <div class="flex flex-col gap-4 w-full py-6">
+            <div class="flex flex-row w-full justify-evenly">
+              <span
+                class="cursor-pointer text-xs lg-m:text-base px-2 h-10 w-1/3 flex justify-center items-center rounded-full"
+                (click)="toggleExpense()"
+                [ngClass]="
+                  isExpense
+                    ? 'bg-indigo-500 text-white'
+                    : 'bg-white hover:bg-gray-200 text-black dark:text-white dark:bg-gray-700 dark:hover:bg-gray-600 border border-black dark:border-white'
+                "
+                >Expense</span
+              >
+              <span
+                class="cursor-pointer text-xs lg-m:text-base px-2 h-10 w-1/3 flex justify-center items-center rounded-full"
+                (click)="toggleExpense()"
+                [ngClass]="
+                  isExpense
+                    ? 'bg-white hover:bg-gray-200 text-black dark:text-white dark:bg-gray-700 dark:hover:bg-gray-600 border border-black dark:border-white'
+                    : 'bg-indigo-500 text-white'
+                "
+                >Goal</span
+              >
+            </div>
+            <ng-container *ngIf="isExpense; else notExpense">
+              <div class="relative w-full">
+                <button
+                  class="w-full flex flex-row justify-between block px-4 py-2 border border-gray-300 rounded-lg text-left bg-transparent hover:bg-gray-100 dark:hover:bg-slate-800"
+                  (click)="toggleBudgetDropdown()"
+                >
+                  <ng-container *ngIf="selectedExpenseBudget; else noBudget">
+                    <app-tag [tag]="selectedExpenseBudget.tag"></app-tag>
+                  </ng-container>
+                  <ng-template #noBudget> Select an expense </ng-template>
+                  <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
+                </button>
+                <div
+                  [hidden]="!budgetDropdown"
+                  class="absolute z-10 mt-2 w-full bg-white dark:bg-slate-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+                >
+                  <ul>
+                    <li
+                      *ngFor="let budget of expensebudgets"
+                      (click)="selectExpenseBudget(budget)"
+                      class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                    >
+                      <app-tag [tag]="budget.tag"></app-tag>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </ng-container>
+            <ng-template #notExpense>
+              <div class="relative w-full">
+                <button
+                  class="w-full flex flex-row justify-between block px-4 py-2 border border-gray-300 rounded-lg text-left bg-transparent hover:bg-gray-100 dark:hover:bg-slate-800"
+                  (click)="toggleBudgetDropdown()"
+                >
+                  <ng-container *ngIf="selectedGoal; else noGoal">
+                    <app-tag [tag]="selectedGoal.tag"></app-tag>
+                  </ng-container>
+                  <ng-template #noGoal> Select a goal </ng-template>
+                  <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
+                </button>
+                <div
+                  [hidden]="!budgetDropdown"
+                  class="absolute z-10 mt-2 w-full bg-white dark:bg-slate-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+                >
+                  <ul>
+                    <li
+                      *ngFor="let goal of otherGoals"
+                      (click)="selectGoal(goal)"
+                      class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-800 flex items-center gap-2"
+                    >
+                      <app-tag [tag]="goal.tag"></app-tag>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+          <!-- <div class="flex flex-col gap-2 w-full">
             <span class="text-sm">Budget</span>
             <div class="relative w-full">
               <button
@@ -681,7 +761,7 @@
                 </ul>
               </div>
             </div>
-          </div>
+          </div> -->
           <button
             class="rounded-3xl text-white px-4 py-2 transition duration-500 ease-in-out"
             [ngClass]="

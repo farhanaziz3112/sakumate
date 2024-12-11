@@ -5,6 +5,7 @@ import { AuthSession, User } from '@supabase/supabase-js';
 import { BehaviorSubject } from 'rxjs';
 import { ToastService } from './toast.service';
 import { AuthService } from './auth.service';
+import { ChartdataService } from './chartdata.service';
 
 @Injectable({
   providedIn: 'root',
@@ -27,12 +28,16 @@ export class DatabaseService {
   private goalTag = new BehaviorSubject<any[]>([]);
   public goalTag$ = this.goalTag.asObservable();
 
+  private months = new BehaviorSubject<string[]>([]);
+  public months$ = this.months.asObservable();
+
   userData: User | any;
 
   constructor(
     private router: Router,
     private toastService: ToastService,
-    private authService: AuthService
+    private authService: AuthService,
+    private chartDataService: ChartdataService
   ) {
     this.authService.user$.subscribe((user) => {
       if (user) {
@@ -40,6 +45,7 @@ export class DatabaseService {
         this.userData = user;
         this.allaccount();
         this.transactionByUserId();
+        this.transactionBudgetGoalTagByUserId();
         this.goalTagByUserId();
         this.budgetTagByUserId();
       }
@@ -329,6 +335,7 @@ export class DatabaseService {
 
     if (data && !error) {
       this.transactionsBudgetGoalTag.next(data);
+      this.months.next(this.chartDataService.extractUniqueMonths(data));
     } else {
       console.error('Error fetching transactions with related data:', error);
     }
@@ -358,5 +365,32 @@ export class DatabaseService {
       updated_at: new Date(),
     };
     return supabase.from('transaction').upsert(updatedTransaction).select('*');
+  }
+
+  async getGoalContribution(goalId: string): Promise<any> {
+    const { data, error } = await supabase
+      .from('transaction')
+      .select('*, account (*)')
+      .eq('goalid', goalId);
+
+    if (data && !error) {
+      const contributions = data.reduce((acc: any, transaction: any) => {
+        const account = transaction.account;
+
+        if (!acc[account.id]) {
+          acc[account.id] = {
+            account: account,
+            goalcontribution: 0,
+          };
+        }
+
+        acc[account.id].goalcontribution += -transaction.amount;
+
+        return acc;
+      }, {});
+      return Object.values(contributions);
+    } else {
+      console.error('Error fetching transactions with related data:', error);
+    }
   }
 }
