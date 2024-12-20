@@ -219,7 +219,7 @@ export class AddbudgetComponent {
         this.toastService.showSuccessToast(
           'New Budget',
           'Budget: ' +
-            this.budgetForm.value['goalname'] +
+            this.budgetForm.value['budgetname'] +
             ' is successfully added.'
         );
         this.router.navigate(['/budget']);
@@ -227,7 +227,7 @@ export class AddbudgetComponent {
       } catch (error) {
         this.toastService.showErrorToast(
           'Error',
-          'There was an error adding new goal. Try again later.'
+          'There was an error adding new budget. Try again later.'
         );
         this.confirmDialog = false;
       } finally {

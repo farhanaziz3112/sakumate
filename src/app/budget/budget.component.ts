@@ -14,6 +14,7 @@ import { DatabaseService } from '../service/database.service';
 import { ColorService, colorToHex } from '../service/color.service';
 import { DoughnutComponent } from '../component/chart/doughnut/doughnut.component';
 import { ChartdataService } from '../service/chartdata.service';
+import { LineComponent } from '../component/chart/line/line.component';
 
 @Component({
   selector: 'app-budget',
@@ -21,10 +22,11 @@ import { ChartdataService } from '../service/chartdata.service';
   imports: [
     CommonModule,
     FontAwesomeModule,
-    BaseChartDirective,
     ProgressBarModule,
-    ProgressbarComponent,
     DoughnutComponent,
+    TagComponent,
+    LineComponent,
+    DonutComponent,
   ],
   templateUrl: './budget.component.html',
   styleUrl: './budget.component.css',
@@ -47,6 +49,26 @@ export class BudgetComponent {
 
   filteredTransactions: any[] = [];
 
+  activePage = 0;
+  budgetPaging = [
+    {
+      label: 'Incomes',
+      icon: 'faSignIn',
+    },
+    {
+      label: 'Expense',
+      icon: 'faSignOut',
+    },
+    {
+      label: 'Recurring',
+      icon: 'faClock',
+    },
+    {
+      label: 'Statistics',
+      icon: 'faChartBar',
+    },
+  ];
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -66,7 +88,7 @@ export class BudgetComponent {
       );
     });
     this.dbService.months$.subscribe((month) => {
-      this.months = month;
+      this.months = month.filter((month: any) => month !== 'All');
       this.selectedMonth = this.months[this.months.length - 1];
     });
     this.dbService.accounts$.subscribe((acc) => {
@@ -79,7 +101,7 @@ export class BudgetComponent {
     });
     this.dbService.transactionsBudgetGoalTag$.subscribe((trans) => {
       if (trans.length > 0) {
-        this.transactions = trans;
+        this.transactions = trans.filter((trans) => trans.budget);
         this.incometransactions = trans.filter(
           (transaction) => transaction.type === 'income'
         );
@@ -90,6 +112,8 @@ export class BudgetComponent {
         this.selectAcc(this.selectedAcc);
         this.updateIncomeDonutChart();
         this.updateExpenseDonutChart();
+        this.updateIncomeLineChart();
+        this.updateExpenseLineChart();
       }
     });
   }
@@ -116,132 +140,6 @@ export class BudgetComponent {
     this.router.navigate(['/budget', id]);
   }
 
-  expenses = [
-    {
-      budgetName: 'Food',
-      type: 'Expense',
-      userID: 'user123',
-      accountID: 'accountB',
-      tagsID: 'food123',
-      currentAmount: 150,
-      targetAmount: 200,
-      createdDate: '2024-02-05',
-      month: 2,
-      year: 2024,
-    },
-    {
-      budgetName: 'Petrol',
-      type: 'Expense',
-      userID: 'user123',
-      accountID: 'accountB',
-      tagsID: 'petrol123',
-      currentAmount: 60,
-      targetAmount: 100,
-      createdDate: '2024-02-05',
-      month: 2,
-      year: 2024,
-    },
-    {
-      budgetName: 'Shopping',
-      type: 'Expense',
-      userID: 'user123',
-      accountID: 'accountB',
-      tagsID: 'shopping123',
-      currentAmount: 0,
-      targetAmount: 300,
-      createdDate: '2024-02-10',
-      month: 2,
-      year: 2024,
-    },
-    {
-      budgetName: 'Gifts',
-      type: 'Expense',
-      userID: 'user123',
-      accountID: 'accountC',
-      tagsID: 'gifts123',
-      currentAmount: 30,
-      targetAmount: 100,
-      createdDate: '2024-02-12',
-      month: 2,
-      year: 2024,
-    },
-    {
-      budgetName: 'Rent',
-      type: 'Expense',
-      userID: 'user123',
-      accountID: 'accountB',
-      tagsID: 'rent123',
-      currentAmount: 800,
-      targetAmount: 800,
-      createdDate: '2024-01-01',
-      month: 1,
-      year: 2024,
-    },
-    {
-      budgetName: 'Utilities',
-      type: 'Expense',
-      userID: 'user123',
-      accountID: 'accountB',
-      tagsID: 'utilities123',
-      currentAmount: 100,
-      targetAmount: 150,
-      createdDate: '2024-01-15',
-      month: 1,
-      year: 2024,
-    },
-    {
-      budgetName: 'Healthcare',
-      type: 'Expense',
-      userID: 'user123',
-      accountID: 'accountB',
-      tagsID: 'healthcare123',
-      currentAmount: 10,
-      targetAmount: 100,
-      createdDate: '2024-03-10',
-      month: 3,
-      year: 2024,
-    },
-  ];
-
-  incomes = [
-    {
-      budgetName: 'Salary',
-      type: 'Income',
-      userID: 'user123',
-      accountID: 'accountA',
-      tagsID: 'income123',
-      currentAmount: 3000,
-      targetAmount: 3000,
-      createdDate: '2024-01-01',
-      month: 1,
-      year: 2024,
-    },
-    {
-      budgetName: 'Freelance',
-      type: 'Income',
-      userID: 'user123',
-      accountID: 'accountA',
-      tagsID: 'freelance123',
-      currentAmount: 800,
-      targetAmount: 1000,
-      createdDate: '2024-02-01',
-      month: 2,
-      year: 2024,
-    },
-    {
-      budgetName: 'Savings',
-      type: 'Income',
-      userID: 'user123',
-      accountID: 'accountA',
-      tagsID: 'savings123',
-      currentAmount: 400,
-      targetAmount: 1000,
-      createdDate: '2024-03-01',
-      month: 3,
-      year: 2024,
-    },
-  ];
-
   incomeTotalWithBudget: any;
   expenseTotalWithBudget: any;
 
@@ -267,12 +165,15 @@ export class BudgetComponent {
       this.expensetransactions,
       'expense'
     );
-    console.log(this.incomeTotalWithBudget);
-    
   }
 
   getPercentage(number1: number, number2: number): number {
-    return parseFloat(((number1 / number2) * 100).toFixed(2));
+    let percentage = parseFloat(((number1 / number2) * 100).toFixed(2));
+    if (percentage >= 100) {
+      return 100;
+    } else {
+      return percentage;
+    }
   }
 
   @ViewChild('monthDropdownButton', { static: false })
@@ -371,207 +272,6 @@ export class BudgetComponent {
     }
   }
 
-  //------------------------------------Donut chart------------------------------------
-
-  @ViewChild(BaseChartDirective) donutChart:
-    | BaseChartDirective<'doughnut'>
-    | undefined;
-
-  public doughnutChartData: ChartData<'doughnut'> = {
-    labels: ['Salary', 'Freelance', 'Other'],
-    datasets: [
-      {
-        data: [1350, 4500, 100],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  public doughnutChartType = 'doughnut' as const;
-
-  public doughnutChartOptions: ChartConfiguration<'doughnut'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-  };
-
-  updateDonutChartColors() {
-    if (this.currentTheme === 'dark') {
-      this.doughnutChartData = {
-        ...this.doughnutChartData,
-        datasets: [
-          {
-            data: [1350, 4500, 100],
-            backgroundColor: ['#FF6384', '#36A2EB', 'rgba(251, 146, 60, 1)'],
-            borderWidth: 1,
-            borderColor: 'rgba(15, 23, 42, 1)',
-          },
-        ],
-      };
-      this.doughnutChartOptions = {
-        ...this.doughnutChartOptions,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              color: 'white',
-            },
-          },
-        },
-      };
-    } else {
-      this.doughnutChartData = {
-        ...this.doughnutChartData,
-        datasets: [
-          {
-            data: [1350, 4500, 100],
-            backgroundColor: ['#FF6384', '#36A2EB', 'rgba(251, 146, 60, 1)'],
-            borderWidth: 1,
-            borderColor: 'white',
-          },
-        ],
-      };
-      this.doughnutChartOptions = {
-        ...this.doughnutChartOptions,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              color: 'black',
-            },
-          },
-        },
-      };
-    }
-    this.donutChart?.update();
-  }
-
-  //------------------------------------Bar chart------------------------------------
-
-  @ViewChild(BaseChartDirective) barChart:
-    | BaseChartDirective<'bar'>
-    | undefined;
-
-  public barChartOptions: ChartConfiguration<'bar'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    // We use these empty structures as placeholders for dynamic theming.
-    scales: {
-      x: {},
-      y: {
-        min: 10,
-      },
-    },
-    plugins: {
-      legend: {
-        display: true,
-      },
-      tooltip: {
-        enabled: true,
-      },
-      // datalabels: {
-      //   anchor: 'end',
-      //   align: 'end',
-      // },
-    },
-  };
-
-  public barChartType = 'bar' as const;
-
-  public barChartData: ChartData<'bar'> = {
-    labels: ['Apr', 'May', 'Jun', 'Jul', 'August'],
-    datasets: [
-      {
-        data: [4300, 4300, 4500, 4500, 4500],
-        label: 'Salary',
-        backgroundColor: 'rgba(74, 222, 128, 1)',
-        stack: 'a',
-      },
-      {
-        data: [2500, 2600, 3000, 2700, 2400],
-        label: 'Freelance',
-        backgroundColor: 'rgba(248, 113, 113, 1)',
-        stack: 'a',
-      },
-      {
-        data: [250, 200, 300, 700, 400],
-        label: 'Other',
-        backgroundColor: 'rgba(248, 113, 113, 1)',
-        stack: 'a',
-      },
-    ],
-  };
-
-  updateBarChartColors() {
-    if (this.currentTheme === 'dark') {
-      this.barChartOptions = {
-        ...this.barChartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'white',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(107, 114, 128, 1)',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'white',
-            },
-          },
-        },
-      };
-    } else {
-      this.barChartOptions = {
-        ...this.barChartOptions,
-        scales: {
-          y: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-          x: {
-            ticks: {
-              color: 'black',
-            },
-            grid: {
-              lineWidth: 1,
-              color: 'rgba(229, 231, 235, 1)',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: true,
-            labels: {
-              color: 'black',
-            },
-          },
-        },
-      };
-    }
-    this.barChart?.update();
-  }
-
   getTransactionsTotal(type: string) {
     if (type === 'income') {
       return this.incomeTotalWithBudget.map((item: any) => item.total);
@@ -606,6 +306,57 @@ export class BudgetComponent {
     }
   }
 
+  getBudgetMonthlyData(type: string) {
+    let data: any[] = [];
+    if (type === 'income') {
+      this.incomebudgets.forEach((income: any) => {
+        let colorToConvert = ('bg-' +
+          income.tag.color +
+          '-600') as keyof typeof colorToHex;
+
+        data.push({
+          data: this.chartDataService.getMonthlyBudgetTotal(
+            income,
+            this.months,
+            this.transactions
+          ),
+          label: income.budgetname,
+          pointBackgroundColor: 'rgba(148,159,177,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(148,159,177,0.8)',
+          borderColor: colorToHex[colorToConvert],
+        });
+      });
+    } else {
+      this.expensebudgets.forEach((expense: any) => {
+        let colorToConvert = ('bg-' +
+          expense.tag.color +
+          '-600') as keyof typeof colorToHex;
+
+        data.push({
+          data: this.chartDataService.getMonthlyBudgetTotal(
+            expense,
+            this.months,
+            this.transactions
+          ),
+          label: expense.budgetname,
+          pointBackgroundColor: 'rgba(148,159,177,1)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgba(148,159,177,0.8)',
+          borderColor: colorToHex[colorToConvert],
+        });
+      });
+    }
+    console.log(data);
+    return data;
+  }
+
+  getMonthLabel() {
+    return this.chartDataService.getMonthLabel(this.months);
+  }
+
   //------------------------------------Line chart------------------------------------
 
   public incomeDonutChartData: ChartData<'doughnut'> = {
@@ -613,6 +364,14 @@ export class BudgetComponent {
   };
 
   public expenseDonutChartData: ChartData<'doughnut'> = {
+    datasets: [],
+  };
+
+  public incomeLineChartData: ChartConfiguration['data'] = {
+    datasets: [],
+  };
+
+  public expenseLineChartData: ChartConfiguration['data'] = {
     datasets: [],
   };
 
@@ -641,6 +400,22 @@ export class BudgetComponent {
           borderWidth: 3,
         },
       ],
+    };
+  }
+
+  updateIncomeLineChart() {
+    this.incomeLineChartData = {
+      ...this.incomeLineChartData,
+      datasets: this.getBudgetMonthlyData('income'),
+      labels: this.getMonthLabel(),
+    };
+  }
+
+  updateExpenseLineChart() {
+    this.expenseLineChartData = {
+      ...this.expenseLineChartData,
+      datasets: this.getBudgetMonthlyData('expense'),
+      labels: this.getMonthLabel(),
     };
   }
 }

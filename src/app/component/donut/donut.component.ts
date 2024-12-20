@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 export class DonutComponent {
   @Input() percentage: number = 0;
   @Input() color: string = '';
+  @Input() isGreen: boolean = true;
 
   currentTheme = '';
 

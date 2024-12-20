@@ -14,15 +14,25 @@
   <circle
     [attr.class]="
       'transition-all duration-300 ease-out ' +
-      (percentage < 30
-        ? 'text-yellow-400'
+      (isGreen
+        ? percentage < 30
+          ? 'text-yellow-400'
+          : percentage >= 30 && percentage < 50
+          ? 'text-yellow-500'
+          : percentage >= 50 && percentage < 70
+          ? 'text-green-400'
+          : percentage >= 70 && percentage < 90
+          ? 'text-green-500'
+          : 'text-green-600'
+        : percentage < 30
+        ? 'text-green-600'
         : percentage >= 30 && percentage < 50
-        ? 'text-yellow-500'
+        ? 'text-yellow-400'
         : percentage >= 50 && percentage < 70
-        ? 'text-green-400'
+        ? 'text-yellow-500'
         : percentage >= 70 && percentage < 90
-        ? 'text-green-500'
-        : 'text-green-600')
+        ? 'text-red-400'
+        : 'text-red-600')
     "
     [attr.stroke-dasharray]="percentage + ', 100'"
     stroke-width="3.8"

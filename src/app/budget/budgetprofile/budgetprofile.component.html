@@ -6,70 +6,97 @@
       >Budget</span
     >
     <span>></span>
-    <span>{{ id }}</span>
+    <span>{{ budget.budgetname }}</span>
   </div>
-  <div class="flex flex-row justify-between items-center">
-    <span
-      class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
-      >{{ id }}</span
-    >
-    <span
-      class="cursor-pointer text-xs lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
-      >MYR</span
-    >
-  </div>
-  <div class="flex flex-row justify-center gap-2">
-    <span
-      class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-32 px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
-      (click)="toggleAccDropdown()"
-      #accDropdownButton
-    >
-      <span>{{ selectedAcc }}</span>
-      <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
-    </span>
-    <div
-      #accDropdownOverlay
-      *ngIf="accDropdown"
-      class="absolute z-10 mt-8 mr-40 w-40 bg-white dark:bg-gray-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
-    >
-      <ul>
-        <li
-          *ngFor="let acc of accounts"
-          (click)="selectAcc(acc)"
-          class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-        >
-          {{ acc }}
-        </li>
-      </ul>
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-row">
+      <span
+        class="flex flex-row gap-1 text-xxs lg:text-xs text-white rounded-2xl p-1 justify-start inline-flex"
+        [ngClass]="
+          budget.budgettype === 'income' ? getColors('green') : getColors('red')
+        "
+        ><fa-icon
+          [icon]="
+            budget.budgettype === 'income'
+              ? getIcon('faSignIn')
+              : getIcon('faSignOut')
+          "
+        ></fa-icon
+        ><span class="inline-flex whitespace-nowrap">{{
+          budget.budgettype === "income" ? "INCOME" : "EXPENSE"
+        }}</span></span
+      >
     </div>
-    <span
-      #monthDropdownButton
-      class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-32 px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
-      (click)="toggleMonthDropdown()"
-    >
-      <span>{{ selectedMonth }}</span>
-      <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
-    </span>
-    <div
-      *ngIf="monthDropdown"
-      #monthDropdownOverlay
-      class="absolute z-10 mt-8 ml-40 w-40 bg-white dark:bg-gray-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
-    >
-      <ul>
-        <li
-          *ngFor="let month of months"
-          (click)="selectMonth(month)"
-          class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-        >
-          {{ month }}
-        </li>
-      </ul>
+    <div class="flex flex-row justify-between items-center">
+      <span
+        class="tracking-wider font-yeseva text-lg lg-m:text-2xl lg:text-4xl font-medium"
+        >{{ budget.budgetname }}</span
+      >
+      <span
+        class="cursor-pointer text-xs lg-m:text-base h-5 w-10 lg-m:h-10 lg-m:w-16 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+        >MYR</span
+      >
+    </div>
+  </div>
+  <span>Please choose your account and month.</span>
+  <div class="flex flex-row justify-center gap-2">
+    <div class="flex flex-col items-center gap-1">
+      <span class="text-xs text-gray-600 dark:text-gray-300">Account</span>
+      <span
+        class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-32 px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+        (click)="toggleAccDropdown()"
+        #accDropdownButton
+      >
+        <span>{{ selectedAcc }}</span>
+        <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
+      </span>
+      <div
+        #accDropdownOverlay
+        *ngIf="accDropdown"
+        class="absolute z-10 mt-8 mr-40 w-40 bg-white dark:bg-gray-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+      >
+        <ul>
+          <li
+            *ngFor="let acc of accounts"
+            (click)="selectAcc(acc)"
+            class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            {{ acc }}
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="flex flex-col items-center gap-1">
+      <span class="text-xs text-gray-600 dark:text-gray-300">Month</span>
+      <span
+        #monthDropdownButton
+        class="flex flex-row gap-1 cursor-pointer text-xs lg-m:text-base h-8 w-32 px-2 flex bg-white hover:bg-gray-200 dark:bg-gray-950 dark:hover:bg-gray-800 justify-center items-center rounded-full border border-black dark:border-white"
+        (click)="toggleMonthDropdown()"
+      >
+        <span>{{ selectedMonth }}</span>
+        <fa-icon [icon]="getIcon('faChevronDown')"></fa-icon>
+      </span>
+      <div
+        *ngIf="monthDropdown"
+        #monthDropdownOverlay
+        class="absolute z-10 mt-8 ml-40 w-40 bg-white dark:bg-gray-900 border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto"
+      >
+        <ul>
+          <li
+            *ngFor="let month of months"
+            (click)="selectMonth(month)"
+            class="cursor-pointer px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            {{ month }}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
   <div class="grid grid-cols-3">
     <div class="col-span-1"></div>
     <div
-      class="col-span-1 flex flex-col gap-2 justify-start h-full w-full border border-gray-200 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
+      class="col-span-1 flex flex-col gap-2 justify-start h-full w-full border border-gray-400 dark:border-slate-700 rounded-md p-4 bg-white dark:bg-slate-900"
     >
       <div class="flex flex-row items-center gap-2">
         <span class="text-red-600">
@@ -96,8 +123,5 @@
       >
       </canvas>
     </div>
-  </div>
-  <div class="px-40">
-    <!-- <app-paginator [itemsPerPage]="7" name="transaction"></app-paginator> -->
   </div>
 </div>

@@ -17,6 +17,9 @@ import { ProgressbarComponent } from '../../component/progressbar/progressbar.co
 import { TagComponent } from '../../component/tag/tag.component';
 import { ChartConfiguration, ChartType } from 'chart.js';
 import { PaginatorComponent } from '../../component/paginator/paginator.component';
+import { ChartdataService } from '../../service/chartdata.service';
+import { DatabaseService } from '../../service/database.service';
+import { ColorService } from '../../service/color.service';
 
 @Component({
   selector: 'app-budgetprofile',
@@ -35,59 +38,30 @@ import { PaginatorComponent } from '../../component/paginator/paginator.componen
   styleUrl: './budgetprofile.component.css',
 })
 export class BudgetprofileComponent implements OnInit {
-  months = [
-    'All',
-    'Jan 2022',
-    'Feb 2022',
-    'Mar 2022',
-    'Apr 2022',
-    'May 2022',
-    'Jun 2022',
-    'Jul 2022',
-    'Aug 2022',
-    'Sep 2022',
-    'Oct 2022',
-    'Nov 2022',
-    'Dec 2022',
-    'Jan 2023',
-    'Feb 2023',
-    'Mar 2023',
-    'Apr 2023',
-    'May 2023',
-    'Jun 2023',
-    'Jul 2023',
-    'Aug 2023',
-    'Sep 2023',
-    'Oct 2023',
-    'Nov 2023',
-    'Dec 2023',
-    'Jan 2024',
-    'Feb 2024',
-    'Mar 2024',
-    'Apr 2024',
-    'May 2024',
-    'Jun 2024',
-    'Jul 2024',
-    'Aug 2024',
-    'Sep 2024',
-    'Oct 2024',
-    'Nov 2024',
-  ];
 
-  accounts = ['Account 1', 'Account 2', 'All'];
+  accounts: any;
+
+  months: any;
+  selectedMonth: any;
+
+  transactions: any;
+  filteredTransactions: any[] = [];
 
   id: any;
+
+
   currentTheme = 'light';
+
+  budget: any;
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private chartDataService: ChartdataService,
+    private dbService: DatabaseService,
+    private colorService: ColorService
   ) {
-    this.currentTheme = this.themeService.currentTheme;
-  }
-
-  ngOnInit() {
     this.id = this.route.snapshot.paramMap.get('id');
     this.route.paramMap.subscribe((params) => {
       this.id = params.get('id');
@@ -96,7 +70,18 @@ export class BudgetprofileComponent implements OnInit {
       this.currentTheme = theme;
       this.updateLineChartColors();
     });
+    this.dbService.budgetTag$.subscribe((budgets) => {
+      if (budgets.length > 0) {
+        this.budget = budgets.filter((budget) => budget.id === this.id).at(0);
+      }
+    })
+    this.dbService.months$.subscribe((month) => {
+      this.months = month.filter((month: any) => month !== 'All');
+      this.selectedMonth = this.months[this.months.length - 1];
+    });
   }
+
+  ngOnInit() {}
 
   goToBudget() {
     this.router.navigate(['/budget']);
@@ -106,12 +91,14 @@ export class BudgetprofileComponent implements OnInit {
     return icons[icon] || null;
   }
 
+  getColors(colorName: string) {
+    return this.colorService.getColor(colorName, 'dark');
+  }
+
   @ViewChild('monthDropdownButton', { static: false })
   monthDropdownButton!: ElementRef;
   @ViewChild('monthDropdownOverlay', { static: false })
   monthDropdownOverlay!: ElementRef;
-
-  selectedMonth: any = 'Oct 2024';
 
   monthDropdown: boolean = false;
 

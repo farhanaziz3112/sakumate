@@ -162,7 +162,12 @@ export class GoalComponent implements OnInit {
   }
 
   getPercentage(number1: number, number2: number): number {
-    return parseFloat(((number1 / number2) * 100).toFixed(2));
+    let percentage = parseFloat(((number1 / number2) * 100).toFixed(2));
+    if (percentage >= 100) {
+      return 100;
+    } else {
+      return percentage;
+    }
   }
 
   addGoal() {

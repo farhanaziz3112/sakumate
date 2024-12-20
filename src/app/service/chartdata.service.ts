@@ -228,6 +228,37 @@ export class ChartdataService {
     return total;
   }
 
+  getMonthlyBudgetTotal(
+    budget: any,
+    months: any[],
+    transactions: any[],
+  ) {
+    let data: any[] = [];
+    for (let i = 0; i < months.length; i++) {
+      if (months[i] === 'All') {
+        continue;
+      }
+      let total = 0;
+      const [monthStr, yearStr] = months[i].split(' ');
+      const date = new Date(`${monthStr} 1, ${yearStr}`);
+      transactions.forEach((transaction: any) => {
+        let transactiondate = new Date(transaction.created_at);
+        if (
+          transaction.budget.id === budget.id &&
+          date.getMonth() === transactiondate.getMonth()
+        ) {
+          if (transaction.type === 'income') {
+            total += transaction.amount;
+          } else {
+            total += -transaction.amount;
+          }
+        }
+      });
+      data.push(total);
+    }
+    return data;
+  }
+
   getTransactionTotal(uniqueType: any[], transactions: any[], type: string) {
     let data: any[] = [];
     for (let i = 0; i < uniqueType.length; i++) {
@@ -261,6 +292,7 @@ export class ChartdataService {
         });
       }
     }
+    // data.sort((a: any, b: any) => a.total - b.total);
     return data;
   }
 
